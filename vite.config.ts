@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/objetos/',
+  base: '/Bit-1.0/',
   build: {
     target: 'es2022',
     outDir: 'dist',
