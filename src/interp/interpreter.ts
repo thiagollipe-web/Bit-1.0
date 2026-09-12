@@ -235,6 +235,14 @@ export class Interpreter {
             else if (prop === 'y') obj.y = Number(value) || 0;
             else if (prop === 'vx') obj.vx = Number(value) || 0;
             else if (prop === 'vy') obj.vy = Number(value) || 0;
+            else if (prop === 'largura') {
+              obj.width = Number(value) || 0;
+              if (obj.shape) obj.shape.width = obj.width;
+            }
+            else if (prop === 'altura') {
+              obj.height = Number(value) || 0;
+              if (obj.shape) obj.shape.height = obj.height;
+            }
             else if (prop === 'ativo') obj.active = Boolean(value);
             else obj.props[prop] = value;
           } else if (typeof obj === 'object' && obj !== null) {
@@ -243,11 +251,19 @@ export class Interpreter {
         } else {
           // If the target is an actor and current actor matches
           const lowerTarget = stmt.target.toLowerCase();
-          if (this.currentActor && ['x', 'y', 'vx', 'vy'].includes(lowerTarget)) {
+          if (this.currentActor && ['x', 'y', 'vx', 'vy', 'largura', 'altura'].includes(lowerTarget)) {
             if (lowerTarget === 'x') this.currentActor.x = Number(value) || 0;
             if (lowerTarget === 'y') this.currentActor.y = Number(value) || 0;
             if (lowerTarget === 'vx') this.currentActor.vx = Number(value) || 0;
             if (lowerTarget === 'vy') this.currentActor.vy = Number(value) || 0;
+            if (lowerTarget === 'largura') {
+              this.currentActor.width = Number(value) || 0;
+              if (this.currentActor.shape) this.currentActor.shape.width = this.currentActor.width;
+            }
+            if (lowerTarget === 'altura') {
+              this.currentActor.height = Number(value) || 0;
+              if (this.currentActor.shape) this.currentActor.shape.height = this.currentActor.height;
+            }
           } else {
             env.assign(stmt.target, value);
           }

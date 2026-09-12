@@ -23,15 +23,19 @@ const requiredFiles = [
   'src/runtime/actor.ts',
   'src/runtime/game.ts',
   'src/runtime/collision.ts',
+  'src/index.ts',
+  'src/library-data.ts',
   'examples/pong.bit',
   'examples/nave.bit',
   'examples/breakout.bit',
+  'examples/tetris.bit',
   'tests/parser.test.ts',
   'tests/lexer.test.ts',
   'tests/builtins.test.ts',
   'tests/interpreter.test.ts',
   'tests/runtime.test.ts',
-  'tests/examples.test.ts'
+  'tests/examples.test.ts',
+  'tests/library.test.ts'
 ];
 
 console.log('1. Verificação de Estrutura:');

@@ -12,6 +12,7 @@
       --bg: #0f1016;
       --card-bg: #1a1b26;
       --surface: #242638;
+      --surface-hover: #2e324a;
       --primary: #4ade80;
       --primary-hover: #22c55e;
       --accent: #38bdf8;
@@ -44,6 +45,7 @@
       justify-content: space-between;
       gap: 12px;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
     .brand {
       display: flex;
@@ -79,6 +81,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      flex-wrap: wrap;
     }
     select, button {
       font-family: inherit;
@@ -90,10 +93,32 @@
       padding: 6px 12px;
       cursor: pointer;
       transition: all 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
     select:focus, button:focus {
       outline: none;
       border-color: var(--accent);
+    }
+    .btn-new {
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      color: #000;
+      font-weight: 700;
+      border: none;
+    }
+    .btn-new:hover {
+      filter: brightness(1.1);
+    }
+    .btn-lib {
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      color: #fff;
+      font-weight: 600;
+      border: none;
+    }
+    .btn-lib:hover {
+      filter: brightness(1.15);
     }
     .btn-run {
       background: var(--primary);
@@ -135,7 +160,40 @@
       color: var(--text-muted);
       border-bottom: 1px solid var(--border);
       display: flex;
+      align-items: center;
       justify-content: space-between;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .editor-bar-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .save-status {
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: rgba(74, 222, 128, 0.15);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .editor-tools {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-snippet {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      border-radius: 4px;
+    }
+    .btn-snippet:hover {
+      color: var(--text);
+      border-color: var(--accent);
     }
     #code-editor {
       flex: 1;
@@ -228,6 +286,235 @@
     .console-log .log-error {
       color: var(--danger);
     }
+
+    /* Modal Criar Novo Programa */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+    .modal-overlay.hidden {
+      display: none;
+    }
+    .modal-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 100%;
+      max-width: 480px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .form-input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 14px;
+      outline: none;
+    }
+    .form-input:focus {
+      border-color: var(--accent);
+    }
+    .template-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .template-card {
+      background: var(--surface);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .template-card:hover {
+      background: var(--surface-hover);
+      border-color: var(--accent);
+    }
+    .template-card.selected {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+    }
+    .template-card-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .template-card-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    /* Estilos da Biblioteca do Bit */
+    .modal-card-library {
+      max-width: 720px;
+      max-height: 88vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .lib-search-bar {
+      display: flex;
+      gap: 8px;
+    }
+    .lib-categories {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .lib-cat-btn {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+    .lib-cat-btn:hover {
+      color: var(--text);
+      border-color: var(--accent);
+    }
+    .lib-cat-btn.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      border-color: var(--accent);
+    }
+    .lib-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding-right: 4px;
+      max-height: 52vh;
+    }
+    .lib-item-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      transition: border-color 0.15s;
+    }
+    .lib-item-card:hover {
+      border-color: #475569;
+    }
+    .lib-item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    .lib-item-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: monospace;
+    }
+    .lib-item-badge {
+      font-size: 10px;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-muted);
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .lib-item-syntax {
+      font-family: monospace;
+      font-size: 12px;
+      background: #0d0e15;
+      padding: 6px 8px;
+      border-radius: 4px;
+      border-left: 3px solid var(--primary);
+      color: #e2e8f0;
+      white-space: pre-wrap;
+    }
+    .lib-item-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+    .lib-item-example {
+      background: #0d0e15;
+      border-radius: 4px;
+      padding: 6px 8px;
+      font-family: monospace;
+      font-size: 11px;
+      color: #94a3b8;
+      white-space: pre-wrap;
+      border: 1px dashed var(--border);
+    }
+    .lib-item-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .btn-lib-action {
+      font-size: 11px;
+      padding: 3px 8px;
+      border-radius: 4px;
+    }
   </style>
 </head>
 <body>
@@ -240,11 +527,19 @@
       <span class="brand-tag">v1.0.0</span>
     </div>
     <div class="header-actions">
+      <button id="btn-new" class="btn-new" title="Criar um novo jogo ou programa">✨ + Novo Programa</button>
+      <button id="btn-library" class="btn-lib" title="Consultar comandos, funções e referências da Linguagem Bit">📚 Biblioteca</button>
       <select id="example-select">
-        <option value="pong">Exemplo: Pong</option>
-        <option value="nave">Exemplo: Nave Espacial</option>
-        <option value="breakout">Exemplo: Breakout</option>
-        <option value="senao_se">Exemplo: Senão Se</option>
+        <optgroup label="Seu Projeto">
+          <option value="meu_programa">★ Meu Programa</option>
+        </optgroup>
+        <optgroup label="Exemplos Prontos">
+          <option value="tetris">Tetris 2D</option>
+          <option value="pong">Pong 2D</option>
+          <option value="nave">Nave Espacial</option>
+          <option value="breakout">Breakout</option>
+          <option value="senao_se">Lógica: Senão Se</option>
+        </optgroup>
       </select>
       <button id="btn-run" class="btn-run">▶ Executar</button>
       <button id="btn-stop" class="btn-stop">■ Parar</button>
@@ -253,8 +548,18 @@
   <main>
     <div class="editor-pane">
       <div class="editor-bar">
-        <span>Código Bit (Português)</span>
-        <span id="cursor-pos">Linha 1, Col 1</span>
+        <div class="editor-bar-left">
+          <span id="project-title" style="font-weight: 600; color: var(--text);">Código Bit</span>
+          <span id="save-status" class="save-status">Salvo</span>
+        </div>
+        <div class="editor-tools">
+          <span style="font-size: 11px; margin-right: 4px;">Inserir:</span>
+          <button class="btn-snippet" data-snippet="ator" title="Inserir modelo de ator">+ Ator</button>
+          <button class="btn-snippet" data-snippet="se" title="Inserir condição se ... então">+ Se</button>
+          <button class="btn-snippet" data-snippet="repita" title="Inserir loop repita">+ Repita</button>
+          <button class="btn-snippet" data-snippet="diga" title="Inserir comando diga">+ Diga</button>
+          <span id="cursor-pos" style="margin-left: 8px;">Linha 1, Col 1</span>
+        </div>
       </div>
       <textarea id="code-editor" spellcheck="false"></textarea>
     </div>
@@ -278,6 +583,80 @@
       </div>
     </div>
   </main>
+
+  <!-- Modal Criar Novo Programa -->
+  <div id="new-modal" class="modal-overlay hidden">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div class="modal-title">Novo Programa Bit</div>
+        <button id="btn-modal-close" class="modal-close">✕</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="new-program-name">Nome do seu Jogo ou Programa:</label>
+        <input type="text" id="new-program-name" class="form-input" value="Meu Novo Jogo" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Escolha como deseja começar:</label>
+        <div class="template-grid">
+          <div class="template-card selected" data-template="personagem">
+            <div class="template-card-title">🎮 Personagem</div>
+            <div class="template-card-desc">Ator controlável com setas ou gamepad virtual.</div>
+          </div>
+          <div class="template-card" data-template="bola">
+            <div class="template-card-title">⚽ Bola Quicando</div>
+            <div class="template-card-desc">Física com velocidade e quique automático nas bordas.</div>
+          </div>
+          <div class="template-card" data-template="coletar">
+            <div class="template-card-title">🎯 Coletar Moeda</div>
+            <div class="template-card-desc">Jogador, moeda aleatória e contador de pontos.</div>
+          </div>
+          <div class="template-card" data-template="tetris">
+            <div class="template-card-title">🧱 Tetris 2D</div>
+            <div class="template-card-desc">Peças caindo, paredes laterais, chão e pontuação.</div>
+          </div>
+          <div class="template-card" data-template="vazio">
+            <div class="template-card-title">📄 Em Branco</div>
+            <div class="template-card-desc">Estrutura mínima de tela 160x120 limpa.</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-modal-cancel">Cancelar</button>
+        <button id="btn-modal-confirm" class="btn-new">Criar Programa</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal da Biblioteca do Bit -->
+  <div id="library-modal" class="modal-overlay hidden">
+    <div class="modal-card modal-card-library">
+      <div class="modal-header">
+        <div class="modal-title">📚 Biblioteca do Bit 1.0</div>
+        <button id="btn-lib-close" class="modal-close">✕</button>
+      </div>
+      
+      <div class="lib-search-bar">
+        <input type="text" id="lib-search-input" class="form-input" style="flex: 1;" placeholder="🔍 Buscar comando, função ou propriedade (ex: aleatorio, tela, quica)..." />
+      </div>
+
+      <div class="lib-categories" id="lib-categories">
+        <button class="lib-cat-btn active" data-cat="todas">Todas</button>
+        <button class="lib-cat-btn" data-cat="cenario">Cenário</button>
+        <button class="lib-cat-btn" data-cat="atores">Atores</button>
+        <button class="lib-cat-btn" data-cat="comportamento">Comportamento</button>
+        <button class="lib-cat-btn" data-cat="eventos">Eventos</button>
+        <button class="lib-cat-btn" data-cat="controle">Controle</button>
+        <button class="lib-cat-btn" data-cat="funcoes">Funções</button>
+        <button class="lib-cat-btn" data-cat="propriedades">Propriedades</button>
+        <button class="lib-cat-btn" data-cat="cores">Cores</button>
+      </div>
+
+      <div class="lib-list" id="lib-list">
+        <!-- Renderizado dinamicamente via JS -->
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

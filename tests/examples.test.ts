@@ -54,4 +54,18 @@ describe('Exemplos da Linguagem Bit', () => {
       game.step();
     }
   });
+
+  it('faz parse e executa steps de examples/tetris.bit', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/tetris.bit');
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    const tokens = tokenize(content);
+    const ast = parse(tokens);
+    expect(ast.actors.length).toBe(6); // BordaEsq, BordaDir, Chao, Pilha1, Pilha2, Peca
+
+    const game = new Game(ast);
+    for (let i = 0; i < 10; i++) {
+      game.step();
+    }
+  });
 });
