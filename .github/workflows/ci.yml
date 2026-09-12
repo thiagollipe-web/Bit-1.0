@@ -1,4 +1,4 @@
-name: CI Bit 1.0
+name: CI BIT
 
 on:
   push:
@@ -12,35 +12,34 @@ permissions:
   id-token: write
 
 concurrency:
-  group: 'pages'
+  group: pages
   cancel-in-progress: true
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout do Repositório
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
 
-      - name: Instalar Dependências
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
-      - name: Executar Testes Automatizados
+      - name: Run tests
         run: npm test
 
-      - name: Executar Build de Produção
+      - name: Build
         run: npm run build
 
-      - name: Executar Verificação e Limite de Tamanho do Bundle
-        run: node scripts/verify-bit.mjs
+      - name: Verify BIT
+        run: npm run verify
 
-      - name: Upload de Artefato para GitHub Pages
+      - name: Upload Pages artifact
         if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v3
         with:
@@ -54,6 +53,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Deploy no GitHub Pages
+      - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
