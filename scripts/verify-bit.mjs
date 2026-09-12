@@ -1,127 +1,70 @@
-import fs from 'fs';
-import path from 'path';
-import { execSync } from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-console.log('🔍 INICIANDO VERIFICAÇÃO BIT 1.0');
-console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-
-let allPass = true;
-
-// 1. Verificação de Estrutura de Arquivos
-const requiredFiles = [
-  'package.json',
-  'tsconfig.json',
-  'vite.config.ts',
-  'index.html',
-  'src/types.ts',
-  'src/colors.ts',
-  'src/lexer.ts',
-  'src/parser.ts',
-  'src/interp/builtins.ts',
-  'src/interp/interpreter.ts',
-  'src/runtime/actor.ts',
-  'src/runtime/game.ts',
-  'src/runtime/collision.ts',
-  'src/index.ts',
-  'src/library-data.ts',
-  'examples/pong.bit',
-  'examples/nave.bit',
-  'examples/breakout.bit',
-  'examples/tetris.bit',
-  'tests/parser.test.ts',
-  'tests/lexer.test.ts',
-  'tests/builtins.test.ts',
-  'tests/interpreter.test.ts',
-  'tests/runtime.test.ts',
-  'tests/examples.test.ts',
-  'tests/library.test.ts'
+const ROOT = process.cwd();
+const REQUIRED = [
+  'package.json','tsconfig.json','vite.config.ts','index.html',
+  'src/types.ts','src/colors.ts','src/lexer.ts','src/parser.ts',
+  'src/interp/builtins.ts','src/interp/interpreter.ts',
+  'src/runtime/actor.ts','src/runtime/game.ts','src/runtime/collision.ts',
+  'src/index.ts','src/library-data.ts','src/grammar.ts',
+  'docs/README.md','docs/BIT-LANGUAGE-REFERENCE.md','stdlib/README.md',
+  'examples/hello.bit','examples/movement.bit','examples/pong.bit',
+  'examples/nave.bit','examples/breakout.bit','examples/tetris.bit',
+  'tests/lexer.test.ts','tests/parser.test.ts','tests/grammar-v1.2.test.ts',
+  'tests/builtins.test.ts','tests/interpreter.test.ts','tests/runtime.test.ts',
+  'tests/examples.test.ts','tests/library.test.ts'
 ];
 
-console.log('1. Verificação de Estrutura:');
-let missingFiles = 0;
-for (const file of requiredFiles) {
-  const fullPath = path.resolve(process.cwd(), file);
-  if (!fs.existsSync(fullPath)) {
-    console.error(`  ❌ Arquivo ausente: ${file}`);
-    missingFiles++;
-    allPass = false;
+let ok = true;
+const fail = (m) => { console.error(`  ❌ ${m}`); ok = false; };
+const pass = (m) => console.log(`  ✓ ${m}`);
+
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log('🔍 VERIFICAÇÃO BIT 1.2');
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
+if (pkg.version === '1.2.0') pass('package.json está na versão 1.2.0.');
+else fail(`package.json está na versão ${pkg.version}; esperado 1.2.0.`);
+
+for (const file of REQUIRED) {
+  if (fs.existsSync(path.join(ROOT, file))) pass(file);
+  else fail(`Arquivo ausente: ${file}`);
+}
+
+const vite = fs.readFileSync(path.join(ROOT, 'vite.config.ts'), 'utf8');
+if (vite.includes("base: '/Bit-1.0/'")) pass('Vite usa base /Bit-1.0/.');
+else fail('vite.config.ts não usa base /Bit-1.0/.');
+
+try {
+  execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['test', '--', '--run'], { cwd: ROOT, stdio: 'inherit' });
+  pass('Suíte Vitest passou.');
+} catch {
+  fail('A suíte Vitest falhou.');
+}
+
+try {
+  execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['run', 'build'], { cwd: ROOT, stdio: 'inherit' });
+  pass('Build de produção passou.');
+} catch {
+  fail('Build de produção falhou.');
+}
+
+const dist = path.join(ROOT, 'dist');
+let bytes = 0;
+function sizeOf(dir) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const p = path.join(dir, entry.name);
+    if (entry.isDirectory()) sizeOf(p);
+    else bytes += fs.statSync(p).size;
   }
 }
-if (missingFiles === 0) {
-  console.log(`  ✓ Todos os ${requiredFiles.length} arquivos essenciais estão presentes.`);
-} else {
-  console.error(`  ❌ ${missingFiles} arquivos ausentes!`);
-}
+if (fs.existsSync(dist)) pass(`dist total: ${(sizeOf(dist), bytes / 1024).toFixed(2)} KB.`);
+else fail('dist não foi gerado.');
 
-// 2. Verificação de Base do GitHub Pages (/objetos/)
-const viteConfigContent = fs.readFileSync(path.resolve(process.cwd(), 'vite.config.ts'), 'utf-8');
-if (viteConfigContent.includes("base: '/objetos/'")) {
-  console.log('  ✓ Configuração base "/objetos/" preservada no vite.config.ts.');
-} else {
-  console.error('  ❌ Base "/objetos/" não encontrada no vite.config.ts!');
-  allPass = false;
-}
-
-// 3. Execução de Testes
-console.log('\n2. Execução dos Testes Automatizados (npm test):');
-try {
-  const testOutput = execSync('npm test', { encoding: 'utf-8', stdio: 'pipe' });
-  console.log('  ✓ Todos os testes unitários e de integração passaram.');
-} catch (err) {
-  console.error('  ❌ Falha na execução dos testes!');
-  console.error(err.stdout || err.message);
-  allPass = false;
-}
-
-// 4. Execução do Build
-console.log('\n3. Execução do Build de Produção (npm run build):');
-try {
-  const buildOutput = execSync('npm run build', { encoding: 'utf-8', stdio: 'pipe' });
-  console.log('  ✓ Build de produção gerado com sucesso.');
-} catch (err) {
-  console.error('  ❌ Falha no build!');
-  console.error(err.stdout || err.message);
-  allPass = false;
-}
-
-// 5. Verificação do Bundle Size
-console.log('\n4. Verificação do Tamanho do Bundle:');
-const distDir = path.resolve(process.cwd(), 'dist');
-let totalBytes = 0;
-if (fs.existsSync(distDir)) {
-  const getDirSize = (dir) => {
-    const files = fs.readdirSync(dir);
-    for (const f of files) {
-      const fp = path.join(dir, f);
-      const stat = fs.statSync(fp);
-      if (stat.isDirectory()) {
-        getDirSize(fp);
-      } else {
-        totalBytes += stat.size;
-      }
-    }
-  };
-  getDirSize(distDir);
-  const totalKB = (totalBytes / 1024).toFixed(2);
-  console.log(`  ✓ Tamanho total do dist: ${totalKB} KB (meta: < 300 KB).`);
-  if (totalBytes > 300 * 1024) {
-    console.warn(`  ⚠️ Alerta: Bundle ultrapassou 300 KB (${totalKB} KB)`);
-  }
-} else {
-  console.error('  ❌ Diretório dist não encontrado.');
-  allPass = false;
-}
-
-console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-if (allPass) {
-  console.log('TESTES: PASS');
-  console.log('BUILD: PASS');
-  console.log('VERIFICAÇÃO: PASS');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-  process.exit(0);
-} else {
-  console.error('TESTES: FAIL ou VERIFICAÇÃO: FAIL');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-  process.exit(1);
-}
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+console.log(ok ? 'VERIFICAÇÃO: PASS' : 'VERIFICAÇÃO: FAIL');
+console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+process.exit(ok ? 0 : 1);
