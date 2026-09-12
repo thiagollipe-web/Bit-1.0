@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Bit 1.0 — Criação de Jogos 2D em Português</title>
+  <meta name="description" content="Linguagem de programação educacional para criar jogos 2D no navegador e celular." />
+  <meta name="theme-color" content="#1a1a24" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <style>
+    :root {
+      --bg: #0f1016;
+      --card-bg: #1a1b26;
+      --surface: #242638;
+      --primary: #4ade80;
+      --primary-hover: #22c55e;
+      --accent: #38bdf8;
+      --text: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: #334155;
+      --danger: #f87171;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    header {
+      background: var(--card-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .brand-logo {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 900;
+      color: #000;
+      font-size: 16px;
+    }
+    .brand-title {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-tag {
+      font-size: 11px;
+      background: var(--surface);
+      color: var(--accent);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    select, button {
+      font-family: inherit;
+      font-size: 13px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text);
+      padding: 6px 12px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    select:focus, button:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    .btn-run {
+      background: var(--primary);
+      color: #000;
+      font-weight: 600;
+      border: none;
+    }
+    .btn-run:hover {
+      background: var(--primary-hover);
+    }
+    .btn-stop {
+      background: var(--danger);
+      color: #fff;
+      border: none;
+    }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: row;
+      overflow: hidden;
+    }
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+      }
+    }
+    .editor-pane {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      min-width: 0;
+      background: #13141f;
+    }
+    .editor-bar {
+      background: var(--card-bg);
+      padding: 6px 12px;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+    }
+    #code-editor {
+      flex: 1;
+      width: 100%;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #e2e8f0;
+      font-family: "Fira Code", Consolas, "Courier New", monospace;
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 12px;
+      resize: none;
+      tab-size: 2;
+    }
+    .preview-pane {
+      width: 360px;
+      display: flex;
+      flex-direction: column;
+      background: var(--card-bg);
+      align-items: center;
+      padding: 12px;
+      gap: 12px;
+      overflow-y: auto;
+    }
+    @media (max-width: 768px) {
+      .preview-pane {
+        width: 100%;
+        height: 48%;
+        border-top: 1px solid var(--border);
+      }
+    }
+    .canvas-container {
+      background: #000;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 320px;
+      height: 240px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+    #game-canvas {
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      width: 100%;
+      height: 100%;
+    }
+    .virtual-gamepad {
+      display: grid;
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(3, 44px);
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .pad-btn {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .pad-btn:active {
+      background: var(--accent);
+      color: #000;
+    }
+    .console-log {
+      width: 100%;
+      background: #0d0e15;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-family: monospace;
+      font-size: 11px;
+      height: 80px;
+      overflow-y: auto;
+      color: var(--text-muted);
+    }
+    .console-log .log-entry {
+      margin-bottom: 2px;
+    }
+    .console-log .log-error {
+      color: var(--danger);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="brand-logo">B</div>
+      <div>
+        <div class="brand-title">Bit 1.0</div>
+      </div>
+      <span class="brand-tag">v1.0.0</span>
+    </div>
+    <div class="header-actions">
+      <select id="example-select">
+        <option value="pong">Exemplo: Pong</option>
+        <option value="nave">Exemplo: Nave Espacial</option>
+        <option value="breakout">Exemplo: Breakout</option>
+        <option value="senao_se">Exemplo: Senão Se</option>
+      </select>
+      <button id="btn-run" class="btn-run">▶ Executar</button>
+      <button id="btn-stop" class="btn-stop">■ Parar</button>
+    </div>
+  </header>
+  <main>
+    <div class="editor-pane">
+      <div class="editor-bar">
+        <span>Código Bit (Português)</span>
+        <span id="cursor-pos">Linha 1, Col 1</span>
+      </div>
+      <textarea id="code-editor" spellcheck="false"></textarea>
+    </div>
+    <div class="preview-pane">
+      <div class="canvas-container">
+        <canvas id="game-canvas" width="160" height="120"></canvas>
+      </div>
+      <div class="virtual-gamepad">
+        <div></div>
+        <button class="pad-btn" id="pad-up">▲</button>
+        <div></div>
+        <button class="pad-btn" id="pad-left">◀</button>
+        <button class="pad-btn" id="pad-act">●</button>
+        <button class="pad-btn" id="pad-right">▶</button>
+        <div></div>
+        <button class="pad-btn" id="pad-down">▼</button>
+        <div></div>
+      </div>
+      <div class="console-log" id="console-output">
+        <div class="log-entry">Console Bit pronto. Pressione "Executar".</div>
+      </div>
+    </div>
+  </main>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

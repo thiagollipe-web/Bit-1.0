@@ -1,0 +1,6 @@
+{
+  "name": "Bit 1.0",
+  "description": "Linguagem de programação educacional brasileira para criar jogos 2D no navegador e mobile",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
