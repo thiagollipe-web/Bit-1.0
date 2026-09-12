@@ -1,8 +1,8 @@
 {
   "name": "bit-linguagem",
-  "version": "1.0.0",
-  "private": true,
-  "description": "Linguagem de programação educacional brasileira para criar jogos 2D no navegador e mobile",
+  "version": "1.2.0",
+  "private": false,
+  "description": "BIT — linguagem textual brasileira para criação de jogos 2D.",
   "type": "module",
   "scripts": {
     "dev": "vite",
