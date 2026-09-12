@@ -1,0 +1,3 @@
+fundo azul
+nome recebe "BIT"
+diga "Olá, " + nome
