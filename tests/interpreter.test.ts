@@ -73,6 +73,32 @@ describe('Interpreter', () => {
     expect(env.get('res')).toBe(42);
   });
 
+  it('rejeita quantidade incorreta de parâmetros em função', () => {
+    const code = `
+      função soma(a, b)
+        retorne a + b
+      fim
+
+      resultado recebe soma(10)
+    `;
+
+    expect(() => {
+      const ast = parse(tokenize(code));
+      const interp = new Interpreter(createBuiltins());
+      interp.executeBlock(ast.globalStatements, interp.globalEnv);
+    }).toThrow('esperava 2 parâmetro(s), mas recebeu 1');
+  });
+
+  it('rejeita parâmetros duplicados na declaração da função', () => {
+    const code = `
+      função soma(a, a)
+        retorne a
+      fim
+    `;
+
+    expect(() => parse(tokenize(code))).toThrow('Parâmetro duplicado');
+  });
+
   it('executa comando diga e registra mensagens de saída', () => {
     const code = `
       diga "Olá, Bit 1.0!"
