@@ -340,6 +340,14 @@ export function parse(tokens: Token[]): ProgramAST {
           if (p.type !== 'PALAVRA') {
             throw new ParseError(`Esperava nome do parâmetro, encontrei ${formatEncontrado(p)}.`, p.line, p.col);
           }
+          const parameterName = normalizeId(p.value);
+          if (params.some(existing => normalizeId(existing) === parameterName)) {
+            throw new ParseError(
+              `Parâmetro duplicado "${p.value}" na função "${name}".`,
+              p.line,
+              p.col
+            );
+          }
           advance();
           params.push(p.value);
         } while (matchPunct(','));
