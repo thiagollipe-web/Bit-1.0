@@ -9,12 +9,12 @@
 body{margin:0;background:#101218;color:#e8eaf0;font-family:Consolas,monospace;display:grid;grid-template-columns:420px 1fr;gap:16px;height:100vh;overflow:hidden}
 aside{padding:16px;border-right:1px solid #30343d;overflow:auto}
 main{display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:16px;min-width:0}
-textarea{width:100%;height:calc(100vh - 190px);box-sizing:border-box;background:#171a21;color:#e8eaf0;border:1px solid #363b46;border-radius:8px;padding:14px;font:14px/1.5 Consolas,monospace;resize:none}
+textarea{width:100%;height:min(62vh,620px);min-height:300px;box-sizing:border-box;background:#171a21;color:#e8eaf0;border:1px solid #363b46;border-radius:8px;padding:14px;font:14px/1.5 Consolas,monospace;resize:vertical}
 button{background:#2e7d32;color:#fff;border:0;border-radius:6px;padding:10px 14px;cursor:pointer;margin-right:6px}
 button.secondary{background:#424750}
 .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 #stageWrap{display:flex;align-items:center;justify-content:center;min-height:0;background:#0a0c10;border:1px solid #30343d;border-radius:8px}
-canvas{image-rendering:pixelated;image-rendering:crisp-edges;max-width:100%;max-height:100%;background:#000}
+canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:min(100%,960px);height:auto;max-height:100%;background:#000;display:block;box-shadow:0 0 0 1px #222}
 #log{height:130px;overflow:auto;background:#0d1015;border:1px solid #30343d;border-radius:8px;padding:10px;white-space:pre-wrap}
 h1{font-size:18px;margin:0 0 8px}
 h2{font-size:14px;margin:18px 0 8px}
@@ -43,7 +43,7 @@ code{color:#9ad8ff}
 "use strict";
 const SAMPLE="tela 320x180\nfundo preto\npontos recebe 0\n\nator Jogador\n  desenho quadrado 16, verde\n  posição 32, 82\n  controlado por setas\n  limita à tela\n  quando atualiza:\n    se tecla(\"espaco\") então\n      pontos recebe pontos + 1\n    fim\n  fim\nfim\n\nator Bola\n  desenho quadrado 10, vermelho\n  posição 160, 90\n  velocidade 2, 1.2\n  quica nas bordas\n  quando colide com \"Jogador\":\n    vx recebe -vx\n    diga \"Colisão! Pontos: \" + pontos\n  fim\nfim\n\ndiga \"BIT iniciado.\"";
 const codeEl=document.getElementById("code"),canvas=document.getElementById("game"),ctx=canvas.getContext("2d"),logEl=document.getElementById("log"),statusEl=document.getElementById("status");
-codeEl.value=localStorage.getItem("bit_standalone_code")||SAMPLE;
+const savedCode=localStorage.getItem("bit_standalone_code");\ncodeEl.value=(savedCode&&savedCode.trim())?savedCode:SAMPLE;\n
 let raf=0,currentGame=null;const keyState=new Set(),mouse={x:0,y:0,active:false},touch={x:0,y:0,active:false},pending=new Set();
 const log=m=>{const e=document.createElement("div");e.textContent=m;logEl.appendChild(e);logEl.scrollTop=logEl.scrollHeight},norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");
 function tokenize(src){const o=[];let i=0,line=1,col=1,adv=()=>{const c=src[i++]||"";c==="\\n"?(line++,col=1):col++;return c},push=(t,v,l=line,c=col)=>o.push({type:t,value:v,line:l,col:c}),dig=c=>c>="0"&&c<="9",letc=c=>/[A-Za-z_À-ÿ]/.test(c);
@@ -93,7 +93,7 @@ canvas.addEventListener("mousemove",e=>{Object.assign(mouse,point(e),{active:tru
 canvas.addEventListener("touchstart",e=>{Object.assign(touch,point(e.touches[0]),{active:true})},{passive:true});canvas.addEventListener("touchmove",e=>{Object.assign(touch,point(e.touches[0]),{active:true})},{passive:true});canvas.addEventListener("touchend",()=>touch.active=false);
 document.getElementById("run").onclick=()=>{try{localStorage.setItem("bit_standalone_code",codeEl.value);logEl.textContent="";const ast=new Parser(tokenize(codeEl.value)).parse();canvas.width=ast.w;canvas.height=ast.h;currentGame=new Game(ast);statusEl.textContent="Executando";cancelAnimationFrame(raf);let last=performance.now();const loop=t=>{if(!currentGame?.running)return;const dt=Math.min(.05,(t-last)/1000);last=t;currentGame.step(dt*60);raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop)}catch(e){statusEl.textContent="Erro";log("ERRO: "+e.message)}};
 document.getElementById("stop").onclick=()=>{if(currentGame)currentGame.running=false;cancelAnimationFrame(raf);statusEl.textContent="Parado"};
-document.getElementById("sample").onclick=()=>{codeEl.value=SAMPLE;statusEl.textContent="Exemplo carregado"};
+document.getElementById("sample").onclick=()=>{codeEl.value=SAMPLE;localStorage.setItem("bit_standalone_code",SAMPLE);statusEl.textContent="Exemplo carregado";logEl.textContent=""};
 </script>
 </body>
 </html>
