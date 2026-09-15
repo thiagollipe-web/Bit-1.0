@@ -51,7 +51,19 @@ export class Game {
 
     // Set up Builtin Context
     const builtinCtx: BuiltinContext = {
-      isKeyDown: (key) => this.keysDown.has(key.toLowerCase()),
+      isKeyDown: (key) => {
+        const normalized = String(key).toLowerCase();
+        const aliases: Record<string, string> = {
+          direita: 'arrowright',
+          esquerda: 'arrowleft',
+          cima: 'arrowup',
+          baixo: 'arrowdown',
+          espaco: ' ',
+          espaço: ' ',
+          space: ' '
+        };
+        return this.keysDown.has(aliases[normalized] ?? normalized);
+      },
       isTouchActive: () => this.input.touchActive,
       getActor: (name) => {
         const a = this.actors.get(name.toLowerCase());
