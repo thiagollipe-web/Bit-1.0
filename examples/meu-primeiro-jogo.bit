@@ -1,0 +1,32 @@
+tela 320x180
+fundo azul
+
+pontos recebe 0
+
+ator Jogador
+  desenho quadrado 20, verde
+  posição 40, 80
+  controlado por setas
+  limita à tela
+
+  quando atualiza:
+    se tecla("espaco") então
+      pontos recebe pontos + 1
+      diga "Pontos: " + pontos
+    fim
+  fim
+fim
+
+ator Alvo
+  desenho circulo 10, amarelo
+  posição 240, 80
+  velocidade 0, 1
+  quica nas bordas
+
+  quando colide com "Jogador":
+    diga "Acertou o alvo!"
+  fim
+fim
+
+diga "Use as setas para mover o jogador."
+diga "Pressione ESPAÇO para contar pontos."
