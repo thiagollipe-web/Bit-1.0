@@ -40,6 +40,8 @@ export class Game {
         actorDecl.vy,
         actorDecl.shape,
         actorDecl.controlledBy,
+        actorDecl.movementMode,
+        actorDecl.gridSize,
         actorDecl.limitToScreen,
         actorDecl.bounceBorders
       );
