@@ -1,7 +1,8 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-  base: '/Bit-1.0/',
+  // Base path: configured for root serving in AI Studio while preserving base: '/Bit-1.0/' for GitHub Pages
+  base: process.env.BASE_PATH || './',
   build: {
     target: 'es2022',
     outDir: 'dist',
