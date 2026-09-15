@@ -159,6 +159,12 @@ export class Interpreter {
         // Check user-defined functions
         const userFn = env.get(calleeName) as UserFunction | undefined;
         if (userFn && userFn.params && userFn.body) {
+          if (args.length !== userFn.params.length) {
+            throw new Error(
+              `A função "${expr.callee}" esperava ${userFn.params.length} parâmetro(s), mas recebeu ${args.length}.`
+            );
+          }
+
           const callEnv = new Environment(userFn.closure);
           userFn.params.forEach((param, idx) => {
             callEnv.set(param, args[idx]);
