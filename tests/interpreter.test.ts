@@ -50,6 +50,36 @@ describe('Interpreter', () => {
     expect(env.get('resultado')).toBe('padrao');
   });
 
+  it('mantém atribuições no escopo correto em if', () => {
+    const { env } = runProgram(`
+      x recebe 0
+      se verdadeiro então
+        x recebe 10
+      fim
+    `);
+    expect(env.get('x')).toBe(10);
+  });
+
+  it('mantém atribuições no escopo correto em repita', () => {
+    const { env } = runProgram(`
+      x recebe 0
+      repita 3 vezes
+        x recebe x + 1
+      fim
+    `);
+    expect(env.get('x')).toBe(3);
+  });
+
+  it('mantém atribuições no escopo correto em enquanto', () => {
+    const { env } = runProgram(`
+      x recebe 0
+      enquanto x < 3 faça
+        x recebe x + 1
+      fim
+    `);
+    expect(env.get('x')).toBe(3);
+  });
+
   it('executa loops repita e acumula valores', () => {
     const code = `
       soma recebe 0
