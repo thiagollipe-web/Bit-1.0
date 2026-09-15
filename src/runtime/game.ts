@@ -132,6 +132,11 @@ export class Game {
       actor.update(screenWidth, screenHeight, this.input, scale);
     }
 
+    // Input actions are edge-triggered to avoid repeating commands every frame.
+    if (this.input.action) {
+      this.input.action = false;
+    }
+
     // 2. Check collisions between pairs of actors
     const actorList = Array.from(this.actors.values());
     for (let i = 0; i < actorList.length; i++) {
