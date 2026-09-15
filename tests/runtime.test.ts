@@ -5,6 +5,67 @@ import { Game } from '../src/runtime/game.ts';
 import { checkAABB } from '../src/runtime/collision.ts';
 
 describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
+
+  it('normaliza movimento quando o delta de frame varia', () => {
+    const code = `
+      tela 160x120
+
+      ator Bola
+        desenho quadrado 4, branco
+        posição 10, 10
+        velocidade 10, 0
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+    const bola = game.actors.get('bola')!;
+
+    game.step(0.5);
+
+    expect(bola.x).toBe(15);
+  });
+
+  it('limpa o estado de entrada quando a janela perde foco', () => {
+    const code = `
+      tela 160x120
+
+      ator Jogador
+        desenho quadrado 8, verde
+        posição 20, 20
+        controlado por setas
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+
+    game.handleKeyDown('ArrowLeft');
+    game.handleKeyDown(' ');
+    expect(game.input.left).toBe(true);
+    expect(game.input.action).toBe(true);
+
+    game.resetInput();
+
+    expect(game.input.left).toBe(false);
+    expect(game.input.action).toBe(false);
+    expect(game.keysDown.size).toBe(0);
+  });
+
+  it('entrega mensagens iniciais ao callback do runtime', () => {
+    const code = `
+      tela 160x120
+      diga "Olá antes de iniciar!"
+    `;
+    const ast = parse(tokenize(code));
+    const messages: string[] = [];
+
+    new Game(ast, undefined, {
+      onSay: (message) => messages.push(message)
+    });
+
+    expect(messages).toEqual(['Olá antes de iniciar!']);
+  });
+
+
   it('permite que a bola saia da tela na horizontal para pontuar quando quique é vertical', () => {
     const code = `
       tela 160x120
