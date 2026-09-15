@@ -53,20 +53,23 @@ export class Actor {
     this.height = shape?.height ?? 8;
   }
 
-  update(screenWidth: number, screenHeight: number, input: InputState): void {
+  update(screenWidth: number, screenHeight: number, input: InputState, deltaScale = 1): void {
     if (!this.active) return;
 
     // Movement by user controls
+    const scale = Number.isFinite(deltaScale) ? Math.max(0, deltaScale) : 1;
+
     if (this.controlledBy === 'setas') {
       const speed = Math.hypot(this.vx, this.vy) || 2;
-      if (input.up) this.y -= speed;
-      if (input.down) this.y += speed;
-      if (input.left) this.x -= speed;
-      if (input.right) this.x += speed;
+      const step = speed * scale;
+      if (input.up) this.y -= step;
+      if (input.down) this.y += step;
+      if (input.left) this.x -= step;
+      if (input.right) this.x += step;
     } else {
-      // Natural motion by velocity
-      this.x += this.vx;
-      this.y += this.vy;
+      // Natural motion by velocity, normalized to a 60 FPS reference frame.
+      this.x += this.vx * scale;
+      this.y += this.vy * scale;
     }
 
     // Touch control if mobile touch is active
