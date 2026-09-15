@@ -516,10 +516,9 @@ function runCode() {
     canvas.width = ast.screenWidth;
     canvas.height = ast.screenHeight;
 
-    currentGame = new Game(ast, canvas);
-    currentGame.interpreter.onSay = (msg) => {
-      log(`> ${msg}`);
-    };
+    currentGame = new Game(ast, canvas, {
+      onSay: (msg) => log(`> ${msg}`)
+    });
 
     currentGame.start();
     log(`Programa em execução! (${ast.screenWidth}x${ast.screenHeight}, ${ast.actors.length} atores)`);
@@ -778,34 +777,46 @@ exampleSelect.addEventListener('change', () => {
 window.addEventListener('keydown', (e) => {
   if (document.activeElement === editor || document.activeElement === inputProgramName) return;
   if (currentGame) {
+    if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' ', 'Enter'].includes(e.key)) {
+      e.preventDefault();
+    }
     currentGame.handleKeyDown(e.key);
   }
 });
 
 window.addEventListener('keyup', (e) => {
   if (document.activeElement === editor || document.activeElement === inputProgramName) return;
-  if (currentGame) {
-    currentGame.handleKeyUp(e.key);
-  }
+  currentGame?.handleKeyUp(e.key);
+});
+
+window.addEventListener('blur', () => currentGame?.resetInput());
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) currentGame?.resetInput();
 });
 
 // Virtual Pad
 function bindPadBtn(id: string, keyName: string) {
   const btn = document.getElementById(id);
   if (!btn) return;
-  const press = (e: Event) => {
+
+  let pressed = false;
+
+  const press = (e: PointerEvent) => {
     e.preventDefault();
-    if (currentGame) currentGame.handleKeyDown(keyName);
-  };
-  const release = (e: Event) => {
-    e.preventDefault();
-    if (currentGame) currentGame.handleKeyUp(keyName);
+    if (pressed) return;
+    pressed = true;
+    currentGame?.handleKeyDown(keyName);
   };
 
-  btn.addEventListener('mousedown', press);
-  btn.addEventListener('mouseup', release);
-  btn.addEventListener('touchstart', press, { passive: false });
-  btn.addEventListener('touchend', release, { passive: false });
+  const release = () => {
+    if (!pressed) return;
+    pressed = false;
+    currentGame?.handleKeyUp(keyName);
+  };
+
+  btn.addEventListener('pointerdown', press);
+  window.addEventListener('pointerup', release);
+  window.addEventListener('pointercancel', release);
 }
 
 bindPadBtn('pad-up', 'ArrowUp');
