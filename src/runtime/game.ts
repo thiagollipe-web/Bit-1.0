@@ -18,6 +18,7 @@ export class Game {
     touchActive: false
   };
   private pendingActions = new Set<string>();
+  private pendingGridMoves = new Set<string>();
   keysDown = new Set<string>();
   running = false;
   animationFrameId: number | null = null;
@@ -91,10 +92,22 @@ export class Game {
   handleKeyDown(key: string): void {
     const k = key.toLowerCase();
     this.keysDown.add(k);
-    if (k === 'arrowup' || k === 'w') this.input.up = true;
-    if (k === 'arrowdown' || k === 's') this.input.down = true;
-    if (k === 'arrowleft' || k === 'a') this.input.left = true;
-    if (k === 'arrowright' || k === 'd') this.input.right = true;
+    if (k === 'arrowup' || k === 'w') {
+      this.input.up = true;
+      this.pendingGridMoves.add('up');
+    }
+    if (k === 'arrowdown' || k === 's') {
+      this.input.down = true;
+      this.pendingGridMoves.add('down');
+    }
+    if (k === 'arrowleft' || k === 'a') {
+      this.input.left = true;
+      this.pendingGridMoves.add('left');
+    }
+    if (k === 'arrowright' || k === 'd') {
+      this.input.right = true;
+      this.pendingGridMoves.add('right');
+    }
     if (k === ' ' || k === 'enter') {
       this.input.action = true;
       this.pendingActions.add('action');
@@ -125,6 +138,7 @@ export class Game {
     this.input.right = false;
     this.input.action = false;
     this.pendingActions.clear();
+    this.pendingGridMoves.clear();
     this.input.touchX = undefined;
     this.input.touchY = undefined;
     this.input.touchActive = false;
@@ -135,10 +149,31 @@ export class Game {
     const scale = Number.isFinite(deltaScale) ? Math.max(0, Math.min(deltaScale, 4)) : 1;
 
     // 1. Update physics and positions of actors.
-    // Discrete actions (SPACE/ENTER) remain available to event handlers in this frame.
+    // Grid-controlled actors consume one movement command per keydown.
     for (const actor of this.actors.values()) {
-      actor.update(screenWidth, screenHeight, this.input, scale);
+      const useGrid = actor.controlledBy === 'setas' && actor.movementMode === 'grade';
+      if (useGrid) {
+        const originalInput = {
+          up: this.input.up,
+          down: this.input.down,
+          left: this.input.left,
+          right: this.input.right
+        };
+        this.input.up = this.pendingGridMoves.has('up');
+        this.input.down = this.pendingGridMoves.has('down');
+        this.input.left = this.pendingGridMoves.has('left');
+        this.input.right = this.pendingGridMoves.has('right');
+        actor.update(screenWidth, screenHeight, this.input, 1);
+        this.input.up = originalInput.up;
+        this.input.down = originalInput.down;
+        this.input.left = originalInput.left;
+        this.input.right = originalInput.right;
+      } else {
+        actor.update(screenWidth, screenHeight, this.input, scale);
+      }
     }
+
+    this.pendingGridMoves.clear();
 
     // 2. Check collisions between pairs of actors
     const actorList = Array.from(this.actors.values());
