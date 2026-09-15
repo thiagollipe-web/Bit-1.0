@@ -1,5 +1,6 @@
 {
   "name": "BIT 1.2",
   "description": "Linguagem textual brasileira para criação de jogos 2D com arquivos .bit.",
-  "requestFramePermissions": []
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
