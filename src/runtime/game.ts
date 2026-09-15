@@ -24,7 +24,7 @@ export class Game {
   ctx: CanvasRenderingContext2D | null = null;
   logs: string[] = [];
 
-  constructor(ast: ProgramAST, canvas?: HTMLCanvasElement) {
+  constructor(ast: ProgramAST, canvas?: HTMLCanvasElement, options: { onSay?: (message: string) => void } = {}) {
     this.ast = ast;
     this.canvas = canvas ?? null;
     this.ctx = canvas ? canvas.getContext('2d') : null;
@@ -68,6 +68,7 @@ export class Game {
     this.interpreter = new Interpreter(builtins, this.actors);
     this.interpreter.onSay = (msg) => {
       this.logs.push(msg);
+      options.onSay?.(msg);
     };
 
     // Execute global statements
@@ -110,12 +111,25 @@ export class Game {
     this.input.touchActive = active;
   }
 
-  step(): void {
+  resetInput(): void {
+    this.keysDown.clear();
+    this.input.up = false;
+    this.input.down = false;
+    this.input.left = false;
+    this.input.right = false;
+    this.input.action = false;
+    this.input.touchX = undefined;
+    this.input.touchY = undefined;
+    this.input.touchActive = false;
+  }
+
+  step(deltaScale = 1): void {
     const { screenWidth, screenHeight } = this.ast;
+    const scale = Number.isFinite(deltaScale) ? Math.max(0, Math.min(deltaScale, 4)) : 1;
 
     // 1. Update physics and positions of actors
     for (const actor of this.actors.values()) {
-      actor.update(screenWidth, screenHeight, this.input);
+      actor.update(screenWidth, screenHeight, this.input, scale);
     }
 
     // 2. Check collisions between pairs of actors
@@ -152,9 +166,13 @@ export class Game {
 
     const handler = decl.events[eventKey] || decl.events[eventKey.toLowerCase()];
     if (handler && handler.length > 0) {
+      const previousActor = this.interpreter.currentActor;
       this.interpreter.currentActor = actor;
-      this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
-      this.interpreter.currentActor = undefined;
+      try {
+        this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
+      } finally {
+        this.interpreter.currentActor = previousActor;
+      }
     }
   }
 
@@ -174,9 +192,17 @@ export class Game {
     if (this.running) return;
     this.running = true;
 
-    const loop = () => {
+    let previousTime: number | undefined;
+
+    const loop = (timestamp: number) => {
       if (!this.running) return;
-      this.step();
+
+      const deltaScale = previousTime === undefined
+        ? 1
+        : Math.max(0, Math.min(((timestamp - previousTime) / 1000) * 60, 4));
+
+      previousTime = timestamp;
+      this.step(deltaScale);
       this.animationFrameId = requestAnimationFrame(loop);
     };
 
