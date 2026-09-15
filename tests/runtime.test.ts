@@ -25,6 +25,33 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     expect(bola.x).toBe(15);
   });
 
+  it('mantém espaço disponível para evento de atualização no mesmo frame', () => {
+    const code = `
+      tela 160x120
+
+      ator Jogador
+        desenho quadrado 8, azul
+        posição 20, 20
+        quando atualiza:
+          se tecla(" ") então
+            x recebe 40
+          fim
+        fim
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+
+    game.handleKeyDown(' ');
+    game.step();
+
+    const jogador = game.actors.get('jogador')!;
+    expect(jogador.x).toBe(40);
+
+    game.step();
+    expect(jogador.x).toBe(40);
+  });
+
   it('limpa o estado de entrada quando a janela perde foco', () => {
     const code = `
       tela 160x120
