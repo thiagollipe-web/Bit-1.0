@@ -6,6 +6,28 @@ import { checkAABB } from '../src/runtime/collision.ts';
 
 describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
 
+  it('move em grade com passo configurado', () => {
+    const code = `
+      tela 160x120
+
+      ator Jogador
+        desenho quadrado 16, azul
+        posição 10, 10
+        controlado por setas
+        movimento por grade 32
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+    const jogador = game.actors.get('jogador')!;
+
+    game.handleKeyDown('ArrowRight');
+    game.step();
+    game.handleKeyUp('ArrowRight');
+
+    expect(jogador.x).toBe(42);
+  });
+
   it('normaliza movimento quando o delta de frame varia', () => {
     const code = `
       tela 160x120
