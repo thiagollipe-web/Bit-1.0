@@ -17,6 +17,7 @@ export class Game {
     action: false,
     touchActive: false
   };
+  private pendingActions = new Set<string>();
   keysDown = new Set<string>();
   running = false;
   animationFrameId: number | null = null;
@@ -92,7 +93,10 @@ export class Game {
     if (k === 'arrowdown' || k === 's') this.input.down = true;
     if (k === 'arrowleft' || k === 'a') this.input.left = true;
     if (k === 'arrowright' || k === 'd') this.input.right = true;
-    if (k === ' ' || k === 'enter') this.input.action = true;
+    if (k === ' ' || k === 'enter') {
+      this.input.action = true;
+      this.pendingActions.add('action');
+    }
   }
 
   handleKeyUp(key: string): void {
@@ -118,6 +122,7 @@ export class Game {
     this.input.left = false;
     this.input.right = false;
     this.input.action = false;
+    this.pendingActions.clear();
     this.input.touchX = undefined;
     this.input.touchY = undefined;
     this.input.touchActive = false;
@@ -127,14 +132,10 @@ export class Game {
     const { screenWidth, screenHeight } = this.ast;
     const scale = Number.isFinite(deltaScale) ? Math.max(0, Math.min(deltaScale, 4)) : 1;
 
-    // 1. Update physics and positions of actors
+    // 1. Update physics and positions of actors.
+    // Discrete actions (SPACE/ENTER) remain available to event handlers in this frame.
     for (const actor of this.actors.values()) {
       actor.update(screenWidth, screenHeight, this.input, scale);
-    }
-
-    // Input actions are edge-triggered to avoid repeating commands every frame.
-    if (this.input.action) {
-      this.input.action = false;
     }
 
     // 2. Check collisions between pairs of actors
@@ -163,6 +164,12 @@ export class Game {
 
     // 4. Render to canvas if present
     this.render();
+
+    // Consume one-shot actions only after all update/event handlers ran.
+    if (this.pendingActions.size > 0) {
+      this.pendingActions.clear();
+      this.input.action = false;
+    }
   }
 
   private triggerActorEvent(actor: Actor, eventKey: string): void {
