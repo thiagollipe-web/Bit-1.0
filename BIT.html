@@ -43,7 +43,9 @@ code{color:#9ad8ff}
 "use strict";
 const SAMPLE="tela 320x180\nfundo preto\npontos recebe 0\n\nator Jogador\n  desenho quadrado 16, verde\n  posição 32, 82\n  controlado por setas\n  limita à tela\n  quando atualiza:\n    se tecla(\"espaco\") então\n      pontos recebe pontos + 1\n    fim\n  fim\nfim\n\nator Bola\n  desenho quadrado 10, vermelho\n  posição 160, 90\n  velocidade 2, 1.2\n  quica nas bordas\n  quando colide com \"Jogador\":\n    vx recebe -vx\n    diga \"Colisão! Pontos: \" + pontos\n  fim\nfim\n\ndiga \"BIT iniciado.\"";
 const codeEl=document.getElementById("code"),canvas=document.getElementById("game"),ctx=canvas.getContext("2d"),logEl=document.getElementById("log"),statusEl=document.getElementById("status");
-const savedCode=localStorage.getItem("bit_standalone_code");\ncodeEl.value=(savedCode&&savedCode.trim())?savedCode:SAMPLE;\n
+const savedCode=localStorage.getItem("bit_standalone_code");
+codeEl.value=(savedCode&&savedCode.trim())?savedCode:SAMPLE;
+
 let raf=0,currentGame=null;const keyState=new Set(),mouse={x:0,y:0,active:false},touch={x:0,y:0,active:false},pending=new Set();
 const log=m=>{const e=document.createElement("div");e.textContent=m;logEl.appendChild(e);logEl.scrollTop=logEl.scrollHeight},norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");
 function tokenize(src){const o=[];let i=0,line=1,col=1,adv=()=>{const c=src[i++]||"";c==="\\n"?(line++,col=1):col++;return c},push=(t,v,l=line,c=col)=>o.push({type:t,value:v,line:l,col:c}),dig=c=>c>="0"&&c<="9",letc=c=>/[A-Za-z_À-ÿ]/.test(c);
