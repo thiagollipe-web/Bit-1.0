@@ -60,6 +60,7 @@ ator Jogador
       fim
 
       se x == 85 e y == 53 então
+        C23.ativo recebe falso
         M23.ativo recebe verdadeiro
         diga "BOOM! Voce encontrou uma mina."
         ativo recebe falso
@@ -98,6 +99,7 @@ ator Jogador
       fim
 
       se x == 117 e y == 85 então
+        C34.ativo recebe falso
         M34.ativo recebe verdadeiro
         diga "BOOM! Voce encontrou uma mina."
         ativo recebe falso
