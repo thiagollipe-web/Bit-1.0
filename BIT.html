@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BIT — Executor Standalone</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#101217;color:#eef1f6;font-family:system-ui,sans-serif;height:100vh;display:grid;grid-template-columns:380px 1fr;overflow:hidden}
+aside{padding:14px;background:#171a20;border-right:1px solid #30343d;overflow:auto}
+main{padding:14px;display:grid;grid-template-rows:auto 1fr 120px;gap:10px;min-width:0}
+h1{font:700 19px Consolas,monospace;margin:0 0 6px}h2{font-size:13px;margin:14px 0 7px;color:#9fd5ff}
+p{font-size:12px;line-height:1.45;color:#b9bfca}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}.btn{border:0;border-radius:6px;padding:9px 11px;background:#2d8a3e;color:#fff;cursor:pointer}.btn.alt{background:#454b55}
+#code{width:100%;height:58vh;min-height:280px;resize:vertical;background:#0f1217;color:#e8ecf2;border:1px solid #3a404a;border-radius:7px;padding:12px;font:13px/1.45 Consolas,monospace}
+#stage{display:flex;align-items:center;justify-content:center;background:#090b0f;border:1px solid #30343d;border-radius:8px;min-height:0}
+canvas{max-width:100%;max-height:100%;image-rendering:pixelated;background:#000}
+#log{overflow:auto;background:#0d1015;border:1px solid #30343d;border-radius:8px;padding:8px;font:12px/1.4 Consolas,monospace}
+.status{font:600 13px Consolas,monospace}
+</style>
+</head>
+<body>
+<aside>
+<h1>BIT — Executor</h1>
+<p>Escreva o código BIT no Bloco de Notas ou nesta caixa. Arquivos <b>.bit</b> são os programas. Este HTML é o executor.</p>
+<div class="toolbar">
+<button class="btn" id="run">Executar</button>
+<button class="btn alt" id="stop">Parar</button>
+<button class="btn alt" id="openBtn">Abrir .BIT</button>
+<button class="btn alt" id="saveBtn">Salvar .BIT</button>
+<button class="btn alt" id="newBtn">Novo</button>
+<input id="file" type="file" accept=".bit,text/plain" hidden>
+</div>
+<h2>Programa BIT</h2>
+<textarea id="code" spellcheck="false"></textarea>
+<p><b>Controles:</b> setas/WASD, espaço e mouse. Sintaxe básica: <code>tela</code>, <code>fundo</code>, <code>ator</code>, <code>desenho</code>, <code>posição</code>, <code>velocidade</code>, <code>controlado por</code>, <code>limita à tela</code>, <code>quica nas bordas</code>, <code>quando atualiza</code>, <code>quando colide com</code>, <code>se</code>, <code>repita</code>, <code>diga</code>.</p>
+</aside>
+<main>
+<div class="status" id="status">Pronto</div>
+<div id="stage"><canvas id="game"></canvas></div>
+<div id="log"></div>
+</main>
+
+<script>
+"use strict";
+
+var SAMPLE =
+'tela 320x180\n' +
+'fundo preto\n\n' +
+'ator Jogador\n' +
+'  desenho quadrado 18, verde\n' +
+'  posição 40, 80\n' +
+'  controlado por setas\n' +
+'  limita à tela\n' +
+'fim\n\n' +
+'ator Bola\n' +
+'  desenho circulo 8, vermelho\n' +
+'  posição 220, 80\n' +
+'  velocidade -1, 1\n' +
+'  quica nas bordas\n' +
+'  quando colide com "Jogador":\n' +
+'    diga "Colisão!"\n' +
+'  fim\n' +
+'fim\n\n' +
+'diga "BIT funcionando!"';
+
+var code = document.getElementById("code");
+var canvas = document.getElementById("game");
+var ctx = canvas.getContext("2d");
+var logBox = document.getElementById("log");
+var statusBox = document.getElementById("status");
+var fileInput = document.getElementById("file");
+var keys = {};
+var mouse = {x:0,y:0,active:false};
+var game = null;
+var raf = 0;
+var lastTime = 0;
+
+function n(s){return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
+function say(s){var d=document.createElement("div");d.textContent=String(s);logBox.appendChild(d);logBox.scrollTop=logBox.scrollHeight;}
+function num(s){var v=Number(s);return Number.isFinite(v)?v:0;}
+function splitArgs(s){return s.split(",").map(function(v){return v.trim();});}
+function unquote(s){s=String(s).trim();if((s[0]==='"'&&s[s.length-1]==='"')||(s[0]==="'"&&s[s.length-1]==="'"))return s.slice(1,-1);return s;}
+
+function value(expr, actor, env){
+  expr=String(expr).trim();
+  if(/^".*"$/.test(expr)||/^'.*'$/.test(expr))return unquote(expr);
+  if(n(expr)==="verdadeiro")return true;
+  if(n(expr)==="falso")return false;
+  if(/^\-?\d+(\.\d+)?$/.test(expr))return num(expr);
+  var m=expr.match(/^(\d+(?:\.\d+)?)\s*([+\-*/])\s*(\d+(?:\.\d+)?)$/);
+  if(m){var a=num(m[1]),b=num(m[3]);if(m[2]==="+")return a+b;if(m[2]==="-")return a-b;if(m[2]==="*")return a*b;return b===0?0:a/b;}
+  m=expr.match(/^(.+)\s*(==|!=|<=|>=|<|>)\s*(.+)$/);
+  if(m){var left=value(m[1],actor,env),right=value(m[3],actor,env);if(m[2]==="==")return left===right;if(m[2]==="!=")return left!==right;if(m[2]==="<")return num(left)<num(right);if(m[2]==="<=")return num(left)<=num(right);if(m[2]===">")return num(left)>num(right);return num(left)>=num(right);}
+  if(expr.indexOf("+")>=0){var parts=expr.split("+");return parts.map(function(x){return value(x,actor,env);}).join("");}
+  var k=n(expr);
+  if(k==="x"&&actor)return actor.x;if(k==="y"&&actor)return actor.y;if(k==="vx"&&actor)return actor.vx;if(k==="vy"&&actor)return actor.vy;if(k==="ativo"&&actor)return actor.active;
+  if(k==="tempo"||k==="tempo()")return (performance.now()-game.started)/1000;
+  if(k==="mousex")return mouse.x;if(k==="mousey")return mouse.y;
+  if(k==="espaco"||k==="space")return !!keys[" "]||!!keys["enter"];
+  if(k==="tecla_esquerda"||k==="esquerda")return !!keys["arrowleft"]||!!keys["a"];
+  if(k==="tecla_direita"||k==="direita")return !!keys["arrowright"]||!!keys["d"];
+  if(k==="tecla_cima"||k==="cima")return !!keys["arrowup"]||!!keys["w"];
+  if(k==="tecla_baixo"||k==="baixo")return !!keys["arrowdown"]||!!keys["s"];
+  if(Object.prototype.hasOwnProperty.call(env,k))return env[k];
+  return 0;
+}
+
+function evalCondition(expr,actor,env){
+  expr=String(expr).trim();
+  var m=expr.match(/^tecla\((.+)\)$/i);
+  if(m){var k=n(unquote(m[1]));var map={direita:"arrowright",esquerda:"arrowleft",cima:"arrowup",baixo:"arrowdown",espaco:" ",space:" "};return !!keys[map[k]||k];}
+  return !!value(expr,actor,env);
+}
+
+function parse(source){
+  var lines=source.replace(/\r/g,"").split("\n");
+  var p={w:320,h:180,bg:"preto",actors:[],global:[]};
+  var i=0;
+  while(i<lines.length){
+    var raw=lines[i], line=raw.trim();
+    if(!line||line[0]==="#"||line.indexOf("//")===0){i++;continue;}
+    var low=n(line);
+    if(low.indexOf("tela ")===0){var d=line.slice(5).trim().split(/[x, ]+/);p.w=num(d[0])||320;p.h=num(d[1])||180;i++;continue;}
+    if(low.indexOf("fundo ")===0){p.bg=line.slice(6).trim();i++;continue;}
+    if(low==="ator"||low.indexOf("ator ")!==0){p.global.push(line);i++;continue;}
+    var name=line.slice(4).trim();if(!name)throw Error("Nome do ator ausente na linha "+(i+1));
+    var a={name:name,x:20,y:20,vx:0,vy:0,w:12,h:12,shape:"quadrado",color:"branco",text:"",control:"",limit:false,bounce:{t:false,b:false,l:false,r:false},events:[],active:true};
+    i++;
+    while(i<lines.length&&n(lines[i].trim())!=="fim"){
+      var s=lines[i].trim(), ls=n(s);
+      if(!s||s[0]==="#"||ls.indexOf("//")===0){i++;continue;}
+      if(ls.indexOf("desenho ")===0){
+        var d=s.slice(8).trim(), parts=splitArgs(d), kind=n(parts[0]);
+        if(kind==="quadrado"){a.shape="quadrado";a.w=a.h=num(parts[1])||12;a.color=parts[2]||"branco";}
+        else if(kind==="retangulo"||kind==="retângulo"){a.shape="retangulo";a.w=num(parts[1])||16;a.h=num(parts[2])||8;a.color=parts[3]||"branco";}
+        else if(kind==="circulo"||kind==="círculo"){a.shape="circulo";a.w=a.h=(num(parts[1])||6)*2;a.color=parts[2]||"branco";}
+        else if(kind==="texto"){a.shape="texto";a.w=(num(parts[1])||12)*5;a.h=num(parts[1])||12;a.text=unquote(parts[2]||"");a.color=parts[3]||"branco";}
+        i++;continue;
+      }
+      if(ls.indexOf("posicao ")===0||ls.indexOf("posição ")===0){var d2=splitArgs(s.slice(s.indexOf(" ")+1));a.x=num(d2[0]);a.y=num(d2[1]);i++;continue;}
+      if(ls.indexOf("velocidade ")===0){var d3=splitArgs(s.slice(11));a.vx=num(d3[0]);a.vy=num(d3[1]);i++;continue;}
+      if(ls.indexOf("controlado por ")===0){a.control=n(s.slice(15));i++;continue;}
+      if(ls==="limita à tela"||ls==="limita a tela"){a.limit=true;i++;continue;}
+      if(ls.indexOf("quica nas bordas")===0){if(ls.indexOf("verticais")>=0)a.bounce={t:true,b:true,l:false,r:false};else if(ls.indexOf("horizontais")>=0)a.bounce={t:false,b:false,l:true,r:true};else a.bounce={t:true,b:true,l:true,r:true};i++;continue;}
+      if(ls.indexOf("quando atualiza")===0){
+        var body=[];i++;while(i<lines.length&&n(lines[i].trim())!=="fim"){body.push(lines[i].trim());i++;}a.events.push({type:"update",target:null,body:body});i++;continue;
+      }
+      if(ls.indexOf("quando colide com ")===0||ls.indexOf("quando colidir com ")===0){
+        var target=unquote(s.slice(s.indexOf("com")+3).replace(":","").trim()), body2=[];i++;while(i<lines.length&&n(lines[i].trim())!=="fim"){body2.push(lines[i].trim());i++;}a.events.push({type:"collision",target:target,body:body2});i++;continue;
+      }
+      i++;
+    }
+    if(i>=lines.length)throw Error("Faltou 'fim' do ator "+name);
+    p.actors.push(a);i++;
+  }
+  return p;
+}
+
+function drawActor(a){
+  if(!a.active)return;
+  ctx.fillStyle=color(a.color);
+  if(a.shape==="quadrado"||a.shape==="retangulo")ctx.fillRect(Math.round(a.x),Math.round(a.y),a.w,a.h);
+  else if(a.shape==="circulo"){ctx.beginPath();ctx.arc(a.x+a.w/2,a.y+a.h/2,a.w/2,0,Math.PI*2);ctx.fill();}
+  else if(a.shape==="texto"){ctx.font=Math.round(a.h)+"px Consolas,monospace";ctx.fillText(a.text,a.x,a.y+a.h);}
+}
+function color(c){var k=n(c);var m={preto:"#000",branco:"#fff",vermelho:"#ff4b4b",verde:"#3cff66",azul:"#4b7dff",amarelo:"#ffd83d",ciano:"#45e7ff",magenta:"#f15bff",cinza:"#8b93a1",laranja:"#ff983d",roxo:"#a56bff",rosa:"#ff79b6"};return m[k]||c||"#fff";}
+function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
+
+function executeLines(lines,actor,env){
+  for(var i=0;i<lines.length;i++){
+    var s=String(lines[i]||"").trim();if(!s)continue;
+    var low=n(s);
+    if(low.indexOf("diga ")===0){say(value(s.slice(5),actor,env));continue;}
+    if(low.indexOf("ativo recebe ")===0&&actor){actor.active=!!value(s.slice(14),actor,env);continue;}
+    var mm=s.match(/^([A-Za-zÀ-ÿ_][\wÀ-ÿ]*)\s+recebe\s+(.+)$/i);
+    if(mm){env[n(mm[1])]=value(mm[2],actor,env);continue;}
+    mm=s.match(/^se\s+(.+?)\s+ent[aã]o$/i);
+    if(mm){var cond=evalCondition(mm[1],actor,env),nested=[];i++;while(i<lines.length&&n(lines[i])!=="fim"){nested.push(lines[i]);i++;}if(cond)executeLines(nested,actor,env);continue;}
+    mm=s.match(/^repita\s+(\d+)\s+vezes$/i);
+    if(mm){var count=Math.min(1000,num(mm[1])),body=[];i++;while(i<lines.length&&n(lines[i])!=="fim"){body.push(lines[i]);i++;}for(var j=0;j<count;j++)executeLines(body,actor,env);continue;}
+  }
+}
+
+function makeGame(ast){
+  var g={ast:ast,actors:ast.actors,started:performance.now(),env:{},running:true};
+  ast.global.forEach(function(line){executeLines([line],null,g.env);});
+  return g;
+}
+
+function step(g,scale){
+  g.actors.forEach(function(a){
+    if(!a.active)return;
+    if(a.control==="setas"||a.control==="mouse"){
+      if(a.control==="setas"){
+        var speed=2;
+        if(keys.arrowleft||keys.a)a.x-=speed*scale;if(keys.arrowright||keys.d)a.x+=speed*scale;
+        if(keys.arrowup||keys.w)a.y-=speed*scale;if(keys.arrowdown||keys.s)a.y+=speed*scale;
+      }
+      if(a.control==="mouse"&&mouse.active){a.x=mouse.x-a.w/2;a.y=mouse.y-a.h/2;}
+    }else{a.x+=a.vx*scale;a.y+=a.vy*scale;}
+    if(a.bounce.t&&a.y<=0){a.y=0;a.vy=Math.abs(a.vy);}if(a.bounce.b&&a.y+a.h>=g.ast.h){a.y=g.ast.h-a.h;a.vy=-Math.abs(a.vy);}
+    if(a.bounce.l&&a.x<=0){a.x=0;a.vx=Math.abs(a.vx);}if(a.bounce.r&&a.x+a.w>=g.ast.w){a.x=g.ast.w-a.w;a.vx=-Math.abs(a.vx);}
+    if(a.limit){a.x=Math.max(0,Math.min(a.x,g.ast.w-a.w));a.y=Math.max(0,Math.min(a.y,g.ast.h-a.h));}
+    a.events.filter(function(e){return e.type==="update";}).forEach(function(e){executeLines(e.body,a,g.env);});
+  });
+  for(var i=0;i<g.actors.length;i++)for(var j=i+1;j<g.actors.length;j++)if(g.actors[i].active&&g.actors[j].active&&hit(g.actors[i],g.actors[j])){
+    var a=g.actors[i],b=g.actors[j];
+    a.events.filter(function(e){return e.type==="collision"&&n(e.target)===n(b.name);}).forEach(function(e){executeLines(e.body,a,g.env);});
+    b.events.filter(function(e){return e.type==="collision"&&n(e.target)===n(a.name);}).forEach(function(e){executeLines(e.body,b,g.env);});
+  }
+}
+
+function render(g){
+  canvas.width=g.ast.w;canvas.height=g.ast.h;ctx.fillStyle=color(g.ast.bg);ctx.fillRect(0,0,g.ast.w,g.ast.h);
+  g.actors.forEach(drawActor);
+}
+
+function run(){
+  try{
+    cancelAnimationFrame(raf);logBox.innerHTML="";
+    var ast=parse(code.value);game=makeGame(ast);render(game);statusBox.textContent="Executando";
+    lastTime=performance.now();
+    function loop(t){
+      if(!game||!game.running)return;
+      var scale=Math.max(0,Math.min(3,(t-lastTime)/16.6667));lastTime=t;
+      step(game,scale);render(game);raf=requestAnimationFrame(loop);
+    }
+    raf=requestAnimationFrame(loop);
+  }catch(e){statusBox.textContent="Erro no programa";say("ERRO: "+e.message);}
+}
+
+document.getElementById("run").onclick=run;
+document.getElementById("stop").onclick=function(){if(game)game.running=false;cancelAnimationFrame(raf);statusBox.textContent="Parado";};
+document.getElementById("newBtn").onclick=function(){code.value='tela 320x180\nfundo preto\n\ndiga "Meu primeiro programa BIT."';};
+document.getElementById("saveBtn").onclick=function(){var blob=new Blob([code.value],{type:"text/plain;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="meu-jogo.bit";a.click();setTimeout(function(){URL.revokeObjectURL(u);},1000);};
+document.getElementById("openBtn").onclick=function(){fileInput.click();};
+fileInput.onchange=function(){var f=fileInput.files&&fileInput.files[0];if(!f)return;f.text().then(function(t){code.value=t;localStorage.setItem("bit_code",t);statusBox.textContent="Arquivo carregado: "+f.name;}).catch(function(e){say("ERRO: "+e.message);});};
+
+window.addEventListener("keydown",function(e){if(document.activeElement===code)return;keys[e.key.toLowerCase()]=true;});
+window.addEventListener("keyup",function(e){delete keys[e.key.toLowerCase()];});
+window.addEventListener("blur",function(){keys={};});
+canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)*canvas.width/r.width;mouse.y=(e.clientY-r.top)*canvas.height/r.height;mouse.active=true;});
+canvas.addEventListener("mouseleave",function(){mouse.active=false;});
+
+// Sempre iniciar com um programa BIT válido.
+code.value=SAMPLE;
+</script>
+</body>
+</html>

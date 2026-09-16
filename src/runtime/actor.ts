@@ -1,4 +1,4 @@
-import { DrawShape, ControlledBy, BounceConfig } from '../types.ts';
+import { DrawShape, ControlledBy, MovementMode, BounceConfig } from '../types.ts';
 import { resolveColor } from '../colors.ts';
 
 export interface InputState {
@@ -22,6 +22,8 @@ export class Actor {
   height: number;
   shape?: DrawShape;
   controlledBy: ControlledBy;
+  movementMode: MovementMode;
+  gridSize: number;
   limitToScreen: boolean;
   bounceBorders: BounceConfig;
   active: boolean = true;
@@ -36,6 +38,8 @@ export class Actor {
     vy: number = 0,
     shape?: DrawShape,
     controlledBy: ControlledBy = 'nenhum',
+    movementMode: MovementMode = 'livre',
+    gridSize: number = 16,
     limitToScreen: boolean = false,
     bounceBorders: BounceConfig = { top: false, bottom: false, left: false, right: false }
   ) {
@@ -46,6 +50,8 @@ export class Actor {
     this.vy = vy;
     this.shape = shape;
     this.controlledBy = controlledBy;
+    this.movementMode = movementMode;
+    this.gridSize = Math.max(1, gridSize);
     this.limitToScreen = limitToScreen;
     this.bounceBorders = { ...bounceBorders };
 
@@ -53,20 +59,31 @@ export class Actor {
     this.height = shape?.height ?? 8;
   }
 
-  update(screenWidth: number, screenHeight: number, input: InputState): void {
+  update(screenWidth: number, screenHeight: number, input: InputState, deltaScale = 1): void {
     if (!this.active) return;
 
     // Movement by user controls
+    const scale = Number.isFinite(deltaScale) ? Math.max(0, deltaScale) : 1;
+
     if (this.controlledBy === 'setas') {
-      const speed = Math.hypot(this.vx, this.vy) || 2;
-      if (input.up) this.y -= speed;
-      if (input.down) this.y += speed;
-      if (input.left) this.x -= speed;
-      if (input.right) this.x += speed;
+      if (this.movementMode === 'grade') {
+        const step = this.gridSize;
+        if (input.up) this.y -= step * scale;
+        if (input.down) this.y += step * scale;
+        if (input.left) this.x -= step * scale;
+        if (input.right) this.x += step * scale;
+      } else {
+        const speed = Math.hypot(this.vx, this.vy) || 2;
+        const step = speed * scale;
+        if (input.up) this.y -= step;
+        if (input.down) this.y += step;
+        if (input.left) this.x -= step;
+        if (input.right) this.x += step;
+      }
     } else {
-      // Natural motion by velocity
-      this.x += this.vx;
-      this.y += this.vy;
+      // Natural motion by velocity, normalized to a 60 FPS reference frame.
+      this.x += this.vx * scale;
+      this.y += this.vy * scale;
     }
 
     // Touch control if mobile touch is active

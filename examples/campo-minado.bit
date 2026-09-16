@@ -1,0 +1,297 @@
+tela 180x180
+fundo preto
+
+abertas recebe 0
+
+ator Jogador
+  desenho quadrado 18, azul
+  posição 21, 21
+  controlado por setas
+  movimento por grade 32
+
+  quando atualiza:
+    se tecla(" ") então
+      se x == 21 e y == 21 então
+        se C11.ativo == verdadeiro então
+          C11.ativo recebe falso
+          N11.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 53 e y == 21 então
+        se C12.ativo == verdadeiro então
+          C12.ativo recebe falso
+          N12.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 85 e y == 21 então
+        se C13.ativo == verdadeiro então
+          C13.ativo recebe falso
+          N13.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 117 e y == 21 então
+        se C14.ativo == verdadeiro então
+          C14.ativo recebe falso
+          N14.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 21 e y == 53 então
+        se C21.ativo == verdadeiro então
+          C21.ativo recebe falso
+          N21.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 53 e y == 53 então
+        se C22.ativo == verdadeiro então
+          C22.ativo recebe falso
+          N22.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 85 e y == 53 então
+        C23.ativo recebe falso
+        M23.ativo recebe verdadeiro
+        diga "BOOM! Voce encontrou uma mina."
+        ativo recebe falso
+      fim
+
+      se x == 117 e y == 53 então
+        se C24.ativo == verdadeiro então
+          C24.ativo recebe falso
+          N24.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 21 e y == 85 então
+        se C31.ativo == verdadeiro então
+          C31.ativo recebe falso
+          N31.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 53 e y == 85 então
+        se C32.ativo == verdadeiro então
+          C32.ativo recebe falso
+          N32.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 85 e y == 85 então
+        se C33.ativo == verdadeiro então
+          C33.ativo recebe falso
+          N33.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 117 e y == 85 então
+        C34.ativo recebe falso
+        M34.ativo recebe verdadeiro
+        diga "BOOM! Voce encontrou uma mina."
+        ativo recebe falso
+      fim
+
+      se x == 21 e y == 117 então
+        se C41.ativo == verdadeiro então
+          C41.ativo recebe falso
+          N41.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 53 e y == 117 então
+        se C42.ativo == verdadeiro então
+          C42.ativo recebe falso
+          N42.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 85 e y == 117 então
+        se C43.ativo == verdadeiro então
+          C43.ativo recebe falso
+          N43.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+
+      se x == 117 e y == 117 então
+        se C44.ativo == verdadeiro então
+          C44.ativo recebe falso
+          N44.ativo recebe verdadeiro
+          abertas recebe abertas + 1
+        fim
+      fim
+    fim
+
+    se abertas >= 14 então
+      diga "PARABENS! Campo limpo."
+      ativo recebe falso
+    fim
+  fim
+fim
+
+ator C11
+  desenho quadrado 26, verde
+  posição 21, 21
+fim
+ator C12
+  desenho quadrado 26, verde
+  posição 53, 21
+fim
+ator C13
+  desenho quadrado 26, verde
+  posição 85, 21
+fim
+ator C14
+  desenho quadrado 26, verde
+  posição 117, 21
+fim
+ator C21
+  desenho quadrado 26, verde
+  posição 21, 53
+fim
+ator C22
+  desenho quadrado 26, verde
+  posição 53, 53
+fim
+ator C23
+  desenho quadrado 26, verde
+  posição 85, 53
+fim
+ator C24
+  desenho quadrado 26, verde
+  posição 117, 53
+fim
+ator C31
+  desenho quadrado 26, verde
+  posição 21, 85
+fim
+ator C32
+  desenho quadrado 26, verde
+  posição 53, 85
+fim
+ator C33
+  desenho quadrado 26, verde
+  posição 85, 85
+fim
+ator C34
+  desenho quadrado 26, verde
+  posição 117, 85
+fim
+ator C41
+  desenho quadrado 26, verde
+  posição 21, 117
+fim
+ator C42
+  desenho quadrado 26, verde
+  posição 53, 117
+fim
+ator C43
+  desenho quadrado 26, verde
+  posição 85, 117
+fim
+ator C44
+  desenho quadrado 26, verde
+  posição 117, 117
+fim
+
+ator N11
+  desenho texto 16, "0", branco
+  posição 29, 26
+fim
+ator N12
+  desenho texto 16, "1", branco
+  posição 61, 26
+fim
+ator N13
+  desenho texto 16, "1", branco
+  posição 93, 26
+fim
+ator N14
+  desenho texto 16, "1", branco
+  posição 125, 26
+fim
+ator N21
+  desenho texto 16, "0", branco
+  posição 29, 58
+fim
+ator N22
+  desenho texto 16, "1", branco
+  posição 61, 58
+fim
+ator N24
+  desenho texto 16, "2", branco
+  posição 125, 58
+fim
+ator N31
+  desenho texto 16, "0", branco
+  posição 29, 90
+fim
+ator N32
+  desenho texto 16, "1", branco
+  posição 61, 90
+fim
+ator N33
+  desenho texto 16, "2", branco
+  posição 93, 90
+fim
+ator N41
+  desenho texto 16, "0", branco
+  posição 29, 122
+fim
+ator N42
+  desenho texto 16, "0", branco
+  posição 61, 122
+fim
+ator N43
+  desenho texto 16, "1", branco
+  posição 93, 122
+fim
+ator N44
+  desenho texto 16, "1", branco
+  posição 125, 122
+fim
+ator M23
+  desenho texto 16, "X", vermelho
+  posição 93, 58
+fim
+ator M34
+  desenho texto 16, "X", vermelho
+  posição 125, 90
+fim
+
+N11.ativo recebe falso
+N12.ativo recebe falso
+N13.ativo recebe falso
+N14.ativo recebe falso
+N21.ativo recebe falso
+N22.ativo recebe falso
+N24.ativo recebe falso
+N31.ativo recebe falso
+N32.ativo recebe falso
+N33.ativo recebe falso
+N41.ativo recebe falso
+N42.ativo recebe falso
+N43.ativo recebe falso
+N44.ativo recebe falso
+M23.ativo recebe falso
+M34.ativo recebe falso
+
+diga "CAMPO MINADO"
+diga "SETAS = mover"
+diga "ESPACO = abrir"

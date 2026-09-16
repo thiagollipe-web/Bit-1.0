@@ -17,6 +17,8 @@ export class Game {
     action: false,
     touchActive: false
   };
+  private pendingActions = new Set<string>();
+  private pendingGridMoves = new Set<string>();
   keysDown = new Set<string>();
   running = false;
   animationFrameId: number | null = null;
@@ -24,7 +26,7 @@ export class Game {
   ctx: CanvasRenderingContext2D | null = null;
   logs: string[] = [];
 
-  constructor(ast: ProgramAST, canvas?: HTMLCanvasElement) {
+  constructor(ast: ProgramAST, canvas?: HTMLCanvasElement, options: { onSay?: (message: string) => void } = {}) {
     this.ast = ast;
     this.canvas = canvas ?? null;
     this.ctx = canvas ? canvas.getContext('2d') : null;
@@ -39,6 +41,8 @@ export class Game {
         actorDecl.vy,
         actorDecl.shape,
         actorDecl.controlledBy,
+        actorDecl.movementMode,
+        actorDecl.gridSize,
         actorDecl.limitToScreen,
         actorDecl.bounceBorders
       );
@@ -47,7 +51,19 @@ export class Game {
 
     // Set up Builtin Context
     const builtinCtx: BuiltinContext = {
-      isKeyDown: (key) => this.keysDown.has(key.toLowerCase()),
+      isKeyDown: (key) => {
+        const normalized = String(key).toLowerCase();
+        const aliases: Record<string, string> = {
+          direita: 'arrowright',
+          esquerda: 'arrowleft',
+          cima: 'arrowup',
+          baixo: 'arrowdown',
+          espaco: ' ',
+          espaço: ' ',
+          space: ' '
+        };
+        return this.keysDown.has(aliases[normalized] ?? normalized);
+      },
       isTouchActive: () => this.input.touchActive,
       getActor: (name) => {
         const a = this.actors.get(name.toLowerCase());
@@ -68,6 +84,7 @@ export class Game {
     this.interpreter = new Interpreter(builtins, this.actors);
     this.interpreter.onSay = (msg) => {
       this.logs.push(msg);
+      options.onSay?.(msg);
     };
 
     // Execute global statements
@@ -87,11 +104,26 @@ export class Game {
   handleKeyDown(key: string): void {
     const k = key.toLowerCase();
     this.keysDown.add(k);
-    if (k === 'arrowup' || k === 'w') this.input.up = true;
-    if (k === 'arrowdown' || k === 's') this.input.down = true;
-    if (k === 'arrowleft' || k === 'a') this.input.left = true;
-    if (k === 'arrowright' || k === 'd') this.input.right = true;
-    if (k === ' ' || k === 'enter') this.input.action = true;
+    if (k === 'arrowup' || k === 'w') {
+      this.input.up = true;
+      this.pendingGridMoves.add('up');
+    }
+    if (k === 'arrowdown' || k === 's') {
+      this.input.down = true;
+      this.pendingGridMoves.add('down');
+    }
+    if (k === 'arrowleft' || k === 'a') {
+      this.input.left = true;
+      this.pendingGridMoves.add('left');
+    }
+    if (k === 'arrowright' || k === 'd') {
+      this.input.right = true;
+      this.pendingGridMoves.add('right');
+    }
+    if (k === ' ' || k === 'enter') {
+      this.input.action = true;
+      this.pendingActions.add('action');
+    }
   }
 
   handleKeyUp(key: string): void {
@@ -110,13 +142,50 @@ export class Game {
     this.input.touchActive = active;
   }
 
-  step(): void {
-    const { screenWidth, screenHeight } = this.ast;
+  resetInput(): void {
+    this.keysDown.clear();
+    this.input.up = false;
+    this.input.down = false;
+    this.input.left = false;
+    this.input.right = false;
+    this.input.action = false;
+    this.pendingActions.clear();
+    this.pendingGridMoves.clear();
+    this.input.touchX = undefined;
+    this.input.touchY = undefined;
+    this.input.touchActive = false;
+  }
 
-    // 1. Update physics and positions of actors
+  step(deltaScale = 1): void {
+    const { screenWidth, screenHeight } = this.ast;
+    const scale = Number.isFinite(deltaScale) ? Math.max(0, Math.min(deltaScale, 4)) : 1;
+
+    // 1. Update physics and positions of actors.
+    // Grid-controlled actors consume one movement command per keydown.
     for (const actor of this.actors.values()) {
-      actor.update(screenWidth, screenHeight, this.input);
+      const useGrid = actor.controlledBy === 'setas' && actor.movementMode === 'grade';
+      if (useGrid) {
+        const originalInput = {
+          up: this.input.up,
+          down: this.input.down,
+          left: this.input.left,
+          right: this.input.right
+        };
+        this.input.up = this.pendingGridMoves.has('up');
+        this.input.down = this.pendingGridMoves.has('down');
+        this.input.left = this.pendingGridMoves.has('left');
+        this.input.right = this.pendingGridMoves.has('right');
+        actor.update(screenWidth, screenHeight, this.input, 1);
+        this.input.up = originalInput.up;
+        this.input.down = originalInput.down;
+        this.input.left = originalInput.left;
+        this.input.right = originalInput.right;
+      } else {
+        actor.update(screenWidth, screenHeight, this.input, scale);
+      }
     }
+
+    this.pendingGridMoves.clear();
 
     // 2. Check collisions between pairs of actors
     const actorList = Array.from(this.actors.values());
@@ -144,6 +213,12 @@ export class Game {
 
     // 4. Render to canvas if present
     this.render();
+
+    // Consume one-shot actions only after all update/event handlers ran.
+    if (this.pendingActions.size > 0) {
+      this.pendingActions.clear();
+      this.input.action = false;
+    }
   }
 
   private triggerActorEvent(actor: Actor, eventKey: string): void {
@@ -152,9 +227,13 @@ export class Game {
 
     const handler = decl.events[eventKey] || decl.events[eventKey.toLowerCase()];
     if (handler && handler.length > 0) {
+      const previousActor = this.interpreter.currentActor;
       this.interpreter.currentActor = actor;
-      this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
-      this.interpreter.currentActor = undefined;
+      try {
+        this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
+      } finally {
+        this.interpreter.currentActor = previousActor;
+      }
     }
   }
 
@@ -174,9 +253,17 @@ export class Game {
     if (this.running) return;
     this.running = true;
 
-    const loop = () => {
+    let previousTime: number | undefined;
+
+    const loop = (timestamp: number) => {
       if (!this.running) return;
-      this.step();
+
+      const deltaScale = previousTime === undefined
+        ? 1
+        : Math.max(0, Math.min(((timestamp - previousTime) / 1000) * 60, 4));
+
+      previousTime = timestamp;
+      this.step(deltaScale);
       this.animationFrameId = requestAnimationFrame(loop);
     };
 

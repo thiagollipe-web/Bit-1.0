@@ -5,6 +5,116 @@ import { Game } from '../src/runtime/game.ts';
 import { checkAABB } from '../src/runtime/collision.ts';
 
 describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
+
+  it('move em grade com passo configurado', () => {
+    const code = `
+      tela 160x120
+
+      ator Jogador
+        desenho quadrado 16, azul
+        posição 10, 10
+        controlado por setas
+        movimento por grade 32
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+    const jogador = game.actors.get('jogador')!;
+
+    game.handleKeyDown('ArrowRight');
+    game.step();
+    game.handleKeyUp('ArrowRight');
+
+    expect(jogador.x).toBe(42);
+  });
+
+  it('normaliza movimento quando o delta de frame varia', () => {
+    const code = `
+      tela 160x120
+
+      ator Bola
+        desenho quadrado 4, branco
+        posição 10, 10
+        velocidade 10, 0
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+    const bola = game.actors.get('bola')!;
+
+    game.step(0.5);
+
+    expect(bola.x).toBe(15);
+  });
+
+  it('mantém espaço disponível para evento de atualização no mesmo frame', () => {
+    const code = `
+      tela 160x120
+
+      ator Jogador
+        desenho quadrado 8, azul
+        posição 20, 20
+        quando atualiza:
+          se tecla(" ") então
+            x recebe 40
+          fim
+        fim
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+
+    game.handleKeyDown(' ');
+    game.step();
+
+    const jogador = game.actors.get('jogador')!;
+    expect(jogador.x).toBe(40);
+
+    game.step();
+    expect(jogador.x).toBe(40);
+  });
+
+  it('limpa o estado de entrada quando a janela perde foco', () => {
+    const code = `
+      tela 160x120
+
+      ator Jogador
+        desenho quadrado 8, verde
+        posição 20, 20
+        controlado por setas
+      fim
+    `;
+    const ast = parse(tokenize(code));
+    const game = new Game(ast);
+
+    game.handleKeyDown('ArrowLeft');
+    game.handleKeyDown(' ');
+    expect(game.input.left).toBe(true);
+    expect(game.input.action).toBe(true);
+
+    game.resetInput();
+
+    expect(game.input.left).toBe(false);
+    expect(game.input.action).toBe(false);
+    expect(game.keysDown.size).toBe(0);
+  });
+
+  it('entrega mensagens iniciais ao callback do runtime', () => {
+    const code = `
+      tela 160x120
+      diga "Olá antes de iniciar!"
+    `;
+    const ast = parse(tokenize(code));
+    const messages: string[] = [];
+
+    new Game(ast, undefined, {
+      onSay: (message) => messages.push(message)
+    });
+
+    expect(messages).toEqual(['Olá antes de iniciar!']);
+  });
+
+
   it('permite que a bola saia da tela na horizontal para pontuar quando quique é vertical', () => {
     const code = `
       tela 160x120

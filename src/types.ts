@@ -27,6 +27,8 @@ export interface DrawShape {
 
 export type ControlledBy = 'setas' | 'toque' | 'mouse' | 'nenhum';
 
+export type MovementMode = 'livre' | 'grade';
+
 export interface BounceConfig {
   top: boolean;
   bottom: boolean;
@@ -63,6 +65,8 @@ export interface ActorDecl {
   vx: number;
   vy: number;
   controlledBy: ControlledBy;
+  movementMode: MovementMode;
+  gridSize: number;
   limitToScreen: boolean;
   bounceBorders: BounceConfig;
   events: { [key: string]: Stmt[] };

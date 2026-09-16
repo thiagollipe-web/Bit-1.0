@@ -159,6 +159,12 @@ export class Interpreter {
         // Check user-defined functions
         const userFn = env.get(calleeName) as UserFunction | undefined;
         if (userFn && userFn.params && userFn.body) {
+          if (args.length !== userFn.params.length) {
+            throw new Error(
+              `A função "${expr.callee}" esperava ${userFn.params.length} parâmetro(s), mas recebeu ${args.length}.`
+            );
+          }
+
           const callEnv = new Environment(userFn.closure);
           userFn.params.forEach((param, idx) => {
             callEnv.set(param, args[idx]);
@@ -274,9 +280,9 @@ export class Interpreter {
       case 'if': {
         const condition = Boolean(this.evalExpr(stmt.cond, env));
         if (condition) {
-          this.executeBlock(stmt.then, new Environment(env));
+          this.executeBlock(stmt.then, env);
         } else if (stmt.els && stmt.els.length > 0) {
-          this.executeBlock(stmt.els, new Environment(env));
+          this.executeBlock(stmt.els, env);
         }
         break;
       }
@@ -286,7 +292,7 @@ export class Interpreter {
         const maxLimit = 10000;
         const actualTimes = Math.min(times, maxLimit);
         for (let i = 0; i < actualTimes; i++) {
-          this.executeBlock(stmt.body, new Environment(env));
+          this.executeBlock(stmt.body, env);
         }
         break;
       }
@@ -295,7 +301,7 @@ export class Interpreter {
         let iterations = 0;
         const maxLimit = 10000;
         while (Boolean(this.evalExpr(stmt.cond, env)) && iterations < maxLimit) {
-          this.executeBlock(stmt.body, new Environment(env));
+          this.executeBlock(stmt.body, env);
           iterations++;
         }
         break;

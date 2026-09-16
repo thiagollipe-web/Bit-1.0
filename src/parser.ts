@@ -1,4 +1,4 @@
-import { Token, ProgramAST, ActorDecl, Stmt, Expr, DrawShape, ControlledBy, BounceConfig } from './types.ts';
+import { Token, ProgramAST, ActorDecl, Stmt, Expr, DrawShape, ControlledBy, MovementMode, BounceConfig } from './types.ts';
 import { normalizeColorName } from './colors.ts';
 
 export class ParseError extends Error {
@@ -340,6 +340,14 @@ export function parse(tokens: Token[]): ProgramAST {
           if (p.type !== 'PALAVRA') {
             throw new ParseError(`Esperava nome do parâmetro, encontrei ${formatEncontrado(p)}.`, p.line, p.col);
           }
+          const parameterName = normalizeId(p.value);
+          if (params.some(existing => normalizeId(existing) === parameterName)) {
+            throw new ParseError(
+              `Parâmetro duplicado "${p.value}" na função "${name}".`,
+              p.line,
+              p.col
+            );
+          }
           advance();
           params.push(p.value);
         } while (matchPunct(','));
@@ -491,6 +499,8 @@ export function parse(tokens: Token[]): ProgramAST {
       let vx = 0;
       let vy = 0;
       let controlledBy: ControlledBy = 'nenhum';
+      let movementMode: MovementMode = 'livre';
+      let gridSize = 16;
       let limitToScreen = false;
       const bounceBorders: BounceConfig = { top: false, bottom: false, left: false, right: false };
       const events: { [key: string]: Stmt[] } = {};
@@ -615,6 +625,19 @@ export function parse(tokens: Token[]): ProgramAST {
           continue;
         }
 
+        // movimentação livre (padrão) ou movimentação em grade
+        // move por grade TAMANHO
+        if (matchId('move', 'movimento')) {
+          if (matchId('por')) {
+            matchId('grade');
+          }
+          if (peek().type === 'NUMERO') {
+            gridSize = Math.max(1, parseFloat(advance().value));
+          }
+          movementMode = 'grade';
+          continue;
+        }
+
         // limita à tela / limita a tela
         if (matchId('limita')) {
           if (matchId('a', 'à')) {
@@ -664,6 +687,8 @@ export function parse(tokens: Token[]): ProgramAST {
         vx,
         vy,
         controlledBy,
+        movementMode,
+        gridSize,
         limitToScreen,
         bounceBorders,
         events,
