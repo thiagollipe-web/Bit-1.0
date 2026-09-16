@@ -29,7 +29,24 @@ code{color:#9ad8ff}
 <p>Escreva programas BIT em arquivos <code>.bit</code>. Edite o arquivo no Bloco de Notas e use <b>Abrir .BIT</b> para executá-lo. O HTML é somente o motor da linguagem.</p>
 <div class="row"><button id="run">Executar</button><button id="stop" class="secondary">Parar</button><button id="sample" class="secondary">Exemplo</button><button id="new" class="secondary">Novo</button><button id="save" class="secondary">Salvar .BIT</button><label class="button secondary" style="display:inline-block;padding:10px 14px;border-radius:6px;cursor:pointer">Abrir .BIT<input id="file" type="file" accept=".bit,text/plain" hidden></label></div>
 <h2>Programa BIT</h2>
-<textarea id="code" spellcheck="false"></textarea>
+<textarea id="code" spellcheck="false">tela 320x180
+fundo preto
+pontos recebe 0
+
+ator Jogador
+  desenho quadrado 16, verde
+  posição 32, 82
+  controlado por setas
+  limita à tela
+  quando atualiza:
+    se tecla("espaco") então
+      pontos recebe pontos + 1
+      diga "Pontos: " + pontos
+    fim
+  fim
+fim
+
+diga "BIT funcionando!"</textarea>
 <h2>Comandos</h2>
 <p><code>tela 320x180</code><br><code>fundo preto</code><br><code>ator Jogador ... fim</code><br><code>desenho quadrado 16, verde</code><br><code>desenho retângulo 20, 8, azul</code><br><code>desenho círculo 8, vermelho</code><br><code>desenho texto 14, "Oi", branco</code><br><code>posição 40,80</code><br><code>velocidade 2,0</code><br><code>controlado por setas</code><br><code>controlado por mouse</code><br><code>movimento por grade 32</code><br><code>quando atualiza:</code><br><code>quando colide com "Inimigo":</code><br><code>se ... então ... senão ... fim</code><br><code>repita ... vezes ... fim</code><br><code>enquanto ... faça ... fim</code><br><code>função soma(a,b) ... fim</code><br><code>diga "Olá"</code></p>
 <div class="badge">BIT Standalone 1.3</div>
@@ -44,7 +61,12 @@ code{color:#9ad8ff}
 const SAMPLE="tela 320x180\nfundo preto\npontos recebe 0\n\nator Jogador\n  desenho quadrado 16, verde\n  posição 32, 82\n  controlado por setas\n  limita à tela\n  quando atualiza:\n    se tecla(\"espaco\") então\n      pontos recebe pontos + 1\n    fim\n  fim\nfim\n\nator Bola\n  desenho quadrado 10, vermelho\n  posição 160, 90\n  velocidade 2, 1.2\n  quica nas bordas\n  quando colide com \"Jogador\":\n    vx recebe -vx\n    diga \"Colisão! Pontos: \" + pontos\n  fim\nfim\n\ndiga \"BIT iniciado.\"";
 const codeEl=document.getElementById("code"),canvas=document.getElementById("game"),ctx=canvas.getContext("2d"),logEl=document.getElementById("log"),statusEl=document.getElementById("status");
 const savedCode=localStorage.getItem("bit_standalone_code");
-codeEl.value=(savedCode&&savedCode.trim())?savedCode:SAMPLE;
+if(savedCode && savedCode.trim()){
+  codeEl.value=savedCode;
+}else if(!codeEl.value.trim()){
+  codeEl.value=SAMPLE;
+}
+localStorage.setItem("bit_standalone_code",codeEl.value);
 
 let raf=0,currentGame=null;const keyState=new Set(),mouse={x:0,y:0,active:false},touch={x:0,y:0,active:false},pending=new Set();
 const log=m=>{const e=document.createElement("div");e.textContent=m;logEl.appendChild(e);logEl.scrollTop=logEl.scrollHeight},norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");
