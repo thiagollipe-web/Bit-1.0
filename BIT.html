@@ -231,7 +231,7 @@ function run(){
 
 document.getElementById("run").onclick=run;
 document.getElementById("stop").onclick=function(){if(game)game.running=false;cancelAnimationFrame(raf);statusBox.textContent="Parado";};
-document.getElementById("newBtn").onclick=function(){code.value='tela 320x180\nfundo preto\n\ndiga "Meu primeiro programa BIT."';localStorage.setItem("bit_code",code.value);};
+document.getElementById("newBtn").onclick=function(){code.value='tela 320x180\nfundo preto\n\ndiga "Meu primeiro programa BIT."';};
 document.getElementById("saveBtn").onclick=function(){var blob=new Blob([code.value],{type:"text/plain;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="meu-jogo.bit";a.click();setTimeout(function(){URL.revokeObjectURL(u);},1000);};
 document.getElementById("openBtn").onclick=function(){fileInput.click();};
 fileInput.onchange=function(){var f=fileInput.files&&fileInput.files[0];if(!f)return;f.text().then(function(t){code.value=t;localStorage.setItem("bit_code",t);statusBox.textContent="Arquivo carregado: "+f.name;}).catch(function(e){say("ERRO: "+e.message);});};
@@ -242,8 +242,8 @@ window.addEventListener("blur",function(){keys={};});
 canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)*canvas.width/r.width;mouse.y=(e.clientY-r.top)*canvas.height/r.height;mouse.active=true;});
 canvas.addEventListener("mouseleave",function(){mouse.active=false;});
 
-var saved=localStorage.getItem("bit_code");
-code.value=(saved&&saved.trim())?saved:SAMPLE;
+// Sempre iniciar com um programa BIT válido.
+code.value=SAMPLE;
 </script>
 </body>
 </html>
