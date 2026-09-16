@@ -68,4 +68,18 @@ describe('Exemplos da Linguagem Bit', () => {
       game.step();
     }
   });
+
+  it('faz parse e executa steps de examples/geometric_run.bit', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/geometric_run.bit');
+    const content = fs.readFileSync(filePath, 'utf-8');
+
+    const tokens = tokenize(content);
+    const ast = parse(tokens);
+    expect(ast.actors.length).toBe(7); // Chao, LinhaChao, Jogador, Espinho1, Espinho2, BlocoAereo, EstrelaNeon
+
+    const game = new Game(ast);
+    for (let i = 0; i < 20; i++) {
+      game.step();
+    }
+  });
 });

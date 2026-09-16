@@ -14,7 +14,7 @@ export interface Token {
   col: number;
 }
 
-export type ShapeType = 'quadrado' | 'retangulo' | 'circulo' | 'texto' | 'imagem';
+export type ShapeType = 'quadrado' | 'retangulo' | 'circulo' | 'texto' | 'triangulo' | 'imagem';
 
 export interface DrawShape {
   type: ShapeType;
@@ -46,6 +46,7 @@ export type Stmt =
   | { kind: 'assign'; target: string; property?: string; value: Expr }
   | { kind: 'if'; cond: Expr; then: Stmt[]; els?: Stmt[] }
   | { kind: 'repeat'; times: Expr; body: Stmt[] }
+  | { kind: 'for'; variable: string; start: Expr; end: Expr; step?: Expr; body: Stmt[] }
   | { kind: 'while'; cond: Expr; body: Stmt[] }
   | { kind: 'func'; name: string; params: string[]; body: Stmt[] }
   | { kind: 'return'; value?: Expr }

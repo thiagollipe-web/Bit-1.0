@@ -103,6 +103,10 @@ export class Interpreter {
           if (name === 'vy') return this.currentActor.vy;
           if (name === 'largura') return this.currentActor.width;
           if (name === 'altura') return this.currentActor.height;
+          if (name === 'cor' && this.currentActor.shape) return this.currentActor.shape.color;
+          if (name === 'angulo' || name === 'ângulo') return this.currentActor.angle;
+          if (name === 'visivel' || name === 'visível') return this.currentActor.active;
+          if (name === 'alfa' || name === 'opacidade') return this.currentActor.opacity;
           if (name in this.currentActor.props) return this.currentActor.props[name];
         }
         return undefined;
@@ -136,7 +140,10 @@ export class Interpreter {
           if (prop === 'vy') return obj.vy;
           if (prop === 'largura') return obj.width;
           if (prop === 'altura') return obj.height;
-          if (prop === 'ativo') return obj.active;
+          if (prop === 'ativo' || prop === 'visivel' || prop === 'visível') return obj.active;
+          if (prop === 'cor' && obj.shape) return obj.shape.color;
+          if (prop === 'angulo' || prop === 'ângulo') return obj.angle;
+          if (prop === 'alfa' || prop === 'opacidade') return obj.opacity;
           return obj.props[prop];
         }
 
@@ -243,7 +250,12 @@ export class Interpreter {
               obj.height = Number(value) || 0;
               if (obj.shape) obj.shape.height = obj.height;
             }
-            else if (prop === 'ativo') obj.active = Boolean(value);
+            else if (prop === 'ativo' || prop === 'visivel' || prop === 'visível') obj.active = Boolean(value);
+            else if (prop === 'cor') {
+              if (obj.shape) obj.shape.color = String(value);
+            }
+            else if (prop === 'angulo' || prop === 'ângulo') obj.angle = Number(value) || 0;
+            else if (prop === 'alfa' || prop === 'opacidade') obj.opacity = Math.max(0, Math.min(1, Number(value) || 1));
             else obj.props[prop] = value;
           } else if (typeof obj === 'object' && obj !== null) {
             (obj as Record<string, unknown>)[prop] = value;
@@ -251,7 +263,7 @@ export class Interpreter {
         } else {
           // If the target is an actor and current actor matches
           const lowerTarget = stmt.target.toLowerCase();
-          if (this.currentActor && ['x', 'y', 'vx', 'vy', 'largura', 'altura'].includes(lowerTarget)) {
+          if (this.currentActor && ['x', 'y', 'vx', 'vy', 'largura', 'altura', 'cor', 'angulo', 'ângulo', 'visivel', 'visível', 'alfa', 'opacidade'].includes(lowerTarget)) {
             if (lowerTarget === 'x') this.currentActor.x = Number(value) || 0;
             if (lowerTarget === 'y') this.currentActor.y = Number(value) || 0;
             if (lowerTarget === 'vx') this.currentActor.vx = Number(value) || 0;
@@ -263,6 +275,18 @@ export class Interpreter {
             if (lowerTarget === 'altura') {
               this.currentActor.height = Number(value) || 0;
               if (this.currentActor.shape) this.currentActor.shape.height = this.currentActor.height;
+            }
+            if (lowerTarget === 'cor' && this.currentActor.shape) {
+              this.currentActor.shape.color = String(value);
+            }
+            if (lowerTarget === 'angulo' || lowerTarget === 'ângulo') {
+              this.currentActor.angle = Number(value) || 0;
+            }
+            if (lowerTarget === 'visivel' || lowerTarget === 'visível') {
+              this.currentActor.active = Boolean(value);
+            }
+            if (lowerTarget === 'alfa' || lowerTarget === 'opacidade') {
+              this.currentActor.opacity = Math.max(0, Math.min(1, Number(value) || 1));
             }
           } else {
             env.assign(stmt.target, value);
@@ -287,6 +311,32 @@ export class Interpreter {
         const actualTimes = Math.min(times, maxLimit);
         for (let i = 0; i < actualTimes; i++) {
           this.executeBlock(stmt.body, new Environment(env));
+        }
+        break;
+      }
+
+      case 'for': {
+        const startVal = Number(this.evalExpr(stmt.start, env)) || 0;
+        const endVal = Number(this.evalExpr(stmt.end, env)) || 0;
+        const stepVal = stmt.step
+          ? (Number(this.evalExpr(stmt.step, env)) || 1)
+          : (startVal <= endVal ? 1 : -1);
+
+        if (stepVal === 0) break;
+        const blockEnv = new Environment(env);
+        let currentVal = startVal;
+        let iterations = 0;
+        const maxLimit = 10000;
+
+        const isRunning = stepVal > 0
+          ? () => currentVal <= endVal
+          : () => currentVal >= endVal;
+
+        while (isRunning() && iterations < maxLimit) {
+          blockEnv.set(stmt.variable, currentVal);
+          this.executeBlock(stmt.body, blockEnv);
+          currentVal += stepVal;
+          iterations++;
         }
         break;
       }

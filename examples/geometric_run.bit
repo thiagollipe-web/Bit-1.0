@@ -1,0 +1,110 @@
+tela 160x120
+fundo preto
+
+# Geometric Run 2D (Geometry Runner)
+# Pressione ESPAÇO, SETA CIMA ou TOQUE na tela para pular os obstáculos!
+
+pontos recebe 0
+pulando recebe 0
+vy recebe 0
+
+ator Chao
+  desenho retângulo 160, 20, cinza_escuro
+  posição 0, 100
+fim
+
+ator LinhaChao
+  desenho retângulo 160, 2, ciano
+  posição 0, 99
+fim
+
+ator Jogador
+  desenho quadrado 10, amarelo
+  posição 24, 90
+  quando atualiza:
+    # Gravidade física do salto
+    vy recebe vy + 0.35
+    y recebe y + vy
+
+    # Apoio no chão (y = 90)
+    se y >= 90 então
+      y recebe 90
+      vy recebe 0
+      pulando recebe 0
+    fim
+
+    # Salto com Espaço, W ou Seta para Cima
+    se pulando == 0 então
+      se tecla("espaco") ou tecla("arrowup") ou tecla("w") ou tecla("cima") então
+        vy recebe -4.8
+        pulando recebe 1
+        diga "Salto!"
+      fim
+    fim
+  fim
+fim
+
+ator Espinho1
+  desenho retângulo 8, 10, vermelho
+  posição 160, 90
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -12 então
+      x recebe 160 + aleatorio(10, 45)
+      pontos recebe pontos + 1
+      diga "Ponto! Total: " + pontos
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 170
+  fim
+fim
+
+ator Espinho2
+  desenho retângulo 6, 8, laranja
+  posição 230, 92
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -10 então
+      x recebe 180 + aleatorio(30, 75)
+      pontos recebe pontos + 1
+      diga "Ponto! Total: " + pontos
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 240
+  fim
+fim
+
+ator BlocoAereo
+  desenho quadrado 8, roxo
+  posição 300, 76
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -12 então
+      x recebe 220 + aleatorio(40, 90)
+      pontos recebe pontos + 1
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 310
+  fim
+fim
+
+ator EstrelaNeon
+  desenho quadrado 2, branco
+  posição 140, 25
+  velocidade -0.8, 0
+  quando atualiza:
+    se x < -5 então
+      x recebe 165
+      y recebe aleatorio(15, 65)
+    fim
+  fim
+fim

@@ -26,6 +26,7 @@ export class Actor {
   bounceBorders: BounceConfig;
   active: boolean = true;
   angle: number = 0;
+  opacity: number = 1;
   props: Record<string, unknown> = {};
 
   constructor(
@@ -105,9 +106,23 @@ export class Actor {
     if (!this.active || !this.shape) return;
 
     ctx.save();
+    if (this.opacity !== undefined && this.opacity < 1) {
+      ctx.globalAlpha = Math.max(0, Math.min(1, this.opacity));
+    }
+
     const color = resolveColor(this.shape.color);
     ctx.fillStyle = color;
     ctx.strokeStyle = color;
+
+    const cx = Math.round(this.x + this.width / 2);
+    const cy = Math.round(this.y + this.height / 2);
+
+    // Aplicar rotação em torno do centro do ator se angulo != 0
+    if (this.angle !== 0) {
+      ctx.translate(cx, cy);
+      ctx.rotate((this.angle * Math.PI) / 180);
+      ctx.translate(-cx, -cy);
+    }
 
     if (this.shape.type === 'quadrado' || this.shape.type === 'retangulo') {
       ctx.fillRect(Math.round(this.x), Math.round(this.y), this.width, this.height);
@@ -121,6 +136,14 @@ export class Actor {
         0,
         Math.PI * 2
       );
+      ctx.fill();
+    } else if (this.shape.type === 'triangulo') {
+      // Triângulo apontando para cima (ou rotacionado via angulo)
+      ctx.beginPath();
+      ctx.moveTo(Math.round(this.x + this.width / 2), Math.round(this.y));
+      ctx.lineTo(Math.round(this.x + this.width), Math.round(this.y + this.height));
+      ctx.lineTo(Math.round(this.x), Math.round(this.y + this.height));
+      ctx.closePath();
       ctx.fill();
     } else if (this.shape.type === 'texto' && this.shape.text) {
       ctx.font = `${Math.round(this.height)}px monospace`;

@@ -66,6 +66,118 @@ ator Jogador
   posição 76, 56
 fim`,
 
+  geometric_run: (title: string) => `# ${title}
+tela 160x120
+fundo preto
+
+# Geometric Run 2D (Geometry Runner)
+# Pressione ESPAÇO, SETA CIMA ou TOQUE para pular os obstáculos!
+
+pontos recebe 0
+pulando recebe 0
+vy recebe 0
+
+ator Chao
+  desenho retângulo 160, 20, cinza_escuro
+  posição 0, 100
+fim
+
+ator LinhaChao
+  desenho retângulo 160, 2, ciano
+  posição 0, 99
+fim
+
+ator Jogador
+  desenho quadrado 10, amarelo
+  posição 24, 90
+  quando atualiza:
+    # Gravidade física do salto
+    vy recebe vy + 0.35
+    y recebe y + vy
+
+    # Apoio no chão (y = 90)
+    se y >= 90 então
+      y recebe 90
+      vy recebe 0
+      pulando recebe 0
+    fim
+
+    # Salto com Espaço, W ou Seta para Cima
+    se pulando == 0 então
+      se tecla("espaco") ou tecla("arrowup") ou tecla("w") ou tecla("cima") então
+        vy recebe -4.8
+        pulando recebe 1
+        diga "Salto!"
+      fim
+    fim
+  fim
+fim
+
+ator Espinho1
+  desenho retângulo 8, 10, vermelho
+  posição 160, 90
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -12 então
+      x recebe 160 + aleatorio(10, 45)
+      pontos recebe pontos + 1
+      diga "Ponto! Total: " + pontos
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 170
+  fim
+fim
+
+ator Espinho2
+  desenho retângulo 6, 8, laranja
+  posição 230, 92
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -10 então
+      x recebe 180 + aleatorio(30, 75)
+      pontos recebe pontos + 1
+      diga "Ponto! Total: " + pontos
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 240
+  fim
+fim
+
+ator BlocoAereo
+  desenho quadrado 8, roxo
+  posição 300, 76
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -12 então
+      x recebe 220 + aleatorio(40, 90)
+      pontos recebe pontos + 1
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 310
+  fim
+fim
+
+ator EstrelaNeon
+  desenho quadrado 2, branco
+  posição 140, 25
+  velocidade -0.8, 0
+  quando atualiza:
+    se x < -5 então
+      x recebe 165
+      y recebe aleatorio(15, 65)
+    fim
+  fim
+fim`,
+
   tetris: (title: string) => `# ${title}
 tela 160x120
 fundo preto
@@ -153,6 +265,117 @@ fim`
 };
 
 const EXAMPLES: Record<string, string> = {
+  geometric_run: `tela 160x120
+fundo preto
+
+# Geometric Run 2D (Geometry Runner)
+# Pressione ESPAÇO, SETA CIMA ou TOQUE para pular os obstáculos!
+
+pontos recebe 0
+pulando recebe 0
+vy recebe 0
+
+ator Chao
+  desenho retângulo 160, 20, cinza_escuro
+  posição 0, 100
+fim
+
+ator LinhaChao
+  desenho retângulo 160, 2, ciano
+  posição 0, 99
+fim
+
+ator Jogador
+  desenho quadrado 10, amarelo
+  posição 24, 90
+  quando atualiza:
+    # Gravidade física do salto
+    vy recebe vy + 0.35
+    y recebe y + vy
+
+    # Apoio no chão (y = 90)
+    se y >= 90 então
+      y recebe 90
+      vy recebe 0
+      pulando recebe 0
+    fim
+
+    # Salto com Espaço, W ou Seta para Cima
+    se pulando == 0 então
+      se tecla("espaco") ou tecla("arrowup") ou tecla("w") ou tecla("cima") então
+        vy recebe -4.8
+        pulando recebe 1
+        diga "Salto!"
+      fim
+    fim
+  fim
+fim
+
+ator Espinho1
+  desenho retângulo 8, 10, vermelho
+  posição 160, 90
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -12 então
+      x recebe 160 + aleatorio(10, 45)
+      pontos recebe pontos + 1
+      diga "Ponto! Total: " + pontos
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 170
+  fim
+fim
+
+ator Espinho2
+  desenho retângulo 6, 8, laranja
+  posição 230, 92
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -10 então
+      x recebe 180 + aleatorio(30, 75)
+      pontos recebe pontos + 1
+      diga "Ponto! Total: " + pontos
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 240
+  fim
+fim
+
+ator BlocoAereo
+  desenho quadrado 8, roxo
+  posição 300, 76
+  velocidade -2.4, 0
+  quando atualiza:
+    se x < -12 então
+      x recebe 220 + aleatorio(40, 90)
+      pontos recebe pontos + 1
+    fim
+  fim
+  quando colide com "Jogador":
+    diga "💥 GAME OVER! Pontuação final: " + pontos
+    pontos recebe 0
+    x recebe 310
+  fim
+fim
+
+ator EstrelaNeon
+  desenho quadrado 2, branco
+  posição 140, 25
+  velocidade -0.8, 0
+  quando atualiza:
+    se x < -5 então
+      x recebe 165
+      y recebe aleatorio(15, 65)
+    fim
+  fim
+fim`,
+
   pong: `tela 160x120
 fundo preto
 
@@ -439,6 +662,51 @@ const libSearchInput = document.getElementById('lib-search-input') as HTMLInputE
 const libList = document.getElementById('lib-list') as HTMLDivElement;
 const libCatBtns = document.querySelectorAll('.lib-cat-btn');
 
+// AI Assistant Elements
+const btnAi = document.getElementById('btn-ai') as HTMLButtonElement;
+const btnQuickAi = document.getElementById('btn-quick-ai') as HTMLButtonElement | null;
+const aiModal = document.getElementById('ai-modal') as HTMLDivElement;
+const btnAiClose = document.getElementById('btn-ai-close') as HTMLButtonElement;
+const aiChips = document.querySelectorAll('.ai-chip');
+const aiPromptLabel = document.getElementById('ai-prompt-label') as HTMLLabelElement;
+const aiPromptInput = document.getElementById('ai-prompt-input') as HTMLTextAreaElement;
+const aiIncludeCode = document.getElementById('ai-include-code') as HTMLInputElement;
+const btnAiSubmit = document.getElementById('btn-ai-submit') as HTMLButtonElement;
+const aiSubmitSpinner = document.getElementById('ai-submit-spinner') as HTMLSpanElement;
+const aiSubmitText = document.getElementById('ai-submit-text') as HTMLSpanElement;
+const aiResponseContainer = document.getElementById('ai-response-container') as HTMLDivElement;
+const aiReplyContent = document.getElementById('ai-reply-content') as HTMLDivElement;
+const btnAiCopy = document.getElementById('btn-ai-copy') as HTMLButtonElement;
+const btnAiInsert = document.getElementById('btn-ai-insert') as HTMLButtonElement;
+const btnAiReplace = document.getElementById('btn-ai-replace') as HTMLButtonElement;
+
+let currentAiAction = 'new_game';
+let lastAiExtractedCode = '';
+
+const AI_ACTION_CONFIG: Record<string, { label: string; placeholder: string }> = {
+  new_game: {
+    label: 'Descreva o jogo que você quer criar:',
+    placeholder: 'Ex: Crie um jogo de labirinto onde o jogador coleta chaves e desvia de monstros...'
+  },
+  add_feature: {
+    label: 'Qual recurso ou ator você quer adicionar ao jogo atual?',
+    placeholder: 'Ex: Adicione um sistema de vidas com 3 corações e tela de Game Over quando zerar...'
+  },
+  fix: {
+    label: 'Qual erro ou comportamento você deseja corrigir?',
+    placeholder: 'Ex: Corrija o movimento do personagem e garanta que as colisões com as paredes funcionem...'
+  },
+  explain: {
+    label: 'O que você quer que a IA explique sobre este código?',
+    placeholder: 'Ex: Explique detalhadamente como funciona a colisão e a física deste jogo...'
+  },
+  custom: {
+    label: 'Qual sua dúvida sobre a linguagem BIT?',
+    placeholder: 'Ex: Como usar a função distância() ou seno() para criar um movimento circular?'
+  }
+};
+
+
 let currentLibCategory = 'todas';
 let currentLibSearch = '';
 
@@ -451,11 +719,19 @@ const STORAGE_KEY_CODE = 'bit_usuario_codigo';
 const STORAGE_KEY_TITLE = 'bit_usuario_titulo';
 
 function loadUserCode(): string {
-  return localStorage.getItem(STORAGE_KEY_CODE) || STARTER_TEMPLATES.personagem('Meu Primeiro Jogo');
+  const saved = localStorage.getItem(STORAGE_KEY_CODE);
+  if (saved && !saved.includes('Meu Primeiro Jogo')) {
+    return saved;
+  }
+  return EXAMPLES.geometric_run;
 }
 
 function loadUserTitle(): string {
-  return localStorage.getItem(STORAGE_KEY_TITLE) || 'Meu Primeiro Jogo';
+  const saved = localStorage.getItem(STORAGE_KEY_TITLE);
+  if (saved && saved !== 'Meu Primeiro Jogo') {
+    return saved;
+  }
+  return 'Geometric Run 2D';
 }
 
 function saveUserCode(code: string, title?: string) {
@@ -774,16 +1050,187 @@ exampleSelect.addEventListener('change', () => {
   runCode();
 });
 
+// AI Assistant Logic
+function setAiAction(action: string) {
+  currentAiAction = action;
+  aiChips.forEach((chip) => {
+    if (chip.getAttribute('data-action') === action) {
+      chip.classList.add('active');
+    } else {
+      chip.classList.remove('active');
+    }
+  });
+
+  const cfg = AI_ACTION_CONFIG[action] || AI_ACTION_CONFIG.new_game;
+  aiPromptLabel.textContent = cfg.label;
+  aiPromptInput.placeholder = cfg.placeholder;
+}
+
+function openAiModal(initialAction = 'new_game') {
+  setAiAction(initialAction);
+  aiModal.classList.remove('hidden');
+  aiPromptInput.focus();
+}
+
+function closeAiModal() {
+  aiModal.classList.add('hidden');
+}
+
+function renderFormattedAiReply(text: string) {
+  aiReplyContent.innerHTML = '';
+  // Split on triple-backtick blocks
+  const parts = text.split(/(```(?:bit)?[\s\S]*?```)/g);
+
+  for (const part of parts) {
+    if (part.startsWith('```')) {
+      const match = part.match(/```(?:bit)?\s*([\s\S]*?)```/);
+      const code = match ? match[1].trim() : part.replace(/```/g, '').trim();
+      const pre = document.createElement('pre');
+      pre.className = 'ai-code-block';
+      pre.textContent = code;
+      aiReplyContent.appendChild(pre);
+    } else {
+      const trimmed = part.trim();
+      if (trimmed) {
+        const p = document.createElement('div');
+        p.style.marginBottom = '8px';
+        p.textContent = trimmed;
+        aiReplyContent.appendChild(p);
+      }
+    }
+  }
+}
+
+async function requestAiAssistance() {
+  const prompt = aiPromptInput.value.trim();
+  if (!prompt && currentAiAction !== 'explain' && currentAiAction !== 'fix') {
+    aiPromptInput.focus();
+    return;
+  }
+
+  aiSubmitSpinner.style.display = 'inline-block';
+  aiSubmitText.textContent = 'Gerando com IA...';
+  btnAiSubmit.disabled = true;
+
+  try {
+    const res = await fetch('/api/ai/assistant', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: prompt || (currentAiAction === 'explain' ? 'Explique o código' : 'Corrija erros no código'),
+        currentCode: aiIncludeCode.checked ? editor.value : undefined,
+        action: currentAiAction
+      })
+    });
+
+    const data = await res.json();
+    if (!res.ok || !data.success) {
+      throw new Error(data.error || `Erro HTTP ${res.status}`);
+    }
+
+    lastAiExtractedCode = data.extractedCode || '';
+    renderFormattedAiReply(data.reply || '');
+    aiResponseContainer.classList.remove('hidden');
+
+    if (!lastAiExtractedCode) {
+      btnAiCopy.style.display = 'none';
+      btnAiInsert.style.display = 'none';
+      btnAiReplace.style.display = 'none';
+    } else {
+      btnAiCopy.style.display = 'inline-flex';
+      btnAiInsert.style.display = 'inline-flex';
+      btnAiReplace.style.display = 'inline-flex';
+    }
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : String(err);
+    aiReplyContent.innerHTML = `<div style="color: var(--danger); padding: 8px;">⚠️ Não foi possível obter resposta da IA: ${msg}</div>`;
+    aiResponseContainer.classList.remove('hidden');
+    btnAiCopy.style.display = 'none';
+    btnAiInsert.style.display = 'none';
+    btnAiReplace.style.display = 'none';
+  } finally {
+    aiSubmitSpinner.style.display = 'none';
+    aiSubmitText.textContent = '🚀 Gerar com IA';
+    btnAiSubmit.disabled = false;
+  }
+}
+
+btnAi.addEventListener('click', () => openAiModal('new_game'));
+if (btnQuickAi) {
+  btnQuickAi.addEventListener('click', () => openAiModal('add_feature'));
+}
+btnAiClose.addEventListener('click', closeAiModal);
+
+aiChips.forEach((chip) => {
+  chip.addEventListener('click', () => {
+    const action = chip.getAttribute('data-action') || 'new_game';
+    setAiAction(action);
+  });
+});
+
+btnAiSubmit.addEventListener('click', requestAiAssistance);
+
+aiPromptInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+    e.preventDefault();
+    requestAiAssistance();
+  }
+});
+
+btnAiCopy.addEventListener('click', async () => {
+  if (!lastAiExtractedCode) return;
+  try {
+    await navigator.clipboard.writeText(lastAiExtractedCode);
+    btnAiCopy.textContent = '✓ Copiado!';
+    setTimeout(() => {
+      btnAiCopy.textContent = '📋 Copiar Código';
+    }, 1200);
+  } catch {
+    btnAiCopy.textContent = 'Erro ao copiar';
+  }
+});
+
+btnAiInsert.addEventListener('click', () => {
+  if (!lastAiExtractedCode) return;
+  insertCodeAtCursor(`\n${lastAiExtractedCode}\n`);
+  closeAiModal();
+  log('Código da IA inserido no editor.');
+  runCode();
+});
+
+btnAiReplace.addEventListener('click', () => {
+  if (!lastAiExtractedCode) return;
+  editor.value = lastAiExtractedCode;
+  saveUserCode(lastAiExtractedCode);
+  closeAiModal();
+  log('Código da IA aplicado ao editor! Executando...');
+  runCode();
+});
+
 // Keyboard controls
 window.addEventListener('keydown', (e) => {
-  if (document.activeElement === editor || document.activeElement === inputProgramName) return;
+  if (
+    document.activeElement === editor ||
+    document.activeElement === inputProgramName ||
+    document.activeElement === aiPromptInput ||
+    document.activeElement === libSearchInput
+  ) {
+    return;
+  }
   if (currentGame) {
     currentGame.handleKeyDown(e.key);
   }
 });
 
 window.addEventListener('keyup', (e) => {
-  if (document.activeElement === editor || document.activeElement === inputProgramName) return;
+  if (
+    document.activeElement === editor ||
+    document.activeElement === inputProgramName ||
+    document.activeElement === aiPromptInput ||
+    document.activeElement === libSearchInput
+  ) {
+    return;
+  }
   if (currentGame) {
     currentGame.handleKeyUp(e.key);
   }
