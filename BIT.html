@@ -3,161 +3,247 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BIT — Editor e Executor</title>
+<title>BIT — Executor Standalone</title>
 <style>
-:root{color-scheme:dark}
-body{margin:0;background:#101218;color:#e8eaf0;font-family:Consolas,monospace;display:grid;grid-template-columns:420px 1fr;gap:16px;height:100vh;overflow:hidden}
-aside{padding:16px;border-right:1px solid #30343d;overflow:auto}
-main{display:grid;grid-template-rows:auto 1fr auto;gap:10px;padding:16px;min-width:0}
-textarea{width:100%;height:min(62vh,620px);min-height:300px;box-sizing:border-box;background:#171a21;color:#e8eaf0;border:1px solid #363b46;border-radius:8px;padding:14px;font:14px/1.5 Consolas,monospace;resize:vertical}
-button{background:#2e7d32;color:#fff;border:0;border-radius:6px;padding:10px 14px;cursor:pointer;margin-right:6px}
-button.secondary{background:#424750}
-.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-#stageWrap{display:flex;align-items:center;justify-content:center;min-height:0;background:#0a0c10;border:1px solid #30343d;border-radius:8px}
-canvas{image-rendering:pixelated;image-rendering:crisp-edges;width:min(100%,960px);height:auto;max-height:100%;background:#000;display:block;box-shadow:0 0 0 1px #222}
-#log{height:130px;overflow:auto;background:#0d1015;border:1px solid #30343d;border-radius:8px;padding:10px;white-space:pre-wrap}
-h1{font-size:18px;margin:0 0 8px}
-h2{font-size:14px;margin:18px 0 8px}
-p{color:#b8bdc8;font:13px/1.45 system-ui,sans-serif}
-code{color:#9ad8ff}
-.badge{font-size:12px;color:#8ee28e}
+*{box-sizing:border-box}body{margin:0;background:#101217;color:#eef1f6;font-family:system-ui,sans-serif;height:100vh;display:grid;grid-template-columns:380px 1fr;overflow:hidden}
+aside{padding:14px;background:#171a20;border-right:1px solid #30343d;overflow:auto}
+main{padding:14px;display:grid;grid-template-rows:auto 1fr 120px;gap:10px;min-width:0}
+h1{font:700 19px Consolas,monospace;margin:0 0 6px}h2{font-size:13px;margin:14px 0 7px;color:#9fd5ff}
+p{font-size:12px;line-height:1.45;color:#b9bfca}
+.toolbar{display:flex;gap:6px;flex-wrap:wrap}.btn{border:0;border-radius:6px;padding:9px 11px;background:#2d8a3e;color:#fff;cursor:pointer}.btn.alt{background:#454b55}
+#code{width:100%;height:58vh;min-height:280px;resize:vertical;background:#0f1217;color:#e8ecf2;border:1px solid #3a404a;border-radius:7px;padding:12px;font:13px/1.45 Consolas,monospace}
+#stage{display:flex;align-items:center;justify-content:center;background:#090b0f;border:1px solid #30343d;border-radius:8px;min-height:0}
+canvas{max-width:100%;max-height:100%;image-rendering:pixelated;background:#000}
+#log{overflow:auto;background:#0d1015;border:1px solid #30343d;border-radius:8px;padding:8px;font:12px/1.4 Consolas,monospace}
+.status{font:600 13px Consolas,monospace}
 </style>
 </head>
 <body>
 <aside>
-<h1>BIT — Editor e Executor</h1>
-<p>Escreva programas BIT em arquivos <code>.bit</code>. Edite o arquivo no Bloco de Notas e use <b>Abrir .BIT</b> para executá-lo. O HTML é somente o motor da linguagem.</p>
-<div class="row"><button id="run">Executar</button><button id="stop" class="secondary">Parar</button><button id="sample" class="secondary">Exemplo</button><button id="new" class="secondary">Novo</button><button id="save" class="secondary">Salvar .BIT</button><label class="button secondary" style="display:inline-block;padding:10px 14px;border-radius:6px;cursor:pointer">Abrir .BIT<input id="file" type="file" accept=".bit,text/plain" hidden></label></div>
+<h1>BIT — Executor</h1>
+<p>Escreva o código BIT no Bloco de Notas ou nesta caixa. Arquivos <b>.bit</b> são os programas. Este HTML é o executor.</p>
+<div class="toolbar">
+<button class="btn" id="run">Executar</button>
+<button class="btn alt" id="stop">Parar</button>
+<button class="btn alt" id="openBtn">Abrir .BIT</button>
+<button class="btn alt" id="saveBtn">Salvar .BIT</button>
+<button class="btn alt" id="newBtn">Novo</button>
+<input id="file" type="file" accept=".bit,text/plain" hidden>
+</div>
 <h2>Programa BIT</h2>
-<textarea id="code" spellcheck="false">tela 320x180
-fundo preto
-pontos recebe 0
-
-ator Jogador
-  desenho quadrado 16, verde
-  posição 32, 82
-  controlado por setas
-  limita à tela
-  quando atualiza:
-    se tecla("espaco") então
-      pontos recebe pontos + 1
-      diga "Pontos: " + pontos
-    fim
-  fim
-fim
-
-diga "BIT funcionando!"</textarea>
-<h2>Comandos</h2>
-<p><code>tela 320x180</code><br><code>fundo preto</code><br><code>ator Jogador ... fim</code><br><code>desenho quadrado 16, verde</code><br><code>desenho retângulo 20, 8, azul</code><br><code>desenho círculo 8, vermelho</code><br><code>desenho texto 14, "Oi", branco</code><br><code>posição 40,80</code><br><code>velocidade 2,0</code><br><code>controlado por setas</code><br><code>controlado por mouse</code><br><code>movimento por grade 32</code><br><code>quando atualiza:</code><br><code>quando colide com "Inimigo":</code><br><code>se ... então ... senão ... fim</code><br><code>repita ... vezes ... fim</code><br><code>enquanto ... faça ... fim</code><br><code>função soma(a,b) ... fim</code><br><code>diga "Olá"</code></p>
-<div class="badge">BIT Standalone 1.3</div>
+<textarea id="code" spellcheck="false"></textarea>
+<p><b>Controles:</b> setas/WASD, espaço e mouse. Sintaxe básica: <code>tela</code>, <code>fundo</code>, <code>ator</code>, <code>desenho</code>, <code>posição</code>, <code>velocidade</code>, <code>controlado por</code>, <code>limita à tela</code>, <code>quica nas bordas</code>, <code>quando atualiza</code>, <code>quando colide com</code>, <code>se</code>, <code>repita</code>, <code>diga</code>.</p>
 </aside>
 <main>
-<div class="row"><strong id="status">Pronto</strong></div>
-<div id="stageWrap"><canvas id="game"></canvas></div>
+<div class="status" id="status">Pronto</div>
+<div id="stage"><canvas id="game"></canvas></div>
 <div id="log"></div>
 </main>
+
 <script>
 "use strict";
-const SAMPLE="tela 320x180\nfundo preto\npontos recebe 0\n\nator Jogador\n  desenho quadrado 16, verde\n  posição 32, 82\n  controlado por setas\n  limita à tela\n  quando atualiza:\n    se tecla(\"espaco\") então\n      pontos recebe pontos + 1\n    fim\n  fim\nfim\n\nator Bola\n  desenho quadrado 10, vermelho\n  posição 160, 90\n  velocidade 2, 1.2\n  quica nas bordas\n  quando colide com \"Jogador\":\n    vx recebe -vx\n    diga \"Colisão! Pontos: \" + pontos\n  fim\nfim\n\ndiga \"BIT iniciado.\"";
-const codeEl=document.getElementById("code"),canvas=document.getElementById("game"),ctx=canvas.getContext("2d"),logEl=document.getElementById("log"),statusEl=document.getElementById("status");
-const savedCode=localStorage.getItem("bit_standalone_code");
-if(savedCode && savedCode.trim()){
-  codeEl.value=savedCode;
-}else if(!codeEl.value.trim()){
-  codeEl.value=SAMPLE;
+
+var SAMPLE =
+'tela 320x180\n' +
+'fundo preto\n\n' +
+'ator Jogador\n' +
+'  desenho quadrado 18, verde\n' +
+'  posição 40, 80\n' +
+'  controlado por setas\n' +
+'  limita à tela\n' +
+'fim\n\n' +
+'ator Bola\n' +
+'  desenho circulo 8, vermelho\n' +
+'  posição 220, 80\n' +
+'  velocidade -1, 1\n' +
+'  quica nas bordas\n' +
+'  quando colide com "Jogador":\n' +
+'    diga "Colisão!"\n' +
+'  fim\n' +
+'fim\n\n' +
+'diga "BIT funcionando!"';
+
+var code = document.getElementById("code");
+var canvas = document.getElementById("game");
+var ctx = canvas.getContext("2d");
+var logBox = document.getElementById("log");
+var statusBox = document.getElementById("status");
+var fileInput = document.getElementById("file");
+var keys = {};
+var mouse = {x:0,y:0,active:false};
+var game = null;
+var raf = 0;
+var lastTime = 0;
+
+function n(s){return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");}
+function say(s){var d=document.createElement("div");d.textContent=String(s);logBox.appendChild(d);logBox.scrollTop=logBox.scrollHeight;}
+function num(s){var v=Number(s);return Number.isFinite(v)?v:0;}
+function splitArgs(s){return s.split(",").map(function(v){return v.trim();});}
+function unquote(s){s=String(s).trim();if((s[0]==='"'&&s[s.length-1]==='"')||(s[0]==="'"&&s[s.length-1]==="'"))return s.slice(1,-1);return s;}
+
+function value(expr, actor, env){
+  expr=String(expr).trim();
+  if(/^".*"$/.test(expr)||/^'.*'$/.test(expr))return unquote(expr);
+  if(n(expr)==="verdadeiro")return true;
+  if(n(expr)==="falso")return false;
+  if(/^\-?\d+(\.\d+)?$/.test(expr))return num(expr);
+  var m=expr.match(/^(\d+(?:\.\d+)?)\s*([+\-*/])\s*(\d+(?:\.\d+)?)$/);
+  if(m){var a=num(m[1]),b=num(m[3]);if(m[2]==="+")return a+b;if(m[2]==="-")return a-b;if(m[2]==="*")return a*b;return b===0?0:a/b;}
+  m=expr.match(/^(.+)\s*(==|!=|<=|>=|<|>)\s*(.+)$/);
+  if(m){var left=value(m[1],actor,env),right=value(m[3],actor,env);if(m[2]==="==")return left===right;if(m[2]==="!=")return left!==right;if(m[2]==="<")return num(left)<num(right);if(m[2]==="<=")return num(left)<=num(right);if(m[2]===">")return num(left)>num(right);return num(left)>=num(right);}
+  if(expr.indexOf("+")>=0){var parts=expr.split("+");return parts.map(function(x){return value(x,actor,env);}).join("");}
+  var k=n(expr);
+  if(k==="x"&&actor)return actor.x;if(k==="y"&&actor)return actor.y;if(k==="vx"&&actor)return actor.vx;if(k==="vy"&&actor)return actor.vy;if(k==="ativo"&&actor)return actor.active;
+  if(k==="tempo"||k==="tempo()")return (performance.now()-game.started)/1000;
+  if(k==="mousex")return mouse.x;if(k==="mousey")return mouse.y;
+  if(k==="espaco"||k==="space")return !!keys[" "]||!!keys["enter"];
+  if(k==="tecla_esquerda"||k==="esquerda")return !!keys["arrowleft"]||!!keys["a"];
+  if(k==="tecla_direita"||k==="direita")return !!keys["arrowright"]||!!keys["d"];
+  if(k==="tecla_cima"||k==="cima")return !!keys["arrowup"]||!!keys["w"];
+  if(k==="tecla_baixo"||k==="baixo")return !!keys["arrowdown"]||!!keys["s"];
+  if(Object.prototype.hasOwnProperty.call(env,k))return env[k];
+  return 0;
 }
-localStorage.setItem("bit_standalone_code",codeEl.value);
 
-let raf=0,currentGame=null;const keyState=new Set(),mouse={x:0,y:0,active:false},touch={x:0,y:0,active:false},pending=new Set();
-const log=m=>{const e=document.createElement("div");e.textContent=m;logEl.appendChild(e);logEl.scrollTop=logEl.scrollHeight},norm=s=>String(s).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g,"");
-function tokenize(src){const o=[];let i=0,line=1,col=1,adv=()=>{const c=src[i++]||"";c==="\\n"?(line++,col=1):col++;return c},push=(t,v,l=line,c=col)=>o.push({type:t,value:v,line:l,col:c}),dig=c=>c>="0"&&c<="9",letc=c=>/[A-Za-z_À-ÿ]/.test(c);
-while(i<src.length){const l=line,c=col,ch=src[i];if(/[ \\t\\r\\n]/.test(ch)){adv();continue}if(ch==="#"||(ch==="/"&&src[i+1]==="/")){while(i<src.length&&src[i]!=="\\n")adv();continue}
-if(dig(ch)){let s="";while(dig(src[i]))s+=adv();if(src[i]==="."&&dig(src[i+1])){s+=adv();while(dig(src[i]))s+=adv()}if(src[i]==="x"&&dig(src[i+1])){s+=adv();while(dig(src[i]))s+=adv();push("WORD",s,l,c)}else push("NUM",s,l,c);continue}
-if(ch==="\""||ch==="'"){const q=adv();let s="";while(i<src.length&&src[i]!==q){if(src[i]==="\\"){adv();const e=adv();s+=e==="n"?"\\n":e==="t"?"\\t":e}else s+=adv()}if(src[i]!==q)throw Error("Texto não fechado na linha "+l);adv();push("STR",s,l,c);continue}
-const two=src.slice(i,i+2);if(["==","!=","<=",">=","&&","||"].includes(two)){adv();adv();push("OP",two,l,c);continue}
-if("+-*/%<>=!".includes(ch)){adv();push("OP",ch,l,c);continue}
-if(",:().".includes(ch)){adv();push("P",ch,l,c);continue}
-if(letc(ch)){let s="";while(i<src.length&&(letc(src[i])||dig(src[i])))s+=adv();push("WORD",s,l,c);continue}
-throw Error('Caractere inesperado "'+ch+'" na linha '+l)}push("EOF","",line,col);return o}
-class Parser{constructor(t){this.t=t;this.i=0}p(){return this.t[this.i]}end(){return this.p().type==="EOF"}a(){return this.t[this.i++]}ck(w){const t=this.p();return t.type==="WORD"&&norm(t.value)===norm(w)}mt(...w){if(w.some(x=>this.ck(x))){this.a();return true}return false}ex(w){if(!this.mt(w))throw Error('Esperava "'+w+'", encontrei "'+this.p().value+'"')}pp(p){if(this.p().type==="P"&&this.p().value===p){this.a();return true}return false}xp(p){if(!this.pp(p))throw Error('Esperava "'+p+'", encontrei "'+this.p().value+'"')}
-expr(){return this.or()}or(){let x=this.and();while(this.mt("ou")||this.op("||"))x={k:"bin",o:"ou",a:x,b:this.and()};return x}and(){let x=this.eq();while(this.mt("e")||this.op("&&"))x={k:"bin",o:"e",a:x,b:this.eq()};return x}eq(){let x=this.cmp();while(this.p().type==="OP"&&["==","!="].includes(this.p().value)){const o=this.a().value;x={k:"bin",o,a:x,b:this.cmp()}}return x}cmp(){let x=this.term();while(this.p().type==="OP"&&["<","<=",">",">="].includes(this.p().value)){const o=this.a().value;x={k:"bin",o,a:x,b:this.term()}}return x}term(){let x=this.fac();while(this.p().type==="OP"&&["+","-"].includes(this.p().value)){const o=this.a().value;x={k:"bin",o,a:x,b:this.fac()}}return x}fac(){let x=this.un();while(this.p().type==="OP"&&["*","/","%"].includes(this.p().value)){const o=this.a().value;x={k:"bin",o,a:x,b:this.un()}}return x}un(){if(this.mt("nao","não")||this.op("!")||this.op("-")){const o=this.t[this.i-1].value;return{k:"un",o,e:this.un()}}return this.call()}call(){let x=this.pri();if(x.k==="id"&&this.pp(".")){const p=this.a().value;return{k:"mem",o:x.n,p}}if(x.k==="id"&&this.pp("(")){const a=[];if(!this.pp(")")){do a.push(this.expr());while(this.pp(","));this.xp(")")}return{k:"call",n:x.n,a}}return x}pri(){const t=this.a();if(t.type==="NUM")return{k:"lit",v:+t.value};if(t.type==="STR")return{k:"lit",v:t.value};if(t.type==="WORD"){const n=norm(t.value);if(n==="verdadeiro"||n==="falso")return{k:"lit",v:n==="verdadeiro"};return{k:"id",n:t.value}}if(t.type==="P"&&t.value==="("){const x=this.expr();this.xp(")");return x}throw Error("Expressão inválida na linha "+t.line)}op(o){if(this.p().type==="OP"&&this.p().value===o){this.a();return true}return false}block(st){const a=[];while(!this.end()&&!st.includes(norm(this.p().value)))a.push(this.stmt());return a}
-stmt(){const t=this.p();if(this.mt("se")){const c=this.expr();this.ex("entao");const a=this.block(["fim","senao"]);let b=[];if(this.mt("senao"))b=this.ck("se")?[this.stmt()]:this.block(["fim"]);this.ex("fim");return{k:"if",c,a,b}}
-if(this.mt("repita")){const n=this.expr();this.ex("vezes");const b=this.block(["fim"]);this.ex("fim");return{k:"rep",n,b}}
-if(this.mt("enquanto")){const c=this.expr();this.mt("faca","faça");const b=this.block(["fim"]);this.ex("fim");return{k:"while",c,b}}
-if(this.mt("funcao","função")){const n=this.a().value;this.xp("(");const p=[];if(!this.pp(")")){do p.push(this.a().value);while(this.pp(","));this.xp(")")}const b=this.block(["fim"]);this.ex("fim");return{k:"fn",n,p,b}}
-if(this.mt("retorne"))return{k:"ret",e:this.ck("fim")?null:this.expr()};if(this.mt("diga"))return{k:"say",e:this.expr()};if(this.mt("vira"))return{k:"turn",e:this.expr()};
-if(this.mt("quando","ao")){let type="update",arg=null;if(this.mt("colide","colidir","tocar")){type="collision";if(this.mt("com"))arg=this.a().value}else this.mt("atualiza","atualizar","quadro","frame");this.pp(":");const b=this.block(["fim"]);this.ex("fim");return{k:"event",type,arg,b}}
-if(t.type==="WORD"){const n=t.value,n2=this.t[this.i+1];if(n2&&(n2.value==="="||norm(n2.value)==="recebe")){this.a();this.a();return{k:"set",n,e:this.expr()}}if(this.t[this.i+1]?.value==="."&&this.t[this.i+3]&&(this.t[this.i+3].value==="="||norm(this.t[this.i+3].value)==="recebe")){this.a();this.a();const p=this.a().value;this.a();return{k:"setmem",n,p,e:this.expr()}}}return{k:"expr",e:this.expr()}}
-parse(){const p={w:160,h:120,bg:"preto",actors:[],global:[]};while(!this.end()){if(this.mt("tela")){const d=this.a().value;if(d.includes("x")){const z=d.split("x");p.w=+z[0];p.h=+z[1]}else{p.w=+d;this.pp(",");p.h=+this.a().value}continue}if(this.mt("fundo")){p.bg=this.a().value;continue}if(this.mt("ator")){const name=this.a().value,a={name,x:p.w/2,y:p.h/2,vx:0,vy:0,w:8,h:8,shape:{type:"quad",color:"branco"},control:null,grid:0,limit:false,bounce:{t:false,b:false,l:false,r:false},events:{},props:{},active:true};while(!this.end()&&!this.ck("fim")){if(this.mt("desenho")){if(this.mt("quadrado")){a.w=a.h=+this.a().value;this.pp(",");a.shape={type:"quad",color:this.a().value}}else if(this.mt("retangulo","retângulo")){a.w=+this.a().value;this.pp(",");a.h=+this.a().value;this.pp(",");a.shape={type:"rect",color:this.a().value}}else if(this.mt("circulo","círculo")){const r=+this.a().value;this.pp(",");a.w=a.h=r*2;a.shape={type:"circle",color:this.a().value}}else if(this.mt("texto")){const s=+this.a().value;this.pp(",");const tx=this.a().value;this.pp(",");a.w=s*5;a.h=s;a.shape={type:"text",color:this.a().value,text:tx}}else if(this.mt("imagem")){this.pp("(");const src=this.a().value;this.pp(")");a.shape={type:"image",src};a.w=32;a.h=32}continue}
-if(this.mt("posicao","posição")){a.x=+this.a().value;this.pp(",");a.y=+this.a().value;continue}if(this.mt("velocidade")){a.vx=+this.a().value;this.pp(",");a.vy=+this.a().value;continue}
-if(this.mt("controlado")){this.ex("por");if(this.mt("setas"))a.control="keys";else if(this.mt("toque"))a.control="touch";else if(this.mt("mouse"))a.control="mouse";continue}
-if(this.mt("movimento","move")){this.mt("por");if(this.mt("grade"))a.grid=+this.a().value;continue}
-if(this.mt("limita")){this.mt("a","à");this.ex("tela");a.limit=true;continue}
-if(this.mt("quica")){this.ex("nas");this.ex("bordas");if(this.mt("verticais"))a.bounce={t:1,b:1,l:0,r:0};else if(this.mt("horizontais"))a.bounce={t:0,b:0,l:1,r:1};else a.bounce={t:1,b:1,l:1,r:1};continue}
-const s=this.stmt();if(s.k==="event")a.events[s.type==="collision"?"colide:"+norm(s.arg||""):"atualiza"]=s.belse a.props.__init=(a.props.__init||[]).concat(s)}
-this.ex("fim");p.actors.push(a);continue}p.global.push(this.stmt())}return p}}
-class Game{constructor(ast){this.ast=ast;this.actors=new Map(ast.actors.map(a=>[norm(a.name),a]));this.env=new Env;this.start=performance.now()/1000;this.running=true;for(const a of ast.actors)(a.props.__init||[]).forEach(s=>this.exec(s,a));for(const s of ast.global)this.exec(s,null)}
-val(e,a,env=this.env){switch(e.k){case"lit":return e.v;case"id":{const n=norm(e.n);if(env.has(n))return env.get(n);if(this.actors.has(n))return this.actors.get(n);if(a){if(n==="x")return a.x;if(n==="y")return a.y;if(n==="vx")return a.vx;if(n==="vy")return a.vy;if(n==="largura")return a.w;if(n==="altura")return a.h;if(n==="ativo")return a.active}return 0}case"mem":{const q=this.actors.get(norm(e.o));if(q){const p=norm(e.p);return p==="x"?q.x:p==="y"?q.y:p==="vx"?q.vx:p==="vy"?q.vy:p==="largura"?q.w:p==="altura"?q.h:p==="ativo"?q.active:q.props[p]}return 0}case"un":{const v=this.val(e.e,a,env);return e.o==="-"?-Number(v):!v}case"bin":{const l=this.val(e.a,a,env),r=this.val(e.b,a,env);if(e.o==="ou")return!!l||!!r;if(e.o==="e")return!!l&&!!r;if(e.o==="+")return typeof l==="string"||typeof r==="string"?String(l)+String(r):Number(l)+Number(r);if(e.o==="-")return Number(l)-Number(r);if(e.o==="*")return Number(l)*Number(r);if(e.o==="/")return Number(r)===0?0:Number(l)/Number(r);if(e.o==="%")return Number(l)%Number(r);if(e.o==="==")return l===r;if(e.o==="!=")return l!==r;if(e.o==="<")return Number(l)<Number(r);if(e.o==="<=")return Number(l)<=Number(r);if(e.o===">")return Number(l)>Number(r);return Number(l)>=Number(r)}case"call":return this.call(e.n,e.a.map(z=>this.val(z,a,env)))}}
-call(n,args){const k=norm(n);if(k==="aleatorio"||k==="aleatório"){const m=Number(args[0]??0),M=Number(args[1]??100);return Math.floor(Math.random()*(M-m+1))+m}if(k==="tempo")return performance.now()/1000-this.start;if(k==="tecla"){const s=String(args[0]??"").toLowerCase(),al={direita:"arrowright",esquerda:"arrowleft",cima:"arrowup",baixo:"arrowdown",espaco:" ",espaço:" ",space:" "};return keyState.has(al[s]??s)}if(k==="toque")return touch.active;if(k==="distancia")return Math.hypot(Number(args[2])-Number(args[0]),Number(args[3])-Number(args[1]));if(k==="seno")return Math.sin(Number(args[0])*Math.PI/180);if(k==="cosseno")return Math.cos(Number(args[0])*Math.PI/180);if(k==="raiz")return Math.sqrt(Math.max(0,Number(args[0])));if(k==="absoluto")return Math.abs(Number(args[0]));if(k==="piso")return Math.floor(Number(args[0]));if(k==="teto")return Math.ceil(Number(args[0]));if(k==="arredonda")return Math.round(Number(args[0]));if(k==="colide"){const a=this.actors.get(norm(args[0]?.name||args[0])),b=this.actors.get(norm(args[1]?.name||args[1]));return!!a&&!!b&&hit(a,b)}if(this.env.has(k)){const f=this.env.get(k),e=new Env(f.closure||this.env);(f.p||[]).forEach((p,i)=>e.set(p,args[i]));try{return this.execBlock(f.b,a,e)}catch(x){if(x?.s==="return")return x.v;throw x}}return 0}
-exec(s,a,env=this.env){switch(s.k){case"set":env.assign(s.n,this.val(s.e,a,env));break;case"setmem":{const q=this.actors.get(norm(s.n)),v=this.val(s.e,a,env),p=norm(s.p);if(q){if(p==="x")q.x=Number(v)||0;else if(p==="y")q.y=Number(v)||0;else if(p==="vx")q.vx=Number(v)||0;else if(p==="vy")q.vy=Number(v)||0;else if(p==="largura")q.w=Number(v)||0;else if(p==="altura")q.h=Number(v)||0;else if(p==="ativo")q.active=!!v;else q.props[p]=v}break}case"say":log(this.val(s.e,a,env));break;case"if":if(this.val(s.c,a,env))this.execBlock(s.a,a,env);else this.execBlock(s.b,a,env);break;case"rep":for(let i=0,n=Math.max(0,Math.min(10000,Math.floor(this.val(s.n,a,env))));i<n;i++)this.execBlock(s.b,a,env);break;case"while":{let i=0;while(this.val(s.c,a,env)&&i++<10000)this.execBlock(s.b,a,env);break}case"fn":env.set(s.n,{p:s.p,b:s.b,closure:env});break;case"ret":throw{s:"return",v:s.e?this.val(s.e,a,env):undefined};case"turn":a.angle=(a.angle||0)+Number(this.val(s.e,a,env));break;case"expr":this.val(s.e,a,env)}}
-execBlock(b,a,env){for(const s of b)this.exec(s,a,env)}
-event(a,k){const b=a.events[k];if(b)this.execBlock(b,a,this.env)}
-step(dt){for(const a of this.actors.values()){if(!a.active)continue;if(a.control==="keys"){if(a.grid){a.x+=pending.has("right")?a.grid:pending.has("left")?-a.grid:0;a.y+=pending.has("down")?a.grid:pending.has("up")?-a.grid:0}else{const s=Math.hypot(a.vx,a.vy)||2;a.x+=(keyState.has("arrowright")?s*dt:0)-(keyState.has("arrowleft")?s*dt:0);a.y+=(keyState.has("arrowdown")?s*dt:0)-(keyState.has("arrowup")?s*dt:0)}}else{a.x+=a.vx*dt;a.y+=a.vy*dt}if(a.control==="mouse"&&mouse.active){a.x=mouse.x-a.w/2;a.y=mouse.y-a.h/2}if(a.control==="touch"&&touch.active){a.x=touch.x-a.w/2;a.y=touch.y-a.h/2}if(a.limit){a.x=Math.max(0,Math.min(a.x,this.ast.w-a.w));a.y=Math.max(0,Math.min(a.y,this.ast.h-a.h))}}pending.clear();for(const a of this.actors.values())if(a.active)this.event(a,"atualiza");this.collide();this.draw()}
-collide(){const a=[...this.actors.values()];for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++)if(a[i].active&&a[j].active&&hit(a[i],a[j])){this.event(a[i],"colide:"+norm(a[j].name));this.event(a[j],"colide:"+norm(a[i].name))}}
-draw(){ctx.fillStyle=color(this.ast.bg);ctx.fillRect(0,0,canvas.width,canvas.height);for(const a of this.actors.values())drawActor(a)}}
-class Env{constructor(parent=null){this.parent=parent;this.v=new Map()}set(n,v){this.v.set(norm(n),v)}has(n){return this.v.has(norm(n))||(this.parent?.has(n)||false)}get(n){const k=norm(n);return this.v.has(k)?this.v.get(k):this.parent?this.parent.get(k):undefined}assign(n,v){const k=norm(n);if(this.v.has(k))this.v.set(k,v);else if(this.parent&&this.parent.has(k))this.parent.assign(k,v);else this.v.set(k,v)}}
-function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y}
-function color(c){return ({preto:"#000",branco:"#fff",vermelho:"#f33",verde:"#3f5",azul:"#39f",amarelo:"#fd4",ciano:"#3ff",magenta:"#f3f",cinza:"#777",laranja:"#f90",roxo:"#a5f",rosa:"#f9a",marrom:"#875"})[norm(c)]||c||"#000"}
-function drawActor(a){if(!a.active)return;ctx.fillStyle=color(a.shape.color);if(a.shape.type==="quad"||a.shape.type==="rect")ctx.fillRect(a.x,a.y,a.w,a.h);else if(a.shape.type==="circle"){ctx.beginPath();ctx.arc(a.x+a.w/2,a.y+a.h/2,a.w/2,0,Math.PI*2);ctx.fill()}else if(a.shape.type==="text"){ctx.font=a.h+"px monospace";ctx.fillText(a.shape.text,a.x,a.y+a.h)}else if(a.shape.type==="image"){const im=new Image();im.src=a.shape.src;ctx.drawImage(im,a.x,a.y,a.w,a.h)}}
-function point(e){const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*canvas.width/r.width,y:(e.clientY-r.top)*canvas.height/r.height}}
-window.addEventListener("keydown",e=>{if(document.activeElement===codeEl)return;const k=e.key.toLowerCase();keyState.add(k);if(["arrowup","arrowdown","arrowleft","arrowright"," ","enter"].includes(k))e.preventDefault();const m={arrowup:"up",arrowdown:"down",arrowleft:"left",arrowright:"right"}[k];if(m)pending.add(m)});
-window.addEventListener("keyup",e=>keyState.delete(e.key.toLowerCase()));
-window.addEventListener("blur",()=>{keyState.clear();pending.clear()});
-canvas.addEventListener("mousemove",e=>{Object.assign(mouse,point(e),{active:true})});canvas.addEventListener("mouseleave",()=>mouse.active=false);
-canvas.addEventListener("touchstart",e=>{Object.assign(touch,point(e.touches[0]),{active:true})},{passive:true});canvas.addEventListener("touchmove",e=>{Object.assign(touch,point(e.touches[0]),{active:true})},{passive:true});canvas.addEventListener("touchend",()=>touch.active=false);
+function evalCondition(expr,actor,env){
+  expr=String(expr).trim();
+  var m=expr.match(/^tecla\((.+)\)$/i);
+  if(m){var k=n(unquote(m[1]));var map={direita:"arrowright",esquerda:"arrowleft",cima:"arrowup",baixo:"arrowdown",espaco:" ",space:" "};return !!keys[map[k]||k];}
+  return !!value(expr,actor,env);
+}
 
-const fileEl=document.getElementById("file");
-fileEl.addEventListener("change", async (event) => {
-  const file=event.target.files?.[0];
-  if(!file)return;
-  try{
-    codeEl.value=await file.text();
-    localStorage.setItem("bit_standalone_code",codeEl.value);
-    statusEl.textContent="Arquivo carregado: "+file.name;
-    logEl.textContent="";
-  }catch(error){
-    statusEl.textContent="Erro ao abrir";
-    log("ERRO: "+(error?.message||error));
-  } finally {
-    fileEl.value="";
+function parse(source){
+  var lines=source.replace(/\r/g,"").split("\n");
+  var p={w:320,h:180,bg:"preto",actors:[],global:[]};
+  var i=0;
+  while(i<lines.length){
+    var raw=lines[i], line=raw.trim();
+    if(!line||line[0]==="#"||line.indexOf("//")===0){i++;continue;}
+    var low=n(line);
+    if(low.indexOf("tela ")===0){var d=line.slice(5).trim().split(/[x, ]+/);p.w=num(d[0])||320;p.h=num(d[1])||180;i++;continue;}
+    if(low.indexOf("fundo ")===0){p.bg=line.slice(6).trim();i++;continue;}
+    if(low==="ator"||low.indexOf("ator ")!==0){p.global.push(line);i++;continue;}
+    var name=line.slice(4).trim();if(!name)throw Error("Nome do ator ausente na linha "+(i+1));
+    var a={name:name,x:20,y:20,vx:0,vy:0,w:12,h:12,shape:"quadrado",color:"branco",text:"",control:"",limit:false,bounce:{t:false,b:false,l:false,r:false},events:[],active:true};
+    i++;
+    while(i<lines.length&&n(lines[i].trim())!=="fim"){
+      var s=lines[i].trim(), ls=n(s);
+      if(!s||s[0]==="#"||ls.indexOf("//")===0){i++;continue;}
+      if(ls.indexOf("desenho ")===0){
+        var d=s.slice(8).trim(), parts=splitArgs(d), kind=n(parts[0]);
+        if(kind==="quadrado"){a.shape="quadrado";a.w=a.h=num(parts[1])||12;a.color=parts[2]||"branco";}
+        else if(kind==="retangulo"||kind==="retângulo"){a.shape="retangulo";a.w=num(parts[1])||16;a.h=num(parts[2])||8;a.color=parts[3]||"branco";}
+        else if(kind==="circulo"||kind==="círculo"){a.shape="circulo";a.w=a.h=(num(parts[1])||6)*2;a.color=parts[2]||"branco";}
+        else if(kind==="texto"){a.shape="texto";a.w=(num(parts[1])||12)*5;a.h=num(parts[1])||12;a.text=unquote(parts[2]||"");a.color=parts[3]||"branco";}
+        i++;continue;
+      }
+      if(ls.indexOf("posicao ")===0||ls.indexOf("posição ")===0){var d2=splitArgs(s.slice(s.indexOf(" ")+1));a.x=num(d2[0]);a.y=num(d2[1]);i++;continue;}
+      if(ls.indexOf("velocidade ")===0){var d3=splitArgs(s.slice(11));a.vx=num(d3[0]);a.vy=num(d3[1]);i++;continue;}
+      if(ls.indexOf("controlado por ")===0){a.control=n(s.slice(15));i++;continue;}
+      if(ls==="limita à tela"||ls==="limita a tela"){a.limit=true;i++;continue;}
+      if(ls.indexOf("quica nas bordas")===0){if(ls.indexOf("verticais")>=0)a.bounce={t:true,b:true,l:false,r:false};else if(ls.indexOf("horizontais")>=0)a.bounce={t:false,b:false,l:true,r:true};else a.bounce={t:true,b:true,l:true,r:true};i++;continue;}
+      if(ls.indexOf("quando atualiza")===0){
+        var body=[];i++;while(i<lines.length&&n(lines[i].trim())!=="fim"){body.push(lines[i].trim());i++;}a.events.push({type:"update",target:null,body:body});i++;continue;
+      }
+      if(ls.indexOf("quando colide com ")===0||ls.indexOf("quando colidir com ")===0){
+        var target=unquote(s.slice(s.indexOf("com")+3).replace(":","").trim()), body2=[];i++;while(i<lines.length&&n(lines[i].trim())!=="fim"){body2.push(lines[i].trim());i++;}a.events.push({type:"collision",target:target,body:body2});i++;continue;
+      }
+      i++;
+    }
+    if(i>=lines.length)throw Error("Faltou 'fim' do ator "+name);
+    p.actors.push(a);i++;
   }
-});
+  return p;
+}
 
-document.getElementById("save").onclick=()=>{
-  const source=codeEl.value;
-  const blob=new Blob([source],{type:"text/plain;charset=utf-8"});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement("a");
-  a.href=url;
-  a.download="meu-jogo.bit";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url),0);
-  localStorage.setItem("bit_standalone_code",source);
-  statusEl.textContent="Arquivo .BIT salvo";
-};
+function drawActor(a){
+  if(!a.active)return;
+  ctx.fillStyle=color(a.color);
+  if(a.shape==="quadrado"||a.shape==="retangulo")ctx.fillRect(Math.round(a.x),Math.round(a.y),a.w,a.h);
+  else if(a.shape==="circulo"){ctx.beginPath();ctx.arc(a.x+a.w/2,a.y+a.h/2,a.w/2,0,Math.PI*2);ctx.fill();}
+  else if(a.shape==="texto"){ctx.font=Math.round(a.h)+"px Consolas,monospace";ctx.fillText(a.text,a.x,a.y+a.h);}
+}
+function color(c){var k=n(c);var m={preto:"#000",branco:"#fff",vermelho:"#ff4b4b",verde:"#3cff66",azul:"#4b7dff",amarelo:"#ffd83d",ciano:"#45e7ff",magenta:"#f15bff",cinza:"#8b93a1",laranja:"#ff983d",roxo:"#a56bff",rosa:"#ff79b6"};return m[k]||c||"#fff";}
+function hit(a,b){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
 
-document.getElementById("new").onclick=()=>{
-  codeEl.value='tela 320x180\nfundo preto\n\ndiga "Meu primeiro programa BIT."';
-  localStorage.setItem("bit_standalone_code",codeEl.value);
-  statusEl.textContent="Novo programa";
-  logEl.textContent="";
-};
+function executeLines(lines,actor,env){
+  for(var i=0;i<lines.length;i++){
+    var s=String(lines[i]||"").trim();if(!s)continue;
+    var low=n(s);
+    if(low.indexOf("diga ")===0){say(value(s.slice(5),actor,env));continue;}
+    if(low.indexOf("ativo recebe ")===0&&actor){actor.active=!!value(s.slice(14),actor,env);continue;}
+    var mm=s.match(/^([A-Za-zÀ-ÿ_][\wÀ-ÿ]*)\s+recebe\s+(.+)$/i);
+    if(mm){env[n(mm[1])]=value(mm[2],actor,env);continue;}
+    mm=s.match(/^se\s+(.+?)\s+ent[aã]o$/i);
+    if(mm){var cond=evalCondition(mm[1],actor,env),nested=[];i++;while(i<lines.length&&n(lines[i])!=="fim"){nested.push(lines[i]);i++;}if(cond)executeLines(nested,actor,env);continue;}
+    mm=s.match(/^repita\s+(\d+)\s+vezes$/i);
+    if(mm){var count=Math.min(1000,num(mm[1])),body=[];i++;while(i<lines.length&&n(lines[i])!=="fim"){body.push(lines[i]);i++;}for(var j=0;j<count;j++)executeLines(body,actor,env);continue;}
+  }
+}
 
-document.getElementById("run").onclick=()=>{try{localStorage.setItem("bit_standalone_code",codeEl.value);logEl.textContent="";const ast=new Parser(tokenize(codeEl.value)).parse();canvas.width=ast.w;canvas.height=ast.h;currentGame=new Game(ast);statusEl.textContent="Executando";cancelAnimationFrame(raf);let last=performance.now();const loop=t=>{if(!currentGame?.running)return;const dt=Math.min(.05,(t-last)/1000);last=t;currentGame.step(dt*60);raf=requestAnimationFrame(loop)};raf=requestAnimationFrame(loop)}catch(e){statusEl.textContent="Erro";log("ERRO: "+e.message)}};
-document.getElementById("stop").onclick=()=>{if(currentGame)currentGame.running=false;cancelAnimationFrame(raf);statusEl.textContent="Parado"};
-document.getElementById("sample").onclick=()=>{codeEl.value=SAMPLE;localStorage.setItem("bit_standalone_code",SAMPLE);statusEl.textContent="Exemplo carregado";logEl.textContent=""};
+function makeGame(ast){
+  var g={ast:ast,actors:ast.actors,started:performance.now(),env:{},running:true};
+  ast.global.forEach(function(line){executeLines([line],null,g.env);});
+  return g;
+}
+
+function step(g,scale){
+  g.actors.forEach(function(a){
+    if(!a.active)return;
+    if(a.control==="setas"||a.control==="mouse"){
+      if(a.control==="setas"){
+        var speed=2;
+        if(keys.arrowleft||keys.a)a.x-=speed*scale;if(keys.arrowright||keys.d)a.x+=speed*scale;
+        if(keys.arrowup||keys.w)a.y-=speed*scale;if(keys.arrowdown||keys.s)a.y+=speed*scale;
+      }
+      if(a.control==="mouse"&&mouse.active){a.x=mouse.x-a.w/2;a.y=mouse.y-a.h/2;}
+    }else{a.x+=a.vx*scale;a.y+=a.vy*scale;}
+    if(a.bounce.t&&a.y<=0){a.y=0;a.vy=Math.abs(a.vy);}if(a.bounce.b&&a.y+a.h>=g.ast.h){a.y=g.ast.h-a.h;a.vy=-Math.abs(a.vy);}
+    if(a.bounce.l&&a.x<=0){a.x=0;a.vx=Math.abs(a.vx);}if(a.bounce.r&&a.x+a.w>=g.ast.w){a.x=g.ast.w-a.w;a.vx=-Math.abs(a.vx);}
+    if(a.limit){a.x=Math.max(0,Math.min(a.x,g.ast.w-a.w));a.y=Math.max(0,Math.min(a.y,g.ast.h-a.h));}
+    a.events.filter(function(e){return e.type==="update";}).forEach(function(e){executeLines(e.body,a,g.env);});
+  });
+  for(var i=0;i<g.actors.length;i++)for(var j=i+1;j<g.actors.length;j++)if(g.actors[i].active&&g.actors[j].active&&hit(g.actors[i],g.actors[j])){
+    var a=g.actors[i],b=g.actors[j];
+    a.events.filter(function(e){return e.type==="collision"&&n(e.target)===n(b.name);}).forEach(function(e){executeLines(e.body,a,g.env);});
+    b.events.filter(function(e){return e.type==="collision"&&n(e.target)===n(a.name);}).forEach(function(e){executeLines(e.body,b,g.env);});
+  }
+}
+
+function render(g){
+  canvas.width=g.ast.w;canvas.height=g.ast.h;ctx.fillStyle=color(g.ast.bg);ctx.fillRect(0,0,g.ast.w,g.ast.h);
+  g.actors.forEach(drawActor);
+}
+
+function run(){
+  try{
+    cancelAnimationFrame(raf);logBox.innerHTML="";
+    var ast=parse(code.value);game=makeGame(ast);render(game);statusBox.textContent="Executando";
+    lastTime=performance.now();
+    function loop(t){
+      if(!game||!game.running)return;
+      var scale=Math.max(0,Math.min(3,(t-lastTime)/16.6667));lastTime=t;
+      step(game,scale);render(game);raf=requestAnimationFrame(loop);
+    }
+    raf=requestAnimationFrame(loop);
+  }catch(e){statusBox.textContent="Erro no programa";say("ERRO: "+e.message);}
+}
+
+document.getElementById("run").onclick=run;
+document.getElementById("stop").onclick=function(){if(game)game.running=false;cancelAnimationFrame(raf);statusBox.textContent="Parado";};
+document.getElementById("newBtn").onclick=function(){code.value='tela 320x180\nfundo preto\n\ndiga "Meu primeiro programa BIT."';localStorage.setItem("bit_code",code.value);};
+document.getElementById("saveBtn").onclick=function(){var blob=new Blob([code.value],{type:"text/plain;charset=utf-8"}),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="meu-jogo.bit";a.click();setTimeout(function(){URL.revokeObjectURL(u);},1000);};
+document.getElementById("openBtn").onclick=function(){fileInput.click();};
+fileInput.onchange=function(){var f=fileInput.files&&fileInput.files[0];if(!f)return;f.text().then(function(t){code.value=t;localStorage.setItem("bit_code",t);statusBox.textContent="Arquivo carregado: "+f.name;}).catch(function(e){say("ERRO: "+e.message);});};
+
+window.addEventListener("keydown",function(e){if(document.activeElement===code)return;keys[e.key.toLowerCase()]=true;});
+window.addEventListener("keyup",function(e){delete keys[e.key.toLowerCase()];});
+window.addEventListener("blur",function(){keys={};});
+canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=(e.clientX-r.left)*canvas.width/r.width;mouse.y=(e.clientY-r.top)*canvas.height/r.height;mouse.active=true;});
+canvas.addEventListener("mouseleave",function(){mouse.active=false;});
+
+var saved=localStorage.getItem("bit_code");
+code.value=(saved&&saved.trim())?saved:SAMPLE;
 </script>
 </body>
 </html>
