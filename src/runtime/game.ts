@@ -23,6 +23,12 @@ export class Game {
   canvas: HTMLCanvasElement | null = null;
   ctx: CanvasRenderingContext2D | null = null;
   logs: string[] = [];
+  private attachedListeners: Array<{
+    element: HTMLElement | Window;
+    type: string;
+    listener: any;
+    options?: any;
+  }> = [];
 
   constructor(ast: ProgramAST, canvas?: HTMLCanvasElement) {
     this.ast = ast;
@@ -45,10 +51,15 @@ export class Game {
       this.actors.set(actorDecl.name.toLowerCase(), actor);
     }
 
-    // Set up Builtin Context
+    // Set up Builtin Context with real mouse and touch tracking
     const builtinCtx: BuiltinContext = {
       isKeyDown: (key) => this.keysDown.has(key.toLowerCase()),
       isTouchActive: () => this.input.touchActive,
+      getMousePos: () => ({
+        x: this.input.touchX ?? 0,
+        y: this.input.touchY ?? 0,
+        pressed: this.input.touchActive
+      }),
       getActor: (name) => {
         const a = this.actors.get(name.toLowerCase());
         return a ? { x: a.x, y: a.y, width: a.width, height: a.height } : undefined;
@@ -70,6 +81,115 @@ export class Game {
       this.logs.push(msg);
     };
 
+    // Set up native event listeners for Canvas touch/mouse coordinates
+    if (this.canvas) {
+      const getLogicalCoords = (e: MouseEvent | TouchEvent) => {
+        if (!this.canvas) return { x: 0, y: 0 };
+        const rect = this.canvas.getBoundingClientRect();
+        let clientX = 0;
+        let clientY = 0;
+        
+        if ('touches' in e) {
+          if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+          } else if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+            clientY = e.changedTouches[0].clientY;
+          }
+        } else {
+          clientX = e.clientX;
+          clientY = e.clientY;
+        }
+        
+        const physicalX = clientX - rect.left;
+        const physicalY = clientY - rect.top;
+        const logicalX = rect.width > 0 ? (physicalX / rect.width) * this.ast.screenWidth : 0;
+        const logicalY = rect.height > 0 ? (physicalY / rect.height) * this.ast.screenHeight : 0;
+        return { x: logicalX, y: logicalY };
+      };
+
+      const handleStart = (e: MouseEvent | TouchEvent) => {
+        const coords = getLogicalCoords(e);
+        this.input.touchX = coords.x;
+        this.input.touchY = coords.y;
+        this.input.touchActive = true;
+      };
+
+      const handleMove = (e: MouseEvent | TouchEvent) => {
+        const coords = getLogicalCoords(e);
+        this.input.touchX = coords.x;
+        this.input.touchY = coords.y;
+      };
+
+      const handleEnd = () => {
+        this.input.touchActive = false;
+      };
+
+      // Register tracked event listeners on the canvas
+      this.addTrackedListener(this.canvas, 'mousedown', handleStart);
+      this.addTrackedListener(this.canvas, 'mousemove', handleMove);
+      this.addTrackedListener(this.canvas, 'mouseup', handleEnd);
+
+      this.addTrackedListener(this.canvas, 'touchstart', (e: TouchEvent) => {
+        // Prevent scrolling/gestures on game screen
+        e.preventDefault();
+        handleStart(e);
+      }, { passive: false });
+      
+      this.addTrackedListener(this.canvas, 'touchmove', (e: TouchEvent) => {
+        e.preventDefault();
+        handleMove(e);
+      }, { passive: false });
+      
+      this.addTrackedListener(this.canvas, 'touchend', (e: TouchEvent) => {
+        e.preventDefault();
+        handleEnd();
+      }, { passive: false });
+    }
+
+    // Register tracked keyboard input on window
+    const handleWinKeyDown = (e: KeyboardEvent) => {
+      if (typeof document === 'undefined') return;
+      const active = document.activeElement;
+      if (
+        active && (
+          active.tagName === 'TEXTAREA' ||
+          active.tagName === 'INPUT' ||
+          active.id === 'code-editor' ||
+          active.id === 'new-program-name' ||
+          active.id === 'ai-prompt-input' ||
+          active.id === 'lib-search-input'
+        )
+      ) {
+        return;
+      }
+      this.handleKeyDown(e.key);
+    };
+
+    const handleWinKeyUp = (e: KeyboardEvent) => {
+      if (typeof document === 'undefined') return;
+      const active = document.activeElement;
+      if (
+        active && (
+          active.tagName === 'TEXTAREA' ||
+          active.tagName === 'INPUT' ||
+          active.id === 'code-editor' ||
+          active.id === 'new-program-name' ||
+          active.id === 'ai-prompt-input' ||
+          active.id === 'lib-search-input'
+        )
+      ) {
+        return;
+      }
+      this.handleKeyUp(e.key);
+    };
+
+    if (typeof window !== 'undefined') {
+      this.addTrackedListener(window, 'keydown', handleWinKeyDown);
+      this.addTrackedListener(window, 'keyup', handleWinKeyUp);
+    }
+
     // Execute global statements
     this.interpreter.executeBlock(ast.globalStatements, this.interpreter.globalEnv);
 
@@ -82,6 +202,23 @@ export class Game {
         this.interpreter.currentActor = undefined;
       }
     }
+  }
+
+  private addTrackedListener(
+    element: HTMLElement | Window,
+    type: string,
+    listener: any,
+    options?: any
+  ): void {
+    element.addEventListener(type, listener, options);
+    this.attachedListeners.push({ element, type, listener, options });
+  }
+
+  private cleanupListeners(): void {
+    for (const item of this.attachedListeners) {
+      item.element.removeEventListener(item.type, item.listener, item.options);
+    }
+    this.attachedListeners = [];
   }
 
   handleKeyDown(key: string): void {
@@ -189,5 +326,6 @@ export class Game {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    this.cleanupListeners();
   }
 }

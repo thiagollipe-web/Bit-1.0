@@ -205,6 +205,8 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
     ['ângulo', anguloFn],
     ['mouse_x', mouseXFn],
     ['mouse_y', mouseYFn],
+    ['toque_x', mouseXFn],
+    ['toque_y', mouseYFn],
     ['mouse_pressionado', mousePressionadoFn],
     ['clique', mousePressionadoFn],
     ['para_texto', paraTextoFn],

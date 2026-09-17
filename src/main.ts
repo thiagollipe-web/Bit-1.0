@@ -644,6 +644,9 @@ const exampleSelect = document.getElementById('example-select') as HTMLSelectEle
 const projectTitle = document.getElementById('project-title') as HTMLSpanElement;
 const saveStatus = document.getElementById('save-status') as HTMLSpanElement;
 const cursorPos = document.getElementById('cursor-pos') as HTMLSpanElement;
+const btnExport = document.getElementById('btn-export') as HTMLButtonElement;
+const btnImport = document.getElementById('btn-import') as HTMLButtonElement;
+const fileImport = document.getElementById('file-import') as HTMLInputElement;
 
 // Modal Elements
 const btnNew = document.getElementById('btn-new') as HTMLButtonElement;
@@ -1207,33 +1210,58 @@ btnAiReplace.addEventListener('click', () => {
   runCode();
 });
 
-// Keyboard controls
-window.addEventListener('keydown', (e) => {
-  if (
-    document.activeElement === editor ||
-    document.activeElement === inputProgramName ||
-    document.activeElement === aiPromptInput ||
-    document.activeElement === libSearchInput
-  ) {
-    return;
-  }
-  if (currentGame) {
-    currentGame.handleKeyDown(e.key);
-  }
+btnExport.addEventListener('click', () => {
+  const code = editor.value;
+  const title = projectTitle.textContent?.trim() || 'meu_jogo';
+  const safeName = title
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9_\-]/g, '_') || 'meu_jogo';
+    
+  const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${safeName}.bit`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  log(`Código exportado com sucesso como "${safeName}.bit"!`);
 });
 
-window.addEventListener('keyup', (e) => {
-  if (
-    document.activeElement === editor ||
-    document.activeElement === inputProgramName ||
-    document.activeElement === aiPromptInput ||
-    document.activeElement === libSearchInput
-  ) {
-    return;
-  }
-  if (currentGame) {
-    currentGame.handleKeyUp(e.key);
-  }
+btnImport.addEventListener('click', () => {
+  fileImport.click();
+});
+
+fileImport.addEventListener('change', (e) => {
+  const target = e.target as HTMLInputElement;
+  if (!target.files || target.files.length === 0) return;
+  const file = target.files[0];
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const content = event.target?.result;
+    if (typeof content === 'string') {
+      let title = file.name.replace(/\.bit$/i, '');
+      const firstLine = content.split('\n')[0]?.trim();
+      if (firstLine && firstLine.startsWith('#')) {
+        const potentialTitle = firstLine.replace(/^#\s*/, '').trim();
+        if (potentialTitle) {
+          title = potentialTitle;
+        }
+      }
+      
+      projectTitle.textContent = title;
+      editor.value = content;
+      exampleSelect.value = 'meu_programa';
+      saveUserCode(content, title);
+      log(`Código "${title}" importado com sucesso!`);
+      runCode();
+    }
+  };
+  reader.readAsText(file);
+  target.value = '';
 });
 
 // Virtual Pad
