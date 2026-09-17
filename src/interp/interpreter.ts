@@ -104,6 +104,7 @@ export class Interpreter {
           if (name === 'largura') return this.currentActor.width;
           if (name === 'altura') return this.currentActor.height;
           if (name === 'cor' && this.currentActor.shape) return this.currentActor.shape.color;
+          if ((name === 'texto' || name === 'text') && this.currentActor.shape && this.currentActor.shape.type === 'texto') return this.currentActor.shape.text;
           if (name === 'angulo' || name === 'ângulo') return this.currentActor.angle;
           if (name === 'visivel' || name === 'visível') return this.currentActor.active;
           if (name === 'alfa' || name === 'opacidade') return this.currentActor.opacity;
@@ -142,6 +143,7 @@ export class Interpreter {
           if (prop === 'altura') return obj.height;
           if (prop === 'ativo' || prop === 'visivel' || prop === 'visível') return obj.active;
           if (prop === 'cor' && obj.shape) return obj.shape.color;
+          if ((prop === 'texto' || prop === 'text') && obj.shape && obj.shape.type === 'texto') return obj.shape.text;
           if (prop === 'angulo' || prop === 'ângulo') return obj.angle;
           if (prop === 'alfa' || prop === 'opacidade') return obj.opacity;
           return obj.props[prop];
@@ -254,6 +256,9 @@ export class Interpreter {
             else if (prop === 'cor') {
               if (obj.shape) obj.shape.color = String(value);
             }
+            else if (prop === 'texto' || prop === 'text') {
+              if (obj.shape && obj.shape.type === 'texto') obj.shape.text = String(value);
+            }
             else if (prop === 'angulo' || prop === 'ângulo') obj.angle = Number(value) || 0;
             else if (prop === 'alfa' || prop === 'opacidade') obj.opacity = Math.max(0, Math.min(1, Number(value) || 1));
             else obj.props[prop] = value;
@@ -263,7 +268,7 @@ export class Interpreter {
         } else {
           // If the target is an actor and current actor matches
           const lowerTarget = stmt.target.toLowerCase();
-          if (this.currentActor && ['x', 'y', 'vx', 'vy', 'largura', 'altura', 'cor', 'angulo', 'ângulo', 'visivel', 'visível', 'alfa', 'opacidade'].includes(lowerTarget)) {
+          if (this.currentActor && ['x', 'y', 'vx', 'vy', 'largura', 'altura', 'cor', 'texto', 'text', 'angulo', 'ângulo', 'visivel', 'visível', 'alfa', 'opacidade'].includes(lowerTarget)) {
             if (lowerTarget === 'x') this.currentActor.x = Number(value) || 0;
             if (lowerTarget === 'y') this.currentActor.y = Number(value) || 0;
             if (lowerTarget === 'vx') this.currentActor.vx = Number(value) || 0;
@@ -278,6 +283,9 @@ export class Interpreter {
             }
             if (lowerTarget === 'cor' && this.currentActor.shape) {
               this.currentActor.shape.color = String(value);
+            }
+            if ((lowerTarget === 'texto' || lowerTarget === 'text') && this.currentActor.shape && this.currentActor.shape.type === 'texto') {
+              this.currentActor.shape.text = String(value);
             }
             if (lowerTarget === 'angulo' || lowerTarget === 'ângulo') {
               this.currentActor.angle = Number(value) || 0;

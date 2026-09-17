@@ -2,7 +2,6 @@ tela 160x120
 fundo preto
 
 pontos recebe 0
-linhas recebe 0
 tipo recebe 1
 
 ator BordaEsq
@@ -31,10 +30,11 @@ ator Pilha2
 fim
 
 ator Peca
-  desenho retângulo 18, 6, ciano
+  desenho texto 6, "■■\n■■", amarelo
   posição 72, 8
   velocidade 0, 0.8
   quando atualiza:
+    # Movimento lateral
     se tecla("arrowleft") ou tecla("a") então
       se x > 52 então
         x recebe x - 1.5
@@ -47,38 +47,76 @@ ator Peca
       fim
     fim
 
+    # Acelerar descida
     se tecla("arrowdown") ou tecla("s") então
       y recebe y + 1.5
     fim
 
-    # Ao atingir o fundo
+    # Ao atingir o fundo (chão)
     se y >= 102 então
       pontos recebe pontos + 10
       diga "Peça encaixada! Pontos: " + pontos
       y recebe 8
       x recebe 72
-      tipo recebe aleatorio(1, 3)
+      
+      # Escolha aleatória de peças clássicas em ASCII Art (7 Tipos Tradicionais)
+      tipo recebe aleatorio(1, 7)
       se tipo == 1 então
-        largura recebe 18
-        altura recebe 6
+        texto recebe "■■■■"
+        largura recebe 24
+        cor recebe "ciano"
       senão se tipo == 2 então
+        texto recebe "■■\n■■"
         largura recebe 12
-        altura recebe 12
+        cor recebe "amarelo"
+      senão se tipo == 3 então
+        texto recebe " ■ \n■■■"
+        largura recebe 18
+        cor recebe "roxo"
+      senão se tipo == 4 então
+        texto recebe " ■■\n■■ "
+        largura recebe 18
+        cor recebe "verde"
+      senão se tipo == 5 então
+        texto recebe "■■ \n ■■"
+        largura recebe 18
+        cor recebe "vermelho"
+      senão se tipo == 6 então
+        texto recebe "■  \n■■■"
+        largura recebe 18
+        cor recebe "laranja"
       senão
-        largura recebe 12
-        altura recebe 6
+        texto recebe "  ■\n■■■"
+        largura recebe 18
+        cor recebe "azul"
       fim
     fim
+
+    # Game Over se a pilha subir demais
+    se Pilha1.y < 30 ou Pilha2.y < 30 então
+      diga "💥 GAME OVER! Pontos: " + pontos
+      Pilha1.y recebe 108
+      Pilha1.altura recebe 6
+      Pilha2.y recebe 108
+      Pilha2.altura recebe 6
+      pontos recebe 0
+    fim
   fim
+
   quando colide com "Pilha1":
     pontos recebe pontos + 15
-    diga "Linha eliminada! Total: " + pontos
+    diga "Empilhado na Pilha 1!"
+    Pilha1.y recebe Pilha1.y - 6
+    Pilha1.altura recebe Pilha1.altura + 6
     y recebe 8
     x recebe 72
   fim
+
   quando colide com "Pilha2":
     pontos recebe pontos + 15
-    diga "Linha eliminada! Total: " + pontos
+    diga "Empilhado na Pilha 2!"
+    Pilha2.y recebe Pilha2.y - 6
+    Pilha2.altura recebe Pilha2.altura + 6
     y recebe 8
     x recebe 72
   fim

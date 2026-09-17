@@ -148,7 +148,12 @@ export class Actor {
     } else if (this.shape.type === 'texto' && this.shape.text) {
       ctx.font = `${Math.round(this.height)}px monospace`;
       ctx.textBaseline = 'top';
-      ctx.fillText(this.shape.text, Math.round(this.x), Math.round(this.y));
+      const lines = this.shape.text.split('\n');
+      let currentY = this.y;
+      for (const line of lines) {
+        ctx.fillText(line, Math.round(this.x), Math.round(currentY));
+        currentY += this.height + 1; // Add line spacing based on font size
+      }
     }
 
     ctx.restore();
