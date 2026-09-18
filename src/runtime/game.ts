@@ -203,18 +203,27 @@ export class Game {
       this.addTrackedListener(window, 'keyup', handleWinKeyUp);
     }
 
-    // Execute global statements
-    this.interpreter.resetBudget();
-    this.interpreter.executeBlock(ast.globalStatements, this.interpreter.globalEnv);
+    try {
+      // Execute global statements
+      this.interpreter.resetBudget();
+      this.interpreter.executeBlock(ast.globalStatements, this.interpreter.globalEnv);
 
-    // Execute initial statements inside each actor declaration
-    for (const actorDecl of ast.actors) {
-      const actor = this.actors.get(actorDecl.name.toLowerCase());
-      if (actor && actorDecl.statements.length > 0) {
-        this.interpreter.currentActor = actor;
-        this.interpreter.executeBlock(actorDecl.statements, this.interpreter.globalEnv);
-        this.interpreter.currentActor = undefined;
+      // Execute initial statements inside each actor declaration
+      for (const actorDecl of ast.actors) {
+        const actor = this.actors.get(actorDecl.name.toLowerCase());
+        if (actor && actorDecl.statements.length > 0) {
+          this.interpreter.currentActor = actor;
+          try {
+            this.interpreter.executeBlock(actorDecl.statements, this.interpreter.globalEnv);
+          } finally {
+            this.interpreter.currentActor = undefined;
+          }
+        }
       }
+    } catch (error) {
+      this.interpreter.currentActor = undefined;
+      this.cleanupListeners();
+      throw error;
     }
   }
 
