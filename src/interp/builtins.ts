@@ -1,4 +1,4 @@
-import { playBitSound, playBeep } from '../runtime/audio.ts';
+import { playMicroCondaSound, playBeep } from '../runtime/audio.ts';
 
 export type Builtin = (args: unknown[]) => unknown;
 
@@ -19,7 +19,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
   const checkCollision = context?.checkCollision ?? (() => false);
   const getTime = context?.getTime ?? (() => performance.now() / 1000);
   const getMousePos = context?.getMousePos ?? (() => ({ x: 0, y: 0, pressed: false }));
-  const soundPlayer = context?.playSound ?? ((name: string) => playBitSound(name));
+  const soundPlayer = context?.playSound ?? ((name: string) => playMicroCondaSound(name));
   const beepPlayer = context?.playBeepSound ?? ((freq: number, dur: number) => playBeep(freq, dur));
 
   const aleatorioFn: Builtin = (args: unknown[]): number => {
