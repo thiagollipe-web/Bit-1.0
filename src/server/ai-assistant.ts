@@ -5,53 +5,51 @@ let aiClient: GoogleGenAI | null = null;
 function getAiClient(): GoogleGenAI {
   if (!aiClient) {
     const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      throw new Error('Chave GEMINI_API_KEY não configurada no ambiente.');
-    }
+    if (!apiKey) throw new Error('Chave GEMINI_API_KEY não configurada no ambiente.');
     aiClient = new GoogleGenAI({
       apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build'
-        }
-      }
+      httpOptions: { headers: { 'User-Agent': 'bit-ide' } }
     });
   }
   return aiClient;
 }
 
-const BIT_SYSTEM_INSTRUCTION = `Você é o assistente de programação especialista em desenvolvimento de jogos retro estilo MS-DOS rodando em Python com o módulo 'game' (ou 'dos').
-Sua missão é ajudar o desenvolvedor a criar, corrigir, otimizar e entender códigos Python focados em gráficos baseados inteiramente em texto ASCII Art em um terminal de grade (ex: 40x25).
+const BIT_SYSTEM_INSTRUCTION = `Você é o assistente oficial da linguagem BIT, uma linguagem educacional em português para criação de jogos 2D.
+Nunca gere Python, JavaScript ou outra linguagem quando o usuário pedir código BIT.
+Use somente a sintaxe documentada no projeto.
 
-A biblioteca 'game' (também importável como 'dos') expõe as seguintes funções embutidas para controle do terminal:
-1. game.init(width=40, height=25, title="Jogo")
-   Inicializa a resolução do terminal de texto (colunas e linhas) e o título da janela. O padrão é 40 colunas por 25 linhas.
-2. game.clear(color="black")
-   Limpa a tela preenchendo-a com a cor escolhida. Cores válidas:
-   - "black", "blue", "green", "cyan", "red", "magenta", "brown", "gray"
-   - "dark_gray", "blue_bright", "green_bright", "cyan_bright", "red_bright", "magenta_bright", "yellow", "white"
-3. game.draw(x, y, texto, cor)
-   Desenha um caractere ou uma arte ASCII multi-linha (com '\\n') nas coordenadas x (coluna) e y (linha). Se a string contiver quebras de linha, desenha cada linha na linha correspondente y + i.
-4. game.key(nome_da_tecla)
-   Retorna True se a tecla estiver sendo pressionada no teclado. Teclas válidas:
-   - "arrowup" (ou "cima"), "arrowdown" (ou "baixo"), "arrowleft" (ou "esquerda"), "arrowright" (ou "direita")
-   - "espaco", "enter", "w", "a", "s", "d", "r"
-5. game.beep(frequencia, duracao)
-   Toca um som clássico de PC Speaker de onda quadrada com a frequência em Hz e duração em segundos.
-6. game.log(mensagem)
-   Imprime uma mensagem no console DOS abaixo da tela do jogo.
-7. game.random(min_val, max_val)
-   Retorna um número inteiro aleatório entre min_val e max_val (inclusive).
-8. game.time()
-   Retorna o tempo de execução decorrido desde o início do jogo em segundos (float).
-9. game.loop(funcao_de_atualizacao)
-   Registra e executa a função de atualização do jogo como loop principal (game loop) em cada quadro (não use loops infinitos 'while True' no código principal, pois travam o navegador WebAssembly, use sempre o registro com game.loop).
+Sintaxe principal:
+- tela 160x120
+- fundo preto
+- variáveis: pontos recebe 0 ou pontos = 0
+- ator Nome ... fim
+- desenho quadrado TAM, COR
+- desenho retangulo L, A, COR
+- desenho circulo RAIO, COR
+- desenho texto TAM, "texto", COR
+- posição X, Y
+- velocidade VX, VY
+- controlado por setas|toque|mouse
+- limita à tela
+- quica nas bordas|verticais|horizontais
+- se CONDIÇÃO então ... senão ... fim
+- repita N vezes ... fim
+- enquanto CONDIÇÃO faça ... fim
+- função nome(args) ... fim
+- retorne EXPRESSÃO
+- diga EXPRESSÃO
+- vira EXPRESSÃO
+- quando atualiza: ... fim
+- quando colide com "Nome": ... fim
+- propriedades: x, y, vx, vy, largura, altura, ativo, cor, texto, angulo, alfa
+- built-ins: aleatorio, distancia, colide, tecla, toque, seno, cosseno, raiz, absoluto, piso, teto, arredonda, tempo, limitar, interpolar, potencia, angulo, mouse_x, mouse_y, mouse_pressionado, para_texto, para_numero, gravar, salvar, carregar, tocar_som, som, bip.
 
-DIRETRIZES DE RESPOSTA:
-- Sempre responda em português claro, direto e profissional de Engenheiro de Jogos Retro.
-- Quando fornecer código Python, coloque-o dentro de blocos de código markdown com marcador \`\`\`python.
-- Se o usuário pedir um jogo novo, forneça o código Python completo, executável e otimizado usando import game, definindo o setup inicial, as variáveis globais de estado do jogo e a função de atualização (update) registrada com game.loop(update).
-- Os jogos criados devem ser visualmente refinados dentro das limitações de caracteres, usando blocos de preenchimento (como "■" ou "█") e elementos ASCII coloridos de forma criativa e harmoniosa.`;
+Regras:
+1. Ao criar jogo, devolva código BIT completo.
+2. Não invente APIs.
+3. Ao corrigir código, devolva BIT, nunca Python.
+4. Explique erros usando linha e coluna sempre que disponíveis.
+5. Prefira soluções pequenas e didáticas.`;
 
 export interface AssistantRequest {
   prompt: string;
@@ -66,73 +64,52 @@ export interface AssistantResponse {
   error?: string;
 }
 
-export async function handleAiRequest(body: AssistantRequest): Promise<AssistantResponse> {
-  const { prompt, currentCode, action } = body;
+function buildUserMessage(body: AssistantRequest): string {
+  const prompt = body.prompt?.trim() || 'Ajude a programar em BIT.';
+  const code = body.currentCode?.trim() || '';
+  const context = code ? `\n\n[Código BIT atual]:\n```bit\n${code}\n```` : '';
 
-  if (!prompt && !action) {
+  switch (body.action) {
+    case 'explain':
+      return `Explique didaticamente este código BIT, sem convertê-lo para outra linguagem:${context}`;
+    case 'fix':
+      return `Corrija este código BIT e devolva o programa BIT completo. Pedido adicional: ${prompt}${context}`;
+    case 'add_feature':
+      return `Adicione esta funcionalidade ao código BIT atual e devolva o programa completo: ${prompt}${context}`;
+    case 'new_game':
+      return `Crie um jogo completo em BIT para o pedido: ${prompt}. Inclua cenário, ator controlável, objetivo e feedback ao jogador.`;
+    default:
+      return `${prompt}${context}`;
+  }
+}
+
+export async function handleAiRequest(body: AssistantRequest): Promise<AssistantResponse> {
+  if (!body?.prompt && !body?.action) {
     return { success: false, error: 'Pergunta ou solicitação não fornecida.' };
   }
 
-  const ai = getAiClient();
-
-  let userMessage = prompt || '';
-  if (action === 'explain') {
-    userMessage = `Explique em detalhes como funciona o seguinte código Python de terminal MS-DOS, listando a lógica de estados e desenho:\n\`\`\`python\n${currentCode || ''}\n\`\`\``;
-  } else if (action === 'fix') {
-    userMessage = `Analise o código Python abaixo, identifique possíveis erros lógicos, de sintaxe ou de importação no loop de jogo do terminal, e forneça a versão corrigida completa e funcional:\n\`\`\`python\n${currentCode || ''}\n\`\`\`\nInstrução adicional: ${prompt || 'Corrija erros e deixe o jogo funcionando perfeitamente.'}`;
-  } else if (action === 'add_feature') {
-    userMessage = `Com base no código Python atual abaixo, implemente a seguinte funcionalidade de jogo: "${prompt}". Retorne o código atualizado completo:\n\`\`\`python\n${currentCode || ''}\n\`\`\``;
-  } else if (action === 'new_game') {
-    userMessage = `Crie um novo jogo completo em Python estilo terminal MS-DOS de acordo com o pedido: "${prompt}". O jogo deve ser divertido, ter tela inicializada com game.init(40, 25), arte em caracteres ASCII ou blocos Unicode, movimento de jogador, colisões simples, pontuação e som com game.beep(). Termine registrando o game loop via game.loop(update).`;
-  } else if (currentCode && currentCode.trim().length > 0) {
-    userMessage = `${prompt}\n\n[Código Python atual no editor]:\n\`\`\`python\n${currentCode}\n\`\`\``;
-  }
-
-  // Preferred models to try in order
-  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
-  let lastError: Error | null = null;
-  let replyText = '';
-
-  for (const model of models) {
-    try {
-      const result = await ai.models.generateContent({
-        model,
-        contents: userMessage,
-        config: {
-          systemInstruction: BIT_SYSTEM_INSTRUCTION,
-          temperature: 0.7,
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
-        }
-      });
-
-      if (result.text) {
-        replyText = result.text;
-        break;
+  try {
+    const ai = getAiClient();
+    const result = await ai.models.generateContent({
+      model: process.env.BIT_AI_MODEL || 'gemini-flash-latest',
+      contents: buildUserMessage(body),
+      config: {
+        systemInstruction: BIT_SYSTEM_INSTRUCTION,
+        thinkingConfig: { thinkingLevel: ThinkingLevel.LOW }
       }
-    } catch (err) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      continue;
-    }
-  }
+    });
 
-  if (!replyText) {
+    const reply = result.text?.trim() || '';
+    if (!reply) return { success: false, error: 'A IA não retornou conteúdo.' };
+
+    const match = reply.match(/```(?:bit)?\s*([\s\S]*?)```/i);
     return {
-      success: false,
-      error: lastError ? `Erro ao consultar a IA: ${lastError.message}` : 'Não foi possível gerar resposta no momento.'
+      success: true,
+      reply,
+      extractedCode: match?.[1]?.trim() || undefined
     };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    return { success: false, error: `Erro ao consultar a IA: ${message}` };
   }
-
-  // Extract .py or python code block if present
-  let extractedCode = '';
-  const pythonCodeRegex = /```(?:python)?\s*([\s\S]*?)```/i;
-  const match = replyText.match(pythonCodeRegex);
-  if (match && match[1]) {
-    extractedCode = match[1].trim();
-  }
-
-  return {
-    success: true,
-    reply: replyText,
-    extractedCode: extractedCode || undefined
-  };
 }
