@@ -1,7 +1,7 @@
-/** MicroConda Language Grammar v1.2 — declarative reference used by tooling/docs. */
-export const BIT_GRAMMAR = {
-  version: "1.2",
-  fileExtension: ".bit",
+/** MicroConda Language Grammar v1.0 — declarative reference used by tooling/docs. */
+export const MICROCONDA_GRAMMAR = {
+  version: "1.0",
+  fileExtension: ".micro",
   program: [
     "program := { topLevel } EOF",
     "topLevel := screenDecl | backgroundDecl | variableStmt | functionDecl | actorDecl | statement | comment"
