@@ -262,9 +262,6 @@ export class Game {
   }
 
   step(): void {
-    if (!this.running && this.animationFrameId === null) {
-      // step() is also used directly by tests and tooling.
-    }
     this.interpreter.resetBudget();
     const { screenWidth, screenHeight } = this.ast;
 
@@ -419,11 +416,14 @@ export class Game {
       if (!this.running) return;
       try {
         this.step();
-        this.animationFrameId = requestAnimationFrame(loop);
       } catch (error) {
         this.running = false;
         this.animationFrameId = null;
-        throw error;
+        this.logs.push(error instanceof Error ? error.message : String(error));
+        return;
+      }
+      if (this.running) {
+        this.animationFrameId = requestAnimationFrame(loop);
       }
     };
 
