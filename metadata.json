@@ -1,6 +1,6 @@
 {
-  "name": "BIT — Linguagem Brasileira para Jogos 2D",
-  "description": "IDE educacional e runtime para criação de jogos 2D com a linguagem BIT.",
-  "version": "1.3.0",
+  "name": "MicroConda Studio",
+  "description": "IDE educacional e runtime para criação de jogos 2D com a linguagem MicroConda.",
+  "version": "1.0.0",
   "requestFramePermissions": []
 }
