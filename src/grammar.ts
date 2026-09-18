@@ -1,4 +1,4 @@
-/** BIT Language Grammar v1.2 — declarative reference used by tooling/docs. */
+/** MicroConda Language Grammar v1.2 — declarative reference used by tooling/docs. */
 export const BIT_GRAMMAR = {
   version: "1.2",
   fileExtension: ".bit",
