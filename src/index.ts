@@ -1,7 +1,4 @@
-/**
- * Bit 1.0 — Biblioteca Central do Motor de Jogos em Português
- */
-
+/** MicroConda — biblioteca central do ambiente de criação de jogos 2D. */
 export * from './types.ts';
 export * from './colors.ts';
 export * from './lexer.ts';
@@ -17,10 +14,7 @@ import { parse } from './parser.ts';
 import { Game } from './runtime/game.ts';
 import type { ProgramAST } from './types.ts';
 
-/**
- * Utilitário de alto nível para compilar e iniciar um jogo Bit diretamente
- */
-export function criarJogoBit(codigo: string, canvas?: HTMLCanvasElement): { game: Game; ast: ProgramAST } {
+export function criarJogoMicroConda(codigo: string, canvas?: HTMLCanvasElement): { game: Game; ast: ProgramAST } {
   const tokens = tokenize(codigo);
   const ast = parse(tokens);
   const game = new Game(ast, canvas);
