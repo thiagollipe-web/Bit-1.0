@@ -59,7 +59,19 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
 
   it('reconhece aliases de teclado do jogo', () => {
     const pressed = new Set(['arrowright', ' ']);
-    const builtins = createBuiltins({ isKeyDown: (key) => pressed.has(key) });
+    const aliases: Record<string, string[]> = {
+      direita: ['arrowright', 'd'],
+      esquerda: ['arrowleft', 'a'],
+      espaco: [' ', 'space'],
+      cima: ['arrowup', 'w'],
+      baixo: ['arrowdown', 's']
+    };
+    const builtins = createBuiltins({
+      isKeyDown: (key) => {
+        const normalized = key.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        return (aliases[normalized] ?? [normalized]).some(candidate => pressed.has(candidate));
+      }
+    });
     expect(builtins.get('tecla')!(['direita'])).toBe(true);
     expect(builtins.get('tecla')!(['d'])).toBe(true);
     expect(builtins.get('tecla')!(['espaco'])).toBe(true);
