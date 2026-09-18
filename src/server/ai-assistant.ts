@@ -102,7 +102,7 @@ export async function handleAiRequest(body: AssistantRequest): Promise<Assistant
     const reply = result.text?.trim() || '';
     if (!reply) return { success: false, error: 'A IA não retornou conteúdo.' };
 
-    const match = reply.match(/```(?:bit)?\s*([\s\S]*?)```/i);
+    const match = reply.match(/```(?:micro|microconda)?\s*([\s\S]*?)```/i);
     return {
       success: true,
       reply,
