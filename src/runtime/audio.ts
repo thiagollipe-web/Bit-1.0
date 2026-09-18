@@ -1,5 +1,5 @@
 /**
- * BIT Sound Synthesizer (Sintetizador de Áudio Retrô)
+ * MicroConda Sound Synthesizer (Sintetizador de Áudio Retrô)
  * Sintetiza efeitos sonoros retrô 8-bit usando a Web Audio API sem arquivos externos.
  */
 
@@ -65,7 +65,7 @@ export function playBeep(frequency: number = 440, durationSeconds: number = 0.1,
 /**
  * Toca efeitos sonoros pré-definidos para jogos retrô.
  */
-export function playBitSound(soundName: string): void {
+export function playMicroCondaSound(soundName: string): void {
   if (!soundEnabled) return;
   const ctx = getAudioContext();
   if (!ctx) return;
