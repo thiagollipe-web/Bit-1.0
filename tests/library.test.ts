@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { BIT_LIBRARY } from '../src/library-data.ts';
+import { MICROCONDA_LIBRARY } from '../src/library-data.ts';
 import { criarJogoBit } from '../src/index.ts';
 
 describe('Biblioteca do Bit', () => {
   it('contém todos os comandos e categorias principais', () => {
-    expect(BIT_LIBRARY.length).toBeGreaterThan(8);
+    expect(MICROCONDA_LIBRARY.length).toBeGreaterThan(8);
 
-    const categories = new Set(BIT_LIBRARY.map((item) => item.category));
+    const categories = new Set(MICROCONDA_LIBRARY.map((item) => item.category));
     expect(categories.has('cenario')).toBe(true);
     expect(categories.has('atores')).toBe(true);
     expect(categories.has('comportamento')).toBe(true);
@@ -17,7 +17,7 @@ describe('Biblioteca do Bit', () => {
   });
 
   it('todos os itens possuem sintaxe, descrição e exemplo válidos', () => {
-    for (const item of BIT_LIBRARY) {
+    for (const item of MICROCONDA_LIBRARY) {
       expect(item.name.length).toBeGreaterThan(0);
       expect(item.syntax.length).toBeGreaterThan(0);
       expect(item.desc.length).toBeGreaterThan(0);
