@@ -49,6 +49,14 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
     expect(dist1).toBe(dist2);
   });
 
+  it('preserva valores zero nas conversões numéricas e no lerp', () => {
+    const builtins = createBuiltins();
+    expect(builtins.get('para_numero')!([0])).toBe(0);
+    expect(builtins.get('interpolar')!([10, 20, 0])).toBe(10);
+    expect(builtins.get('potencia')!([0, 2])).toBe(0);
+    expect(builtins.get('limitar')!([0, -5, 5])).toBe(0);
+  });
+
   it('funções matemáticas retornam number', () => {
     const builtins = createBuiltins();
 
