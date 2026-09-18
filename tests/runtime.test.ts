@@ -213,6 +213,42 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     expect(game.interpreter.currentActor).toBeUndefined();
   });
 
+
+  it('encerra o loop com segurança quando um evento de frame lança erro', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator A
+        desenho quadrado 2, branco
+        posição 10, 10
+        quando atualiza:
+          desconhecida
+        fim
+      fim
+    `));
+    const game = new Game(ast);
+    const raf = globalThis.requestAnimationFrame;
+    const cancel = globalThis.cancelAnimationFrame;
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalLogs = game.logs.length;
+
+    (globalThis as { requestAnimationFrame?: typeof requestAnimationFrame }).requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      cb(0);
+      return 1;
+    }) as typeof requestAnimationFrame;
+    (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = (() => {}) as typeof cancelAnimationFrame;
+    (globalThis as { window?: unknown }).window = {};
+
+    game.start();
+
+    expect(game.running).toBe(false);
+    expect(game.animationFrameId).toBeNull();
+    expect(game.logs.length).toBeGreaterThan(originalLogs);
+
+    (globalThis as { requestAnimationFrame?: typeof requestAnimationFrame }).requestAnimationFrame = raf;
+    (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = cancel;
+    (globalThis as { window?: unknown }).window = originalWindow;
+  });
+
   it('aceita propriedades de outro ator em eventos do ator atual', () => {
     const ast = parse(tokenize(`
       tela 40x25
