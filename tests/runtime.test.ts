@@ -160,6 +160,24 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     expect(jogador.y).toBe(10);
   });
 
+  it('mouse controla o ator pelo ponto lógico informado', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Mira
+        desenho quadrado 4, azul
+        posição 5, 5
+        controlado por mouse
+        limita à tela
+      fim
+    `));
+    const game = new Game(ast);
+    const mira = game.actors.get('mira')!;
+    game.handleTouch(30, 20, false);
+    game.step();
+    expect(mira.x).toBe(28);
+    expect(mira.y).toBe(18);
+  });
+
   it('limpa o input ao parar o jogo para evitar tecla travada ao reiniciar', () => {
     const ast = parse(tokenize(`
       tela 40x25
