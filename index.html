@@ -675,6 +675,145 @@
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
+
+    /* --- MOBILE RESPONSIVE OPTIMIZATIONS (100% ACCESSIBLE) --- */
+    .mobile-tabs {
+      display: none;
+      background: var(--card-bg);
+      border-bottom: 2px solid var(--border);
+      flex-shrink: 0;
+    }
+    @media (max-width: 768px) {
+      body {
+        overflow: hidden;
+        height: 100vh;
+      }
+      
+      header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+        padding: 6px 12px;
+      }
+      .brand {
+        width: 100%;
+        justify-content: space-between;
+      }
+      .header-actions {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        width: 100%;
+        padding-bottom: 4px;
+        gap: 6px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .header-actions::-webkit-scrollbar {
+        height: 4px;
+      }
+      .header-actions::-webkit-scrollbar-thumb {
+        background: var(--border);
+      }
+      .header-actions button, .header-actions select {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-size: 11px;
+        padding: 4px 8px;
+      }
+
+      .editor-bar {
+        padding: 4px 8px;
+      }
+      .editor-tools {
+        display: flex;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        width: 100%;
+        padding-bottom: 2px;
+        gap: 4px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .editor-tools::-webkit-scrollbar {
+        height: 2px;
+      }
+      .editor-tools .btn-snippet {
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+
+      .mobile-tabs {
+        display: flex;
+        width: 100%;
+      }
+      .mobile-tab-btn {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        background: transparent;
+        border: none;
+        border-bottom: 3px solid transparent;
+        color: var(--text-muted);
+        font-weight: bold;
+        font-size: 13px;
+        text-transform: uppercase;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .mobile-tab-btn.active {
+        color: var(--primary);
+        border-bottom-color: var(--primary);
+        background: rgba(57, 255, 20, 0.05);
+        text-shadow: 0 0 6px var(--primary);
+      }
+
+      /* Toggle panes based on active tab */
+      .editor-pane.mobile-hidden {
+        display: none !important;
+      }
+      .preview-pane.mobile-hidden {
+        display: none !important;
+      }
+
+      main {
+        flex-direction: column !important;
+      }
+
+      .preview-pane {
+        width: 100% !important;
+        height: 100% !important;
+        border-top: none !important;
+        border-left: none !important;
+        flex: 1;
+        padding: 12px;
+        justify-content: flex-start;
+      }
+
+      .canvas-container {
+        width: 100% !important;
+        max-width: 320px;
+        height: 240px;
+        flex-shrink: 0;
+      }
+
+      .virtual-gamepad {
+        grid-template-columns: repeat(3, 56px);
+        grid-template-rows: repeat(3, 56px);
+        gap: 8px;
+        margin-top: 10px;
+        flex-shrink: 0;
+      }
+      .pad-btn {
+        font-size: 20px;
+      }
+
+      .console-log {
+        height: 80px;
+        flex-shrink: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -710,6 +849,10 @@
       <button id="btn-stop" class="btn-stop">■ Parar</button>
     </div>
   </header>
+  <div class="mobile-tabs">
+    <button class="mobile-tab-btn active" id="tab-code">📝 Código</button>
+    <button class="mobile-tab-btn" id="tab-game">🎮 Console</button>
+  </div>
   <main>
     <div class="editor-pane">
       <div class="editor-bar">
@@ -729,7 +872,7 @@
       </div>
       <textarea id="code-editor" spellcheck="false"></textarea>
     </div>
-    <div class="preview-pane">
+    <div class="preview-pane mobile-hidden">
       <div class="canvas-container">
         <canvas id="game-canvas" width="320" height="240"></canvas>
       </div>

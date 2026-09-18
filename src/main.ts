@@ -629,6 +629,12 @@ const btnAiCopy = document.getElementById('btn-ai-copy') as HTMLButtonElement;
 const btnAiInsert = document.getElementById('btn-ai-insert') as HTMLButtonElement;
 const btnAiReplace = document.getElementById('btn-ai-replace') as HTMLButtonElement;
 
+// Mobile navigation elements
+const tabCode = document.getElementById('tab-code') as HTMLButtonElement;
+const tabGame = document.getElementById('tab-game') as HTMLButtonElement;
+const editorPane = document.querySelector('.editor-pane') as HTMLDivElement;
+const previewPane = document.querySelector('.preview-pane') as HTMLDivElement;
+
 // State Management
 let currentAiAction = 'new_game';
 let lastAiExtractedCode = '';
@@ -1006,6 +1012,28 @@ sys.modules['dos'] = _dos_mod
   }
 }
 
+function switchMobileTab(tab: 'code' | 'game') {
+  if (!tabCode || !tabGame || !editorPane || !previewPane) return;
+  if (tab === 'code') {
+    tabCode.classList.add('active');
+    tabGame.classList.remove('active');
+    editorPane.classList.remove('mobile-hidden');
+    previewPane.classList.add('mobile-hidden');
+  } else {
+    tabGame.classList.add('active');
+    tabCode.classList.remove('active');
+    previewPane.classList.remove('mobile-hidden');
+    editorPane.classList.add('mobile-hidden');
+  }
+}
+
+if (tabCode) {
+  tabCode.addEventListener('click', () => switchMobileTab('code'));
+}
+if (tabGame) {
+  tabGame.addEventListener('click', () => switchMobileTab('game'));
+}
+
 function stopCurrentGame() {
   isRunning = false;
   pythonUpdateFunc = null;
@@ -1016,6 +1044,7 @@ function stopCurrentGame() {
 }
 
 async function runCode() {
+  switchMobileTab('game');
   stopCurrentGame();
   consoleOutput.innerHTML = '';
   
@@ -1601,3 +1630,4 @@ saveStatus.textContent = 'Salvo';
 
 // Run user code automatically on start
 runCode();
+switchMobileTab('code');
