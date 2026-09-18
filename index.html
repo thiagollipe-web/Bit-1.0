@@ -3,25 +3,29 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>BIT 1.2 — Criação de Jogos 2D em Português</title>
-  <meta name="description" content="Linguagem textual brasileira para criação de jogos 2D com arquivos .bit." />
-  <meta property="og:title" content="BIT 1.2 — Criação de Jogos 2D em Português" />
-  <meta property="og:description" content="Linguagem textual brasileira para criação de jogos 2D com arquivos .bit." />
-  <meta name="theme-color" content="#1a1a24" />
+  <title>PYTHON MS-DOS 1.2 — Console Retro & ASCII Art Games</title>
+  <meta name="description" content="Console retro e compilador de jogos textuais criados inteiramente em Python com ASCII Art." />
+  <meta property="og:title" content="PYTHON MS-DOS 1.2 — Console Retro & ASCII Art Games" />
+  <meta property="og:description" content="Console retro e compilador de jogos textuais criados inteiramente em Python com ASCII Art." />
+  <meta name="theme-color" content="#030604" />
   <link rel="manifest" href="manifest.webmanifest" />
+  
+  <!-- Carga do Motor de Python (Pyodide) para execução no navegador -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
+
   <style>
     :root {
-      --bg: #0f1016;
-      --card-bg: #1a1b26;
-      --surface: #242638;
-      --surface-hover: #2e324a;
-      --primary: #4ade80;
-      --primary-hover: #22c55e;
-      --accent: #38bdf8;
-      --text: #f1f5f9;
-      --text-muted: #94a3b8;
-      --border: #334155;
-      --danger: #f87171;
+      --bg: #030604;
+      --card-bg: #070d09;
+      --surface: #0c1710;
+      --surface-hover: #14291c;
+      --primary: #39ff14; /* Neon matrix green */
+      --primary-hover: #1fcc00;
+      --accent: #ffb000; /* Retro amber */
+      --text: #d2ffd9; /* Greenish glow white */
+      --text-muted: #4e805f;
+      --border: #1a3825; /* Dark terminal grid lines */
+      --danger: #ff3333;
     }
     * {
       box-sizing: border-box;
@@ -30,17 +34,18 @@
       -webkit-tap-highlight-color: transparent;
     }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-family: 'Fira Code', 'Courier New', Courier, monospace;
       background: var(--bg);
       color: var(--text);
       display: flex;
       flex-direction: column;
       height: 100vh;
       overflow: hidden;
+      text-shadow: 0 0 2px rgba(57, 255, 20, 0.3);
     }
     header {
       background: var(--card-bg);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 2px solid var(--border);
       padding: 8px 16px;
       display: flex;
       align-items: center;
@@ -57,26 +62,29 @@
     .brand-logo {
       width: 28px;
       height: 28px;
-      background: linear-gradient(135deg, var(--primary), var(--accent));
-      border-radius: 6px;
+      background: var(--primary);
+      border: 1px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 900;
       color: #000;
       font-size: 16px;
+      box-shadow: 0 0 8px var(--primary);
     }
     .brand-title {
       font-size: 16px;
       font-weight: 700;
-      letter-spacing: -0.02em;
+      letter-spacing: 0.1em;
+      color: var(--primary);
+      text-transform: uppercase;
     }
     .brand-tag {
       font-size: 11px;
       background: var(--surface);
       color: var(--accent);
       padding: 2px 6px;
-      border-radius: 4px;
+      border: 1px solid var(--border);
       font-weight: 600;
     }
     .header-actions {
@@ -88,10 +96,10 @@
     select, button {
       font-family: inherit;
       font-size: 13px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
+      border-radius: 0px; /* Sharp retro terminals */
+      border: 1.5px solid var(--border);
       background: var(--surface);
-      color: var(--text);
+      color: var(--primary);
       padding: 6px 12px;
       cursor: pointer;
       transition: all 0.15s ease;
@@ -99,51 +107,66 @@
       align-items: center;
       justify-content: center;
       gap: 6px;
+      text-transform: uppercase;
+      font-weight: bold;
     }
     select:focus, button:focus {
       outline: none;
-      border-color: var(--accent);
+      border-color: var(--primary);
+      box-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
+    }
+    button:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
     }
     .btn-new {
-      background: linear-gradient(135deg, #38bdf8, #818cf8);
-      color: #000;
-      font-weight: 700;
-      border: none;
+      background: transparent;
+      color: var(--accent);
+      border: 1.5px solid var(--accent);
     }
     .btn-new:hover {
-      filter: brightness(1.1);
+      background: rgba(255, 176, 0, 0.1);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(255, 176, 0, 0.4);
     }
     .btn-lib {
-      background: linear-gradient(135deg, #8b5cf6, #ec4899);
-      color: #fff;
-      font-weight: 600;
-      border: none;
+      background: transparent;
+      color: var(--primary);
+      border: 1.5px solid var(--primary);
     }
     .btn-lib:hover {
-      filter: brightness(1.15);
+      background: rgba(57, 255, 20, 0.1);
     }
     .btn-ai {
-      background: linear-gradient(135deg, #10b981, #06b6d4);
-      color: #000;
-      font-weight: 700;
-      border: none;
+      background: transparent;
+      color: #00ffff;
+      border: 1.5px solid #00ffff;
     }
     .btn-ai:hover {
-      filter: brightness(1.15);
+      background: rgba(0, 255, 255, 0.1);
+      color: #fff;
+      box-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
     }
     .btn-run {
       background: var(--primary);
       color: #000;
-      font-weight: 600;
-      border: none;
+      border: 1.5px solid var(--primary);
     }
     .btn-run:hover {
       background: var(--primary-hover);
+      color: #000;
+      box-shadow: 0 0 12px var(--primary);
     }
     .btn-stop {
-      background: var(--danger);
-      color: #fff;
-      border: none;
+      background: transparent;
+      color: var(--danger);
+      border: 1.5px solid var(--danger);
+    }
+    .btn-stop:hover {
+      background: rgba(255, 69, 69, 0.1);
+      box-shadow: 0 0 8px var(--danger);
     }
     main {
       flex: 1;
@@ -160,16 +183,16 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      border-right: 1px solid var(--border);
+      border-right: 2px solid var(--border);
       min-width: 0;
-      background: #13141f;
+      background: #020403;
     }
     .editor-bar {
       background: var(--card-bg);
       padding: 6px 12px;
       font-size: 12px;
       color: var(--text-muted);
-      border-bottom: 1px solid var(--border);
+      border-bottom: 2px solid var(--border);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -184,10 +207,11 @@
     .save-status {
       font-size: 10px;
       padding: 2px 6px;
-      border-radius: 4px;
-      background: rgba(74, 222, 128, 0.15);
+      border-radius: 0px;
+      background: rgba(57, 255, 20, 0.1);
       color: var(--primary);
       font-weight: 600;
+      border: 1px solid var(--border);
     }
     .editor-tools {
       display: flex;
@@ -199,12 +223,12 @@
       padding: 3px 8px;
       background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: 4px;
+      color: var(--primary);
+      border-radius: 0px;
     }
     .btn-snippet:hover {
-      color: var(--text);
-      border-color: var(--accent);
+      color: #fff;
+      border-color: var(--primary);
     }
     #code-editor {
       flex: 1;
@@ -212,13 +236,13 @@
       background: transparent;
       border: none;
       outline: none;
-      color: #e2e8f0;
+      color: var(--primary);
       font-family: "Fira Code", Consolas, "Courier New", monospace;
       font-size: 13px;
       line-height: 1.5;
       padding: 12px;
       resize: none;
-      tab-size: 2;
+      tab-size: 4;
     }
     .preview-pane {
       width: 360px;
@@ -226,28 +250,41 @@
       flex-direction: column;
       background: var(--card-bg);
       align-items: center;
-      padding: 12px;
-      gap: 12px;
+      padding: 16px;
+      gap: 16px;
       overflow-y: auto;
+      border-left: 2px solid var(--border);
     }
     @media (max-width: 768px) {
       .preview-pane {
         width: 100%;
         height: 48%;
-        border-top: 1px solid var(--border);
+        border-top: 2px solid var(--border);
+        border-left: none;
       }
     }
     .canvas-container {
       background: #000;
-      border: 2px solid var(--border);
-      border-radius: 8px;
+      border: 3px solid var(--border);
+      border-radius: 0px;
       overflow: hidden;
       display: flex;
       align-items: center;
       justify-content: center;
       width: 320px;
       height: 240px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      box-shadow: 0 0 20px rgba(57, 255, 20, 0.15), inset 0 0 10px rgba(0,0,0,0.8);
+      position: relative;
+    }
+    /* CRT curved screen effect */
+    .canvas-container::after {
+      content: " ";
+      display: block;
+      position: absolute;
+      top: 0; left: 0; bottom: 0; right: 0;
+      background: radial-gradient(circle, rgba(0,0,0,0) 60%, rgba(0,0,0,0.6) 100%);
+      pointer-events: none;
+      z-index: 5;
     }
     #game-canvas {
       image-rendering: pixelated;
@@ -264,11 +301,11 @@
     }
     .pad-btn {
       background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
+      border: 1.5px solid var(--border);
+      color: var(--primary);
       font-size: 16px;
       font-weight: bold;
-      border-radius: 8px;
+      border-radius: 0px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -276,33 +313,37 @@
       touch-action: manipulation;
     }
     .pad-btn:active {
-      background: var(--accent);
+      background: var(--primary);
       color: #000;
+      box-shadow: 0 0 10px var(--primary);
     }
     .console-log {
       width: 100%;
-      background: #0d0e15;
-      border: 1px solid var(--border);
-      border-radius: 6px;
+      background: #020403;
+      border: 1.5px solid var(--border);
+      border-radius: 0px;
       padding: 8px;
-      font-family: monospace;
+      font-family: 'Fira Code', monospace;
       font-size: 11px;
-      height: 80px;
+      height: 110px;
       overflow-y: auto;
-      color: var(--text-muted);
+      color: var(--primary);
     }
     .console-log .log-entry {
       margin-bottom: 2px;
+      border-bottom: 1px dashed rgba(57, 255, 20, 0.05);
+      padding-bottom: 2px;
     }
     .console-log .log-error {
       color: var(--danger);
+      text-shadow: 0 0 4px var(--danger);
     }
 
     /* Modal Criar Novo Programa */
     .modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0, 0, 0, 0.85);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -315,25 +356,29 @@
     }
     .modal-card {
       background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      border: 2px solid var(--border);
+      border-radius: 0px;
       width: 100%;
       max-width: 480px;
       padding: 24px;
       display: flex;
       flex-direction: column;
       gap: 16px;
-      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 0 30px rgba(57, 255, 20, 0.15);
     }
     .modal-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      border-bottom: 1.5px solid var(--border);
+      padding-bottom: 8px;
     }
     .modal-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--primary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
     }
     .modal-close {
       background: none;
@@ -343,27 +388,33 @@
       cursor: pointer;
       padding: 4px;
     }
+    .modal-close:hover {
+      color: var(--danger);
+    }
     .form-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
     .form-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--text-muted);
+      text-transform: uppercase;
     }
     .form-input {
       background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text);
+      border: 1.5px solid var(--border);
+      color: var(--primary);
       padding: 8px 12px;
-      border-radius: 6px;
-      font-size: 14px;
+      border-radius: 0px;
+      font-size: 13px;
+      font-family: inherit;
       outline: none;
     }
     .form-input:focus {
-      border-color: var(--accent);
+      border-color: var(--primary);
+      box-shadow: 0 0 6px rgba(57, 255, 20, 0.4);
     }
     .template-grid {
       display: grid;
@@ -372,8 +423,8 @@
     }
     .template-card {
       background: var(--surface);
-      border: 2px solid var(--border);
-      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 0px;
       padding: 10px;
       cursor: pointer;
       text-align: left;
@@ -384,22 +435,24 @@
     }
     .template-card:hover {
       background: var(--surface-hover);
-      border-color: var(--accent);
+      border-color: var(--primary);
     }
     .template-card.selected {
-      border-color: var(--accent);
-      background: rgba(56, 189, 248, 0.1);
+      border-color: var(--primary);
+      background: rgba(57, 255, 20, 0.08);
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.2);
     }
     .template-card-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
-      color: var(--text);
+      color: var(--primary);
       display: flex;
       align-items: center;
       gap: 6px;
+      text-transform: uppercase;
     }
     .template-card-desc {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--text-muted);
       line-height: 1.3;
     }
@@ -410,7 +463,7 @@
       margin-top: 8px;
     }
 
-    /* Estilos da Biblioteca do Bit */
+    /* Estilos da Biblioteca */
     .modal-card-library {
       max-width: 720px;
       max-height: 88vh;
@@ -431,21 +484,23 @@
     .lib-cat-btn {
       font-size: 11px;
       padding: 4px 10px;
-      border-radius: 12px;
+      border-radius: 0px;
       background: var(--surface);
       border: 1px solid var(--border);
-      color: var(--text-muted);
+      color: var(--primary);
       cursor: pointer;
+      text-transform: uppercase;
+      font-weight: bold;
     }
     .lib-cat-btn:hover {
-      color: var(--text);
-      border-color: var(--accent);
+      color: #fff;
+      border-color: var(--primary);
     }
     .lib-cat-btn.active {
-      background: var(--accent);
+      background: var(--primary);
       color: #000;
-      font-weight: 700;
-      border-color: var(--accent);
+      border-color: var(--primary);
+      box-shadow: 0 0 8px var(--primary);
     }
     .lib-list {
       flex: 1;
@@ -458,16 +513,17 @@
     }
     .lib-item-card {
       background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      border: 1.5px solid var(--border);
+      border-radius: 0px;
       padding: 12px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      transition: border-color 0.15s;
+      transition: all 0.15s;
     }
     .lib-item-card:hover {
-      border-color: #475569;
+      border-color: var(--primary);
+      background: var(--surface-hover);
     }
     .lib-item-header {
       display: flex;
@@ -476,42 +532,43 @@
       gap: 8px;
     }
     .lib-item-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       color: var(--accent);
       font-family: monospace;
     }
     .lib-item-badge {
-      font-size: 10px;
-      background: rgba(255, 255, 255, 0.08);
-      color: var(--text-muted);
+      font-size: 9px;
+      background: rgba(57, 255, 20, 0.1);
+      color: var(--primary);
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: 0px;
+      border: 1px solid var(--border);
       text-transform: uppercase;
       font-weight: 600;
     }
     .lib-item-syntax {
       font-family: monospace;
       font-size: 12px;
-      background: #0d0e15;
+      background: #020403;
       padding: 6px 8px;
-      border-radius: 4px;
+      border-radius: 0px;
       border-left: 3px solid var(--primary);
-      color: #e2e8f0;
+      color: var(--primary);
       white-space: pre-wrap;
     }
     .lib-item-desc {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--text-muted);
       line-height: 1.4;
     }
     .lib-item-example {
-      background: #0d0e15;
-      border-radius: 4px;
+      background: #020403;
+      border-radius: 0px;
       padding: 6px 8px;
       font-family: monospace;
       font-size: 11px;
-      color: #94a3b8;
+      color: var(--text-muted);
       white-space: pre-wrap;
       border: 1px dashed var(--border);
     }
@@ -524,7 +581,7 @@
     .btn-lib-action {
       font-size: 11px;
       padding: 3px 8px;
-      border-radius: 4px;
+      border-radius: 0px;
     }
 
     /* Estilos do Assistente IA */
@@ -544,30 +601,32 @@
     .ai-chip {
       font-size: 11px;
       padding: 5px 12px;
-      border-radius: 14px;
+      border-radius: 0px;
       background: var(--surface);
-      border: 1px solid var(--border);
-      color: var(--text-muted);
+      border: 1.5px solid var(--border);
+      color: var(--primary);
       cursor: pointer;
       transition: all 0.15s ease;
       display: inline-flex;
       align-items: center;
       gap: 4px;
+      text-transform: uppercase;
+      font-weight: bold;
     }
     .ai-chip:hover {
-      color: var(--text);
-      border-color: #06b6d4;
+      color: #fff;
+      border-color: var(--primary);
     }
     .ai-chip.active {
-      background: rgba(6, 182, 212, 0.18);
-      border-color: #06b6d4;
-      color: #38bdf8;
-      font-weight: 600;
+      background: rgba(57, 255, 20, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
     }
     .ai-response-area {
-      background: #0d0e15;
-      border: 1px solid var(--border);
-      border-radius: 8px;
+      background: #020403;
+      border: 1.5px solid var(--border);
+      border-radius: 0px;
       padding: 12px;
       display: flex;
       flex-direction: column;
@@ -581,26 +640,26 @@
       align-items: center;
       flex-wrap: wrap;
       gap: 8px;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px dashed var(--border);
       padding-bottom: 8px;
     }
     .ai-reply-text {
-      font-size: 13px;
+      font-size: 12px;
       line-height: 1.6;
-      color: #e2e8f0;
+      color: var(--primary);
       white-space: pre-wrap;
       word-break: break-word;
     }
     .ai-code-block {
-      background: #141622;
-      border: 1px solid #2e3450;
-      border-left: 3px solid #10b981;
-      border-radius: 6px;
+      background: #070d09;
+      border: 1.5px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 0px;
       padding: 10px;
       font-family: monospace;
       font-size: 12px;
       overflow-x: auto;
-      color: #a7f3d0;
+      color: var(--primary);
       white-space: pre;
       margin: 8px 0;
     }
@@ -608,8 +667,8 @@
       display: inline-block;
       width: 14px;
       height: 14px;
-      border: 2px solid rgba(0,0,0,0.25);
-      border-top-color: #000;
+      border: 2px solid rgba(57, 255, 20, 0.25);
+      border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
     }
@@ -621,30 +680,29 @@
 <body>
   <header>
     <div class="brand">
-      <div class="brand-logo">B</div>
+      <div class="brand-logo">C</div>
       <div>
-        <div class="brand-title">BIT</div>
+        <div class="brand-title">PYTHON MS-DOS</div>
       </div>
       <span class="brand-tag">v1.2.0</span>
     </div>
     <div class="header-actions">
-      <button id="btn-new" class="btn-new" title="Criar um novo jogo ou programa">✨ + Novo Programa</button>
-      <button id="btn-export" class="btn-lib" style="background: #1e293b; border-color: #334155; color: #f8fafc; font-weight: 500;" title="Exportar código para um arquivo .bit">📥 Salvar .bit</button>
-      <button id="btn-import" class="btn-lib" style="background: #1e293b; border-color: #334155; color: #f8fafc; font-weight: 500;" title="Importar código de um arquivo .bit">📤 Abrir .bit</button>
-      <input type="file" id="file-import" accept=".bit" style="display: none;" />
-      <button id="btn-library" class="btn-lib" title="Consultar comandos, funções e referências da Linguagem Bit">📚 Biblioteca</button>
-      <button id="btn-ai" class="btn-ai" title="Assistente de Inteligência Artificial para gerar jogos, tirar dúvidas e programar em BIT">🤖 Assistente IA</button>
+      <button id="btn-new" class="btn-new" title="Criar um novo jogo em Python">✨ + Novo Programa</button>
+      <button id="btn-export" class="btn-lib" style="background: #1e293b; border-color: #334155; color: #f8fafc; font-weight: 500;" title="Exportar código para um arquivo .py">📥 Salvar .py</button>
+      <button id="btn-import" class="btn-lib" style="background: #1e293b; border-color: #334155; color: #f8fafc; font-weight: 500;" title="Importar código de um arquivo .py">📤 Abrir .py</button>
+      <input type="file" id="file-import" accept=".py" style="display: none;" />
+      <button id="btn-library" class="btn-lib" title="Consultar comandos e referências da biblioteca game do Python">📚 Biblioteca</button>
+      <button id="btn-ai" class="btn-ai" title="Assistente de IA para gerar jogos, tirar dúvidas e programar em Python retro">🤖 Assistente IA</button>
       <select id="example-select">
         <optgroup label="Seu Projeto">
           <option value="meu_programa">★ Meu Programa</option>
         </optgroup>
         <optgroup label="Exemplos Prontos">
-          <option value="geometric_run" selected>⚡ Geometric Run 2D</option>
-          <option value="tetris">Tetris 2D</option>
-          <option value="pong">Pong 2D</option>
-          <option value="nave">Nave Espacial</option>
-          <option value="breakout">Breakout</option>
-          <option value="senao_se">Lógica: Senão Se</option>
+          <option value="hello_world" selected>⚡ C:\> Olá, Mundo!</option>
+          <option value="interactive_move">🎮 Movimentação ASCII</option>
+          <option value="pong">🎾 MS-DOS Pong</option>
+          <option value="space_invaders">👾 Space Invaders</option>
+          <option value="tetris">🧱 MS-DOS Tetris</option>
         </optgroup>
       </select>
       <button id="btn-run" class="btn-run">▶ Executar</button>
@@ -655,15 +713,15 @@
     <div class="editor-pane">
       <div class="editor-bar">
         <div class="editor-bar-left">
-          <span id="project-title" style="font-weight: 600; color: var(--text);">Código Bit</span>
+          <span id="project-title" style="font-weight: 600; color: var(--text);">Código Python</span>
           <span id="save-status" class="save-status">Salvo</span>
         </div>
         <div class="editor-tools">
           <span style="font-size: 11px; margin-right: 4px;">Inserir:</span>
-          <button class="btn-snippet" data-snippet="ator" title="Inserir modelo de ator">+ Ator</button>
-          <button class="btn-snippet" data-snippet="se" title="Inserir condição se ... então">+ Se</button>
-          <button class="btn-snippet" data-snippet="repita" title="Inserir loop repita">+ Repita</button>
-          <button class="btn-snippet" data-snippet="diga" title="Inserir comando diga">+ Diga</button>
+          <button class="btn-snippet" data-snippet="import" title="Inserir import game">+ Import</button>
+          <button class="btn-snippet" data-snippet="draw" title="Inserir desenho no terminal">+ Draw</button>
+          <button class="btn-snippet" data-snippet="loop" title="Inserir estrutura de loop principal">+ Loop</button>
+          <button class="btn-snippet" data-snippet="beep" title="Inserir bip clássico do PC Speaker">+ Beep</button>
           <button id="btn-quick-ai" class="btn-snippet" style="color: #38bdf8; border-color: rgba(56, 189, 248, 0.4); font-weight: 600;" title="Pedir ajuda à IA para este código">⚡ Ajuda IA</button>
           <span id="cursor-pos" style="margin-left: 8px;">Linha 1, Col 1</span>
         </div>
@@ -672,7 +730,7 @@
     </div>
     <div class="preview-pane">
       <div class="canvas-container">
-        <canvas id="game-canvas" width="160" height="120"></canvas>
+        <canvas id="game-canvas" width="320" height="240"></canvas>
       </div>
       <div class="virtual-gamepad">
         <div></div>
@@ -686,7 +744,7 @@
         <div></div>
       </div>
       <div class="console-log" id="console-output">
-        <div class="log-entry">Console Bit pronto. Pressione "Executar".</div>
+        <div class="log-entry">Console Retro Python MS-DOS pronto. Pressione "Executar".</div>
       </div>
     </div>
   </main>
@@ -695,7 +753,7 @@
   <div id="new-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Novo Programa Bit</div>
+        <div class="modal-title">Novo Programa Python DOS</div>
         <button id="btn-modal-close" class="modal-close">✕</button>
       </div>
       <div class="form-group">
@@ -703,31 +761,31 @@
         <input type="text" id="new-program-name" class="form-input" value="Meu Novo Jogo" />
       </div>
       <div class="form-group">
-        <label class="form-label">Escolha como deseja começar:</label>
+        <label class="form-label">Escolha um template para começar:</label>
         <div class="template-grid">
-          <div class="template-card selected" data-template="personagem">
-            <div class="template-card-title">🎮 Personagem</div>
-            <div class="template-card-desc">Ator controlável com setas ou gamepad virtual.</div>
+          <div class="template-card selected" data-template="hello_world">
+            <div class="template-card-title">🖥️ Olá Mundo</div>
+            <div class="template-card-desc">Cria uma tela clássica de MS-DOS com texto piscante.</div>
           </div>
-          <div class="template-card" data-template="bola">
-            <div class="template-card-title">⚽ Bola Quicando</div>
-            <div class="template-card-desc">Física com velocidade e quique automático nas bordas.</div>
+          <div class="template-card" data-template="interactive_move">
+            <div class="template-card-title">🏃 Movimentação</div>
+            <div class="template-card-desc">Ator controlável com WASD/Setas e efeitos sonoros de beep.</div>
           </div>
-          <div class="template-card" data-template="coletar">
-            <div class="template-card-title">🎯 Coletar Moeda</div>
-            <div class="template-card-desc">Jogador, moeda aleatória e contador de pontos.</div>
+          <div class="template-card" data-template="pong">
+            <div class="template-card-title">🎾 MS-DOS Pong</div>
+            <div class="template-card-desc">Jogo Pong clássico com placar e rebatida física.</div>
           </div>
-          <div class="template-card" data-template="geometric_run">
-            <div class="template-card-title">⚡ Geometric Run</div>
-            <div class="template-card-desc">Runner estilo Geometry Dash: saltos, gravidade e espinhos.</div>
+          <div class="template-card" data-template="space_invaders">
+            <div class="template-card-title">👾 Space Invaders</div>
+            <div class="template-card-desc">Atire com barra de espaço em alienígenas descendo a tela.</div>
           </div>
           <div class="template-card" data-template="tetris">
-            <div class="template-card-title">🧱 Tetris 2D</div>
-            <div class="template-card-desc">Peças caindo, paredes laterais, chão e pontuação.</div>
+            <div class="template-card-title">🧱 MS-DOS Tetris</div>
+            <div class="template-card-desc">Linhas completadas, blocos caindo e som retro.</div>
           </div>
           <div class="template-card" data-template="vazio">
             <div class="template-card-title">📄 Em Branco</div>
-            <div class="template-card-desc">Estrutura mínima de tela 160x120 limpa.</div>
+            <div class="template-card-desc">Estrutura de import game e loop básico vazia.</div>
           </div>
         </div>
       </div>
@@ -738,28 +796,27 @@
     </div>
   </div>
 
-  <!-- Modal da Biblioteca do Bit -->
+  <!-- Modal da Biblioteca -->
   <div id="library-modal" class="modal-overlay hidden">
     <div class="modal-card modal-card-library">
       <div class="modal-header">
-        <div class="modal-title">📚 Biblioteca da BIT 1.2</div>
+        <div class="modal-title">📚 Biblioteca PYTHON DOS</div>
         <button id="btn-lib-close" class="modal-close">✕</button>
       </div>
       
       <div class="lib-search-bar">
-        <input type="text" id="lib-search-input" class="form-input" style="flex: 1;" placeholder="🔍 Buscar comando, função ou propriedade (ex: aleatorio, tela, quica)..." />
+        <input type="text" id="lib-search-input" class="form-input" style="flex: 1;" placeholder="🔍 Buscar comando (ex: draw, key, beep, loop, init)..." />
       </div>
 
       <div class="lib-categories" id="lib-categories">
         <button class="lib-cat-btn active" data-cat="todas">Todas</button>
         <button class="lib-cat-btn" data-cat="cenario">Cenário</button>
-        <button class="lib-cat-btn" data-cat="atores">Atores</button>
-        <button class="lib-cat-btn" data-cat="comportamento">Comportamento</button>
-        <button class="lib-cat-btn" data-cat="eventos">Eventos</button>
-        <button class="lib-cat-btn" data-cat="controle">Controle</button>
-        <button class="lib-cat-btn" data-cat="funcoes">Funções</button>
-        <button class="lib-cat-btn" data-cat="propriedades">Propriedades</button>
-        <button class="lib-cat-btn" data-cat="cores">Cores</button>
+        <button class="lib-cat-btn" data-cat="atores">Desenho/Arte</button>
+        <button class="lib-cat-btn" data-cat="comportamento">Ações/Áudio</button>
+        <button class="lib-cat-btn" data-cat="eventos">Loops/Eventos</button>
+        <button class="lib-cat-btn" data-cat="controle">Entradas</button>
+        <button class="lib-cat-btn" data-cat="funcoes">Utilitários</button>
+        <button class="lib-cat-btn" data-cat="cores">Cores DOS</button>
       </div>
 
       <div class="lib-list" id="lib-list">
@@ -775,8 +832,8 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 24px;">🤖</span>
           <div>
-            <div class="modal-title">Assistente IA da Linguagem BIT</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Crie jogos, gere atores, tire dúvidas e corrija erros na linguagem BIT com IA gratuita</div>
+            <div class="modal-title">Assistente IA do Python MS-DOS</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Crie jogos, gere lógicas retro, corrija erros e aprenda Python de graça</div>
           </div>
         </div>
         <button id="btn-ai-close" class="modal-close" title="Fechar">✕</button>
@@ -784,7 +841,7 @@
 
       <div class="ai-presets">
         <button class="ai-chip active" data-action="new_game">🎮 Criar Novo Jogo</button>
-        <button class="ai-chip" data-action="add_feature">✨ Adicionar Recurso/Ator</button>
+        <button class="ai-chip" data-action="add_feature">✨ Adicionar Recurso</button>
         <button class="ai-chip" data-action="fix">🔧 Corrigir Código</button>
         <button class="ai-chip" data-action="explain">💡 Explicar Este Código</button>
         <button class="ai-chip" data-action="custom">💬 Dúvida Livre</button>
@@ -792,7 +849,7 @@
 
       <div class="form-group">
         <label id="ai-prompt-label" class="form-label" for="ai-prompt-input">Descreva o jogo ou código que você quer criar:</label>
-        <textarea id="ai-prompt-input" class="form-input" style="height: 75px; resize: none; font-family: inherit; font-size: 13px;" placeholder="Ex: Crie um jogo de nave espacial que atira em asteroides com barra de vidas e placar..."></textarea>
+        <textarea id="ai-prompt-input" class="form-input" style="height: 75px; resize: none; font-family: inherit; font-size: 13px;" placeholder="Ex: Crie um jogo de labirinto com monstros e chaves coletáveis..."></textarea>
       </div>
 
       <div style="display: flex; align-items: center; justify-content: space-between; font-size: 12px; gap: 8px; flex-wrap: wrap;">
@@ -811,7 +868,7 @@
         <div class="ai-response-header">
           <span style="font-weight: 600; font-size: 13px; color: var(--accent);">Resposta da IA:</span>
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button id="btn-ai-copy" class="btn-lib-action" title="Copiar código .bit gerado">📋 Copiar Código</button>
+            <button id="btn-ai-copy" class="btn-lib-action" title="Copiar código Python gerado">📋 Copiar Código</button>
             <button id="btn-ai-insert" class="btn-lib-action" title="Inserir código gerado na posição do cursor">➕ Inserir no Editor</button>
             <button id="btn-ai-replace" class="btn-lib-action btn-run" title="Substituir todo o código do editor e rodar o jogo">▶ Substituir & Rodar</button>
           </div>

@@ -1,695 +1,465 @@
-import { tokenize } from './lexer.ts';
-import { parse } from './parser.ts';
-import { Game } from './runtime/game.ts';
 import { BIT_LIBRARY, type LibraryItem } from './library-data.ts';
 
+// retro MS-DOS color hex mappings
+const DOS_COLORS: Record<string, string> = {
+  black: '#000000',
+  blue: '#0000aa',
+  green: '#00aa00',
+  cyan: '#00aaaa',
+  red: '#aa0000',
+  magenta: '#aa00aa',
+  brown: '#aa5500',
+  gray: '#aaaaaa',
+  dark_gray: '#555555',
+  blue_bright: '#5555ff',
+  green_bright: '#55ff55',
+  cyan_bright: '#55ffff',
+  red_bright: '#ff5555',
+  magenta_bright: '#ff55ff',
+  yellow: '#ffff55',
+  white: '#ffffff'
+};
+
+const PORTUGUESE_COLOR_MAP: Record<string, string> = {
+  preto: 'black',
+  azul: 'blue',
+  verde: 'green',
+  ciano: 'cyan',
+  vermelho: 'red',
+  magenta: 'magenta',
+  marrom: 'brown',
+  cinza: 'gray',
+  cinza_claro: 'gray',
+  cinza_escuro: 'dark_gray',
+  azul_claro: 'blue_bright',
+  verde_claro: 'green_bright',
+  ciano_claro: 'cyan_bright',
+  vermelho_claro: 'red_bright',
+  magenta_claro: 'magenta_bright',
+  amarelo: 'yellow',
+  branco: 'white',
+  laranja: 'brown',
+  roxo: 'magenta',
+  rosa: 'magenta_bright'
+};
+
+// Python Game Engine Starter Templates
 const STARTER_TEMPLATES: Record<string, (title: string) => string> = {
-  personagem: (title: string) => `# ${title}
-tela 160x120
-fundo preto
+  hello_world: (title: string) => `import game
 
-# Ator controlável com teclado ou gamepad na tela
-ator Jogador
-  desenho quadrado 8, verde
-  posição 76, 56
-  velocidade 2, 2
-  controlado por setas
-  limita à tela
-  quando atualiza:
-    # Código executado a cada quadro
-  fim
-fim`,
+# Inicializa tela 40x25
+game.init(width=40, height=25, title="${title}")
 
-  bola: (title: string) => `# ${title}
-tela 160x120
-fundo azul
+def update():
+    # Limpa a tela com fundo preto
+    game.clear("black")
+    
+    # Desenha bordas amarelas
+    game.draw(0, 0, "╔" + "═"*38 + "╗", "yellow")
+    for y in range(1, 24):
+        game.draw(0, y, "║", "yellow")
+        game.draw(39, y, "║", "yellow")
+    game.draw(0, 24, "╚" + "═"*38 + "╝", "yellow")
+    
+    # Textos da tela
+    game.draw(11, 4, "SISTEMA OPERACIONAL DOS", "white")
+    game.draw(11, 6, "C:\\\\> PYTHON3.EXE", "gray")
+    game.draw(11, 9, "OLÁ, MUNDO RETRO!", "green_bright")
+    game.draw(4, 15, "Pressione WASD/Setas para interagir", "cyan_bright")
+    
+    # Cursor piscando
+    if int(game.time() * 2) % 2 == 0:
+        game.draw(27, 6, "▒", "white")
 
-# Bola que rebate em todas as bordas
-ator Bola
-  desenho quadrado 6, amarelo
-  posição 77, 57
-  velocidade 2, 1.5
-  quica nas bordas
-fim`,
+# Registra o loop principal
+game.loop(update)
+`,
 
-  coletar: (title: string) => `# ${title}
-tela 160x120
-fundo preto
+  interactive_move: (title: string) => `import game
 
-pontos recebe 0
+# Inicializa tela 40x25
+game.init(width=40, height=25, title="${title}")
 
-ator Jogador
-  desenho quadrado 8, verde
-  posição 76, 56
-  controlado por setas
-  limita à tela
-  quando colide com "Moeda":
-    pontos recebe pontos + 1
-    Moeda.x recebe aleatorio(10, 140)
-    Moeda.y recebe aleatorio(10, 100)
-    diga "Pontos: " + pontos
-  fim
-fim
+# Posição do jogador
+x = 20
+y = 12
 
-ator Moeda
-  desenho quadrado 4, amarelo
-  posição 30, 30
-fim`,
+def update():
+    global x, y
+    
+    # Controles por teclas
+    if game.key("arrowleft") or game.key("a"):
+        x -= 1
+    if game.key("arrowright") or game.key("d"):
+        x += 1
+    if game.key("arrowup") or game.key("w"):
+        y -= 1
+    if game.key("arrowdown") or game.key("s"):
+        y += 1
+        
+    # Limita o jogador às bordas
+    colidiu_borda = False
+    if x < 1:
+        x = 1
+        colidiu_borda = True
+    if x > 38:
+        x = 38
+        colidiu_borda = True
+    if y < 1:
+        y = 1
+        colidiu_borda = True
+    if y > 23:
+        y = 23
+        colidiu_borda = True
+        
+    # Som ao colidir nas bordas
+    if colidiu_borda:
+        game.beep(150, 0.05)
+        
+    # Desenho
+    game.clear("black")
+    
+    # Desenha bordas azuis
+    game.draw(0, 0, "█"*40, "blue")
+    game.draw(0, 24, "█"*40, "blue")
+    for r in range(1, 24):
+        game.draw(0, r, "█", "blue")
+        game.draw(39, r, "█", "blue")
+        
+    # Informações e Jogador
+    game.draw(2, 2, "Use setas ou WASD para mover o jogador", "white")
+    game.draw(x, y, "😎", "green_bright")
+    
+    # Status
+    game.draw(2, 22, f"Pos: {x}, {y}", "yellow")
 
-  vazio: (title: string) => `# ${title}
-tela 160x120
-fundo preto
+game.loop(update)
+`,
 
-# Escreva seu jogo abaixo:
-ator Jogador
-  desenho quadrado 8, branco
-  posição 76, 56
-fim`,
+  pong: (title: string) => `import game
 
-  geometric_run: (title: string) => `# ${title}
-tela 160x120
-fundo preto
+# Inicializa tela
+game.init(width=40, height=25, title="${title}")
 
-# Geometric Run 2D (Geometry Runner)
-# Pressione ESPAÇO, SETA CIMA ou TOQUE para pular os obstáculos!
+p1_y = 10
+p2_y = 10
+bx, by = 20, 12
+bvx, bvy = 0.5, 0.3
+pts1, pts2 = 0, 0
 
-pontos recebe 0
-pulando recebe 0
-vy recebe 0
+def update():
+    global p1_y, p2_y, bx, by, bvx, bvy, pts1, pts2
+    
+    # Teclado Player 1 (W/S)
+    if game.key("w") and p1_y > 1:
+        p1_y -= 1
+    if game.key("s") and p1_y < 20:
+        p1_y += 1
+        
+    # IA do Player 2
+    if by > p2_y + 1 and p2_y < 20:
+        p2_y += 1
+    elif by < p2_y + 1 and p2_y > 1:
+        p2_y -= 1
+        
+    # Movimentação da Bola
+    bx += bvx
+    by += bvy
+    
+    # Rebate em cima e embaixo
+    if by <= 1 or by >= 23:
+        bvy = -bvy
+        by += bvy
+        game.beep(400, 0.05)
+        
+    # Gol Jogador 2
+    if bx < 1:
+        pts2 += 1
+        bx, by = 20, 12
+        bvx = 0.5
+        game.beep(150, 0.3)
+        game.log(f"Jogador 2 marcou! Placar: {pts1} x {pts2}")
+        
+    # Gol Jogador 1
+    elif bx > 38:
+        pts1 += 1
+        bx, by = 20, 12
+        bvx = -0.5
+        game.beep(150, 0.3)
+        game.log(f"Jogador 1 marcou! Placar: {pts1} x {pts2}")
+        
+    # Colisão com Paleta 1 (Esquerda)
+    if bx <= 2 and p1_y <= by <= p1_y + 3:
+        bvx = abs(bvx) * 1.1
+        bx = 2
+        game.beep(600, 0.05)
+        
+    # Colisão com Paleta 2 (Direita)
+    if bx >= 37 and p2_y <= by <= p2_y + 3:
+        bvx = -abs(bvx) * 1.1
+        bx = 37
+        game.beep(600, 0.05)
+        
+    # Desenho
+    game.clear("black")
+    
+    # Linha divisória e bordas
+    game.draw(0, 0, "═"*40, "gray")
+    game.draw(0, 24, "═"*40, "gray")
+    
+    # Placar
+    game.draw(15, 2, f"{pts1}   {pts2}", "yellow")
+    
+    # Desenha as Paletas
+    for i in range(4):
+        game.draw(1, p1_y + i, "█", "cyan_bright")
+        game.draw(38, p2_y + i, "█", "green_bright")
+        
+    # Desenha a Bola
+    game.draw(int(bx), int(by), "●", "white")
 
-ator Chao
-  desenho retângulo 160, 20, cinza_escuro
-  posição 0, 100
-fim
+game.loop(update)
+`,
 
-ator LinhaChao
-  desenho retângulo 160, 2, ciano
-  posição 0, 99
-fim
+  space_invaders: (title: string) => `import game
 
-ator Jogador
-  desenho quadrado 10, amarelo
-  posição 24, 90
-  quando atualiza:
-    # Gravidade física do salto
-    vy recebe vy + 0.35
-    y recebe y + vy
+# Inicializa tela
+game.init(width=40, height=25, title="${title}")
 
-    # Apoio no chão (y = 90)
-    se y >= 90 então
-      y recebe 90
-      vy recebe 0
-      pulando recebe 0
-    fim
+ship_x = 18
+laser_x, laser_y = -1, -1
+aliens = [{"x": 5 + i * 5, "y": 3, "dir": 1} for i in range(6)]
+score = 0
 
-    # Salto com Espaço, W ou Seta para Cima
-    se pulando == 0 então
-      se tecla("espaco") ou tecla("arrowup") ou tecla("w") ou tecla("cima") então
-        vy recebe -4.8
-        pulando recebe 1
-        diga "Salto!"
-      fim
-    fim
-  fim
-fim
+def update():
+    global ship_x, laser_x, laser_y, score
+    
+    # Movimento da Nave
+    if (game.key("arrowleft") or game.key("a")) and ship_x > 1:
+        ship_x -= 1
+    if (game.key("arrowright") or game.key("d")) and ship_x < 36:
+        ship_x += 1
+        
+    # Disparo com Espaço ou Enter
+    if (game.key("espaco") or game.key("enter")) and laser_y == -1:
+        laser_x = ship_x + 1
+        laser_y = 21
+        game.beep(800, 0.08)
+        
+    # Movimento do Laser
+    if laser_y != -1:
+        laser_y -= 1
+        if laser_y < 1:
+            laser_y = -1
+            
+    # Movimento dos Alienígenas
+    descer_todos = False
+    for al in aliens:
+        al["x"] += al["dir"] * 0.2
+        if al["x"] >= 37 or al["x"] <= 1:
+            al["dir"] = -al["dir"]
+            descer_todos = True
+            
+    if descer_todos:
+        for al in aliens:
+            al["y"] += 1
+            if al["y"] >= 21:
+                game.beep(80, 0.4)
+                game.log("Fim de Jogo! Os alienígenas invadiram a base!")
+                score = 0
+                al["y"] = 3
+                
+    # Colisão Laser com Alienígena
+    if laser_y != -1:
+        for al in aliens:
+            if int(al["x"]) <= laser_x <= int(al["x"]) + 2 and int(al["y"]) == laser_y:
+                aliens.remove(al)
+                laser_y = -1
+                score += 10
+                game.beep(300, 0.1)
+                game.log(f"Inimigo abatido! Pontos: {score}")
+                break
+                
+    # Respawn de Alienígenas se todos forem eliminados
+    if not aliens:
+        for i in range(6):
+            aliens.append({"x": 5 + i * 5, "y": 3, "dir": 1})
+            
+    # Renderização da Tela
+    game.clear("black")
+    
+    # Desenho da Nave
+    game.draw(ship_x, 22, " ▲ \\n■■■", "green_bright")
+    
+    # Laser
+    if laser_y != -1:
+        game.draw(laser_x, laser_y, "│", "yellow")
+        
+    # Alienígenas
+    for al in aliens:
+        game.draw(int(al["x"]), int(al["y"]), "👾", "red_bright")
+        
+    # Painel Superior
+    game.draw(1, 0, f"PLACAR: {score}", "cyan_bright")
 
-ator Espinho1
-  desenho retângulo 8, 10, vermelho
-  posição 160, 90
-  velocidade -2.4, 0
-  quando atualiza:
-    se x < -12 então
-      x recebe 160 + aleatorio(10, 45)
-      pontos recebe pontos + 1
-      diga "Ponto! Total: " + pontos
-    fim
-  fim
-  quando colide com "Jogador":
-    diga "💥 GAME OVER! Pontuação final: " + pontos
-    pontos recebe 0
-    x recebe 170
-  fim
-fim
+game.loop(update)
+`,
 
-ator Espinho2
-  desenho retângulo 6, 8, laranja
-  posição 230, 92
-  velocidade -2.4, 0
-  quando atualiza:
-    se x < -10 então
-      x recebe 180 + aleatorio(30, 75)
-      pontos recebe pontos + 1
-      diga "Ponto! Total: " + pontos
-    fim
-  fim
-  quando colide com "Jogador":
-    diga "💥 GAME OVER! Pontuação final: " + pontos
-    pontos recebe 0
-    x recebe 240
-  fim
-fim
+  tetris: (title: string) => `import game
 
-ator BlocoAereo
-  desenho quadrado 8, roxo
-  posição 300, 76
-  velocidade -2.4, 0
-  quando atualiza:
-    se x < -12 então
-      x recebe 220 + aleatorio(40, 90)
-      pontos recebe pontos + 1
-    fim
-  fim
-  quando colide com "Jogador":
-    diga "💥 GAME OVER! Pontuação final: " + pontos
-    pontos recebe 0
-    x recebe 310
-  fim
-fim
+# Inicializa tela
+game.init(width=40, height=25, title="${title}")
 
-ator EstrelaNeon
-  desenho quadrado 2, branco
-  posição 140, 25
-  velocidade -0.8, 0
-  quando atualiza:
-    se x < -5 então
-      x recebe 165
-      y recebe aleatorio(15, 65)
-    fim
-  fim
-fim`,
+block_x, block_y = 18, 1
+block_type = 1
+score = 0
+pile = {} 
 
-  tetris: (title: string) => `# ${title}
-tela 160x120
-fundo preto
+def update():
+    global block_x, block_y, block_type, score, pile
+    
+    # Controles
+    if game.key("arrowleft") or game.key("a"):
+        if block_x > 11:
+            block_x -= 1
+    if game.key("arrowright") or game.key("d"):
+        if block_x < 26:
+            block_x += 1
+    if game.key("arrowdown") or game.key("s"):
+        block_y += 0.5
+        
+    # Gravidade
+    block_y += 0.1
+    
+    # Formatos de blocos
+    if block_type == 1:
+        piece, pw, ph, color = "■■\\n■■", 2, 2, "yellow"
+    elif block_type == 2:
+        piece, pw, ph, color = "■■■■", 4, 1, "cyan_bright"
+    else:
+        piece, pw, ph, color = " ■ \\n■■■", 3, 2, "magenta_bright"
+        
+    # Verifica impacto
+    colidiu = False
+    if block_y + ph >= 23:
+        colidiu = True
+        block_y = 23 - ph
+        
+    for px in range(pw):
+        for py in range(ph):
+            grid_x = int(block_x) + px
+            grid_y = int(block_y) + py + 1
+            if (grid_x, grid_y) in pile:
+                colidiu = True
+                
+    if colidiu:
+        # Adiciona bloco à pilha
+        for px in range(pw):
+            for py in range(ph):
+                grid_x = int(block_x) + px
+                grid_y = int(block_y) + py
+                pile[(grid_x, grid_y)] = color
+                
+        score += 10
+        game.beep(120, 0.05)
+        
+        block_x, block_y = 18, 1
+        block_type = game.random(1, 3)
+        
+        # Limpa linhas completadas
+        for r in range(1, 23):
+            linha_completa = True
+            for c in range(11, 28):
+                if (c, r) not in pile:
+                    linha_completa = False
+                    break
+            if linha_completa:
+                for c in range(11, 28):
+                    del pile[(c, r)]
+                nova_pilha = {}
+                for (cx, cy), c_cor in pile.items():
+                    if cy < r:
+                        nova_pilha[(cx, cy + 1)] = c_cor
+                    else:
+                        nova_pilha[(cx, cy)] = c_cor
+                pile = nova_pilha
+                score += 100
+                game.beep(800, 0.2)
+                game.log("MUITO BEM! Linha limpa! +100!")
+                
+        if (18, 2) in pile:
+            game.beep(80, 0.5)
+            game.log(f"Game Over! Pontuação Final: {score}")
+            pile.clear()
+            score = 0
+            
+    # Desenho da Tela
+    game.clear("black")
+    
+    # Paredes do tabuleiro
+    game.draw(9, 0, "║\\n"*24, "gray")
+    game.draw(29, 0, "║\\n"*24, "gray")
+    game.draw(9, 23, "╚" + "═"*19 + "╝", "gray")
+    
+    # Placar
+    game.draw(31, 3, "PONTOS", "white")
+    game.draw(31, 4, f"{score:05d}", "green_bright")
+    
+    # Instruções
+    game.draw(1, 3, "TETRIS", "yellow")
+    game.draw(1, 5, "Setas/WASD", "gray")
+    game.draw(1, 6, "para mover", "gray")
+    
+    for (cx, cy), c_cor in pile.items():
+        game.draw(cx, cy, "■", c_cor)
+        
+    game.draw(int(block_x), int(block_y), piece, color)
 
-pontos recebe 0
-tipo recebe 1
+game.loop(update)
+`,
 
-ator BordaEsq
-  desenho retângulo 2, 108, cinza
-  posição 48, 6
-fim
+  vazio: (title: string) => `import game
 
-ator BordaDir
-  desenho retângulo 2, 108, cinza
-  posição 112, 6
-fim
+# Inicializa tela 40x25
+game.init(width=40, height=25, title="${title}")
 
-ator Chao
-  desenho retângulo 66, 4, cinza
-  posição 48, 114
-fim
+def update():
+    game.clear("black")
+    game.draw(10, 10, "TELA EM BRANCO", "green_bright")
 
-ator Pilha1
-  desenho retângulo 18, 6, azul
-  posição 54, 108
-fim
-
-ator Pilha2
-  desenho retângulo 18, 6, verde
-  posição 90, 108
-fim
-
-ator Peca
-  desenho retângulo 18, 6, ciano
-  posição 72, 8
-  velocidade 0, 0.8
-  quando atualiza:
-    se tecla("arrowleft") ou tecla("a") então
-      se x > 52 então
-        x recebe x - 1.5
-      fim
-    fim
-
-    se tecla("arrowright") ou tecla("d") então
-      se x < 92 então
-        x recebe x + 1.5
-      fim
-    fim
-
-    se tecla("arrowdown") ou tecla("s") então
-      y recebe y + 1.5
-    fim
-
-    se y >= 102 então
-      pontos recebe pontos + 10
-      diga "Peça encaixada! Pontos: " + pontos
-      y recebe 8
-      x recebe 72
-      tipo recebe aleatorio(1, 3)
-      se tipo == 1 então
-        largura recebe 18
-        altura recebe 6
-      senão se tipo == 2 então
-        largura recebe 12
-        altura recebe 12
-      senão
-        largura recebe 12
-        altura recebe 6
-      fim
-    fim
-  fim
-  quando colide com "Pilha1":
-    pontos recebe pontos + 15
-    diga "Linha eliminada! Total: " + pontos
-    y recebe 8
-    x recebe 72
-  fim
-  quando colide com "Pilha2":
-    pontos recebe pontos + 15
-    diga "Linha eliminada! Total: " + pontos
-    y recebe 8
-    x recebe 72
-  fim
-fim`
+game.loop(update)
+`
 };
 
 const EXAMPLES: Record<string, string> = {
-  geometric_run: `tela 160x120
-fundo preto
-
-# Geometric Run 2D (Geometry Runner)
-# Pressione ESPAÇO, SETA CIMA ou TOQUE para pular os obstáculos!
-
-pontos recebe 0
-pulando recebe 0
-vy recebe 0
-
-ator Chao
-  desenho retângulo 160, 20, cinza_escuro
-  posição 0, 100
-fim
-
-ator LinhaChao
-  desenho retângulo 160, 2, ciano
-  posição 0, 99
-fim
-
-ator Jogador
-  desenho quadrado 10, amarelo
-  posição 24, 90
-  quando atualiza:
-    # Gravidade física do salto
-    vy recebe vy + 0.35
-    y recebe y + vy
-
-    # Apoio no chão (y = 90)
-    se y >= 90 então
-      y recebe 90
-      vy recebe 0
-      pulando recebe 0
-    fim
-
-    # Salto com Espaço, W ou Seta para Cima
-    se pulando == 0 então
-      se tecla("espaco") ou tecla("arrowup") ou tecla("w") ou tecla("cima") então
-        vy recebe -4.8
-        pulando recebe 1
-        diga "Salto!"
-      fim
-    fim
-  fim
-fim
-
-ator Espinho1
-  desenho retângulo 8, 10, vermelho
-  posição 160, 90
-  velocidade -2.4, 0
-  quando atualiza:
-    se x < -12 então
-      x recebe 160 + aleatorio(10, 45)
-      pontos recebe pontos + 1
-      diga "Ponto! Total: " + pontos
-    fim
-  fim
-  quando colide com "Jogador":
-    diga "💥 GAME OVER! Pontuação final: " + pontos
-    pontos recebe 0
-    x recebe 170
-  fim
-fim
-
-ator Espinho2
-  desenho retângulo 6, 8, laranja
-  posição 230, 92
-  velocidade -2.4, 0
-  quando atualiza:
-    se x < -10 então
-      x recebe 180 + aleatorio(30, 75)
-      pontos recebe pontos + 1
-      diga "Ponto! Total: " + pontos
-    fim
-  fim
-  quando colide com "Jogador":
-    diga "💥 GAME OVER! Pontuação final: " + pontos
-    pontos recebe 0
-    x recebe 240
-  fim
-fim
-
-ator BlocoAereo
-  desenho quadrado 8, roxo
-  posição 300, 76
-  velocidade -2.4, 0
-  quando atualiza:
-    se x < -12 então
-      x recebe 220 + aleatorio(40, 90)
-      pontos recebe pontos + 1
-    fim
-  fim
-  quando colide com "Jogador":
-    diga "💥 GAME OVER! Pontuação final: " + pontos
-    pontos recebe 0
-    x recebe 310
-  fim
-fim
-
-ator EstrelaNeon
-  desenho quadrado 2, branco
-  posição 140, 25
-  velocidade -0.8, 0
-  quando atualiza:
-    se x < -5 então
-      x recebe 165
-      y recebe aleatorio(15, 65)
-    fim
-  fim
-fim`,
-
-  pong: `tela 160x120
-fundo preto
-
-pontos1 recebe 0
-pontos2 recebe 0
-
-ator Jogador1
-  desenho retângulo 4, 24, branco
-  posição 8, 48
-  controlado por setas
-  limita à tela
-fim
-
-ator Jogador2
-  desenho retângulo 4, 24, branco
-  posição 148, 48
-  limita à tela
-  quando atualiza:
-    se Bola.y > y então
-      y recebe y + 1.2
-    senão se Bola.y < y então
-      y recebe y - 1.2
-    fim
-  fim
-fim
-
-ator Bola
-  desenho quadrado 4, branco
-  posição 78, 58
-  velocidade 2, 1.5
-  quica nas bordas verticais
-  quando atualiza:
-    se x < 0 então
-      pontos2 recebe pontos2 + 1
-      x recebe 78
-      y recebe 58
-      vx recebe 2
-      diga "Ponto Jogador 2!"
-    senão se x > 160 então
-      pontos1 recebe pontos1 + 1
-      x recebe 78
-      y recebe 58
-      vx recebe -2
-      diga "Ponto Jogador 1!"
-    fim
-  fim
-  quando colide com "Jogador1":
-    vx recebe 2.2
-  fim
-  quando colide com "Jogador2":
-    vx recebe -2.2
-  fim
-fim`,
-
-  nave: `tela 160x120
-fundo preto
-
-pontos recebe 0
-
-ator Nave
-  desenho retângulo 12, 8, verde
-  posição 74, 100
-  controlado por setas
-  limita à tela
-  quando atualiza:
-    se tecla("espaco") então
-      diga "Laser disparado!"
-    fim
-  fim
-fim
-
-ator Inimigo
-  desenho quadrado 8, vermelho
-  posição 76, 10
-  velocidade 1, 0.6
-  quica nas bordas horizontais
-  quando atualiza:
-    se y > 120 então
-      y recebe 0
-      x recebe aleatorio(10, 140)
-    fim
-  fim
-  quando colide com "Nave":
-    diga "Alerta de colisão!"
-  fim
-fim
-
-ator Estrela
-  desenho quadrado 2, amarelo
-  posição 80, 20
-  velocidade 0, 1
-  quando atualiza:
-    se y > 120 então
-      y recebe 0
-      x recebe aleatorio(0, 160)
-    fim
-  fim
-fim`,
-
-  breakout: `tela 160x120
-fundo preto
-
-pontos recebe 0
-
-ator Paleta
-  desenho retângulo 20, 4, azul
-  posição 70, 110
-  controlado por setas
-  limita à tela
-fim
-
-ator Bola
-  desenho quadrado 4, branco
-  posição 78, 60
-  velocidade 1.5, -2
-  quica nas bordas
-  quando colide com "Paleta":
-    vy recebe -2
-  fim
-  quando colide com "Bloco1":
-    vy recebe 2
-    pontos recebe pontos + 10
-    diga "Bloco 1 destruído!"
-  fim
-  quando colide com "Bloco2":
-    vy recebe 2
-    pontos recebe pontos + 10
-    diga "Bloco 2 destruído!"
-  fim
-  quando colide com "Bloco3":
-    vy recebe 2
-    pontos recebe pontos + 10
-    diga "Bloco 3 destruído!"
-  fim
-fim
-
-ator Bloco1
-  desenho retângulo 16, 6, vermelho
-  posição 30, 20
-fim
-
-ator Bloco2
-  desenho retângulo 16, 6, amarelo
-  posição 70, 20
-fim
-
-ator Bloco3
-  desenho retângulo 16, 6, verde
-  posição 110, 20
-fim`,
-
-  senao_se: `tela 160x120
-fundo azul
-
-valor recebe aleatorio(1, 3)
-
-se valor == 1 então
-  diga "Ramo 1: valor é um"
-senão se valor == 2 então
-  diga "Ramo 2: valor é dois"
-senão se valor == 3 então
-  diga "Ramo 3: valor é três"
-senão
-  diga "Ramo senão: outro valor"
-fim
-
-ator Cubo
-  desenho quadrado 12, amarelo
-  posição 74, 54
-  quica nas bordas
-  velocidade 1, 1
-fim`,
-
-  tetris: `tela 160x120
-fundo preto
-
-pontos recebe 0
-tipo recebe 1
-
-ator BordaEsq
-  desenho retângulo 2, 108, cinza
-  posição 48, 6
-fim
-
-ator BordaDir
-  desenho retângulo 2, 108, cinza
-  posição 112, 6
-fim
-
-ator Chao
-  desenho retângulo 66, 4, cinza
-  posição 48, 114
-fim
-
-ator Pilha1
-  desenho retângulo 18, 6, azul
-  posição 54, 108
-fim
-
-ator Pilha2
-  desenho retângulo 18, 6, verde
-  posição 90, 108
-fim
-
-ator Peca
-  desenho texto 6, "■■\\n■■", amarelo
-  posição 72, 8
-  velocidade 0, 0.8
-  quando atualiza:
-    # Movimento lateral
-    se tecla("arrowleft") ou tecla("a") então
-      se x > 52 então
-        x recebe x - 1.5
-      fim
-    fim
-
-    se tecla("arrowright") ou tecla("d") então
-      se x < 92 então
-        x recebe x + 1.5
-      fim
-    fim
-
-    # Acelerar descida
-    se tecla("arrowdown") ou tecla("s") então
-      y recebe y + 1.5
-    fim
-
-    # Ao atingir o fundo (chão)
-    se y >= 102 então
-      pontos recebe pontos + 10
-      diga "Peça encaixada! Pontos: " + pontos
-      y recebe 8
-      x recebe 72
-      
-      # Escolha aleatória de peças clássicas em ASCII Art (7 Tipos Tradicionais)
-      tipo recebe aleatorio(1, 7)
-      se tipo == 1 então
-        texto recebe "■■■■"
-        largura recebe 24
-        cor recebe "ciano"
-      senão se tipo == 2 então
-        texto recebe "■■\\n■■"
-        largura recebe 12
-        cor recebe "amarelo"
-      senão se tipo == 3 então
-        texto recebe " ■ \\n■■■"
-        largura recebe 18
-        cor recebe "roxo"
-      senão se tipo == 4 então
-        texto recebe " ■■\\n■■ "
-        largura recebe 18
-        cor recebe "verde"
-      senão se tipo == 5 então
-        texto recebe "■■ \\n ■■"
-        largura recebe 18
-        cor recebe "vermelho"
-      senão se tipo == 6 então
-        texto recebe "■  \\n■■■"
-        largura recebe 18
-        cor recebe "laranja"
-      senão
-        texto recebe "  ■\\n■■■"
-        largura recebe 18
-        cor recebe "azul"
-      fim
-    fim
-
-    # Game Over se a pilha subir demais
-    se Pilha1.y < 30 ou Pilha2.y < 30 então
-      diga "💥 GAME OVER! Pontos: " + pontos
-      Pilha1.y recebe 108
-      Pilha1.altura recebe 6
-      Pilha2.y recebe 108
-      Pilha2.altura recebe 6
-      pontos recebe 0
-    fim
-  fim
-
-  quando colide com "Pilha1":
-    pontos recebe pontos + 15
-    diga "Empilhado na Pilha 1!"
-    Pilha1.y recebe Pilha1.y - 6
-    Pilha1.altura recebe Pilha1.altura + 6
-    y recebe 8
-    x recebe 72
-  fim
-
-  quando colide com "Pilha2":
-    pontos recebe pontos + 15
-    diga "Empilhado na Pilha 2!"
-    Pilha2.y recebe Pilha2.y - 6
-    Pilha2.altura recebe Pilha2.altura + 6
-    y recebe 8
-    x recebe 72
-  fim
-fim`
+  hello_world: STARTER_TEMPLATES.hello_world("Olá, Mundo!"),
+  interactive_move: STARTER_TEMPLATES.interactive_move("Controle de Ator"),
+  pong: STARTER_TEMPLATES.pong("Retro Pong"),
+  space_invaders: STARTER_TEMPLATES.space_invaders("Space Invaders"),
+  tetris: STARTER_TEMPLATES.tetris("MS-DOS Tetris")
 };
 
-// UI Elements
-const editor = document.getElementById('code-editor') as HTMLTextAreaElement;
-const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-const consoleOutput = document.getElementById('console-output') as HTMLDivElement;
-const btnRun = document.getElementById('btn-run') as HTMLButtonElement;
-const btnStop = document.getElementById('btn-stop') as HTMLButtonElement;
-const exampleSelect = document.getElementById('example-select') as HTMLSelectElement;
-const projectTitle = document.getElementById('project-title') as HTMLSpanElement;
-const saveStatus = document.getElementById('save-status') as HTMLSpanElement;
-const cursorPos = document.getElementById('cursor-pos') as HTMLSpanElement;
+// UI Elements Queries
+const btnNew = document.getElementById('btn-new') as HTMLButtonElement;
 const btnExport = document.getElementById('btn-export') as HTMLButtonElement;
 const btnImport = document.getElementById('btn-import') as HTMLButtonElement;
 const fileImport = document.getElementById('file-import') as HTMLInputElement;
+const btnLibrary = document.getElementById('btn-library') as HTMLButtonElement;
+const btnAi = document.getElementById('btn-ai') as HTMLButtonElement;
+const exampleSelect = document.getElementById('example-select') as HTMLSelectElement;
+const btnRun = document.getElementById('btn-run') as HTMLButtonElement;
+const btnStop = document.getElementById('btn-stop') as HTMLButtonElement;
 
-// Modal Elements
-const btnNew = document.getElementById('btn-new') as HTMLButtonElement;
+const projectTitle = document.getElementById('project-title') as HTMLSpanElement;
+const saveStatus = document.getElementById('save-status') as HTMLSpanElement;
+const btnQuickAi = document.getElementById('btn-quick-ai') as HTMLButtonElement;
+const cursorPos = document.getElementById('cursor-pos') as HTMLSpanElement;
+const editor = document.getElementById('code-editor') as HTMLTextAreaElement;
+
+const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+const consoleOutput = document.getElementById('console-output') as HTMLDivElement;
+
+// Modals
 const modal = document.getElementById('new-modal') as HTMLDivElement;
 const btnModalClose = document.getElementById('btn-modal-close') as HTMLButtonElement;
 const btnModalCancel = document.getElementById('btn-modal-cancel') as HTMLButtonElement;
@@ -697,17 +467,12 @@ const btnModalConfirm = document.getElementById('btn-modal-confirm') as HTMLButt
 const inputProgramName = document.getElementById('new-program-name') as HTMLInputElement;
 const templateCards = document.querySelectorAll('.template-card');
 
-// Library Elements
-const btnLibrary = document.getElementById('btn-library') as HTMLButtonElement;
 const libraryModal = document.getElementById('library-modal') as HTMLDivElement;
 const btnLibClose = document.getElementById('btn-lib-close') as HTMLButtonElement;
 const libSearchInput = document.getElementById('lib-search-input') as HTMLInputElement;
-const libList = document.getElementById('lib-list') as HTMLDivElement;
 const libCatBtns = document.querySelectorAll('.lib-cat-btn');
+const libList = document.getElementById('lib-list') as HTMLDivElement;
 
-// AI Assistant Elements
-const btnAi = document.getElementById('btn-ai') as HTMLButtonElement;
-const btnQuickAi = document.getElementById('btn-quick-ai') as HTMLButtonElement | null;
 const aiModal = document.getElementById('ai-modal') as HTMLDivElement;
 const btnAiClose = document.getElementById('btn-ai-close') as HTMLButtonElement;
 const aiChips = document.querySelectorAll('.ai-chip');
@@ -719,62 +484,54 @@ const aiSubmitSpinner = document.getElementById('ai-submit-spinner') as HTMLSpan
 const aiSubmitText = document.getElementById('ai-submit-text') as HTMLSpanElement;
 const aiResponseContainer = document.getElementById('ai-response-container') as HTMLDivElement;
 const aiReplyContent = document.getElementById('ai-reply-content') as HTMLDivElement;
+
 const btnAiCopy = document.getElementById('btn-ai-copy') as HTMLButtonElement;
 const btnAiInsert = document.getElementById('btn-ai-insert') as HTMLButtonElement;
 const btnAiReplace = document.getElementById('btn-ai-replace') as HTMLButtonElement;
 
+// State Management
 let currentAiAction = 'new_game';
 let lastAiExtractedCode = '';
+let isRunning = false;
+let pyodide: any = null;
+let isPyodideLoading = false;
 
-const AI_ACTION_CONFIG: Record<string, { label: string; placeholder: string }> = {
-  new_game: {
-    label: 'Descreva o jogo que você quer criar:',
-    placeholder: 'Ex: Crie um jogo de labirinto onde o jogador coleta chaves e desvia de monstros...'
-  },
-  add_feature: {
-    label: 'Qual recurso ou ator você quer adicionar ao jogo atual?',
-    placeholder: 'Ex: Adicione um sistema de vidas com 3 corações e tela de Game Over quando zerar...'
-  },
-  fix: {
-    label: 'Qual erro ou comportamento você deseja corrigir?',
-    placeholder: 'Ex: Corrija o movimento do personagem e garanta que as colisões com as paredes funcionem...'
-  },
-  explain: {
-    label: 'O que você quer que a IA explique sobre este código?',
-    placeholder: 'Ex: Explique detalhadamente como funciona a colisão e a física deste jogo...'
-  },
-  custom: {
-    label: 'Qual sua dúvida sobre a linguagem BIT?',
-    placeholder: 'Ex: Como usar a função distância() ou seno() para criar um movimento circular?'
-  }
-};
-
+// Terminal Grid State
+let cols = 40;
+let rows = 25;
+const cellW = 8;
+const cellH = 12;
+let cellBuffer: { char: string; color: string; bg: string }[][] = [];
+let bg_color = 'black';
+const pressedKeys = new Set<string>();
+let pythonUpdateFunc: any = null;
+let gameStartTime = 0;
+let animationFrameId: number | null = null;
+let audioCtx: AudioContext | null = null;
 
 let currentLibCategory = 'todas';
 let currentLibSearch = '';
-
-let currentGame: Game | null = null;
-let currentTemplateKey = 'personagem';
+let currentTemplateKey = 'hello_world';
 let saveTimeout: number | null = null;
 
-// Local Storage helpers
-const STORAGE_KEY_CODE = 'bit_usuario_codigo';
-const STORAGE_KEY_TITLE = 'bit_usuario_titulo';
+// Local Storage configurations
+const STORAGE_KEY_CODE = 'py_user_code_12';
+const STORAGE_KEY_TITLE = 'py_user_title_12';
 
 function loadUserCode(): string {
   const saved = localStorage.getItem(STORAGE_KEY_CODE);
-  if (saved && !saved.includes('Meu Primeiro Jogo')) {
+  if (saved && saved.trim().length > 0) {
     return saved;
   }
-  return EXAMPLES.geometric_run;
+  return EXAMPLES.hello_world;
 }
 
 function loadUserTitle(): string {
   const saved = localStorage.getItem(STORAGE_KEY_TITLE);
-  if (saved && saved !== 'Meu Primeiro Jogo') {
+  if (saved && saved.trim().length > 0) {
     return saved;
   }
-  return 'Geometric Run 2D';
+  return 'Olá, Mundo!';
 }
 
 function saveUserCode(code: string, title?: string) {
@@ -816,48 +573,371 @@ function log(msg: string, isError = false) {
   consoleOutput.scrollTop = consoleOutput.scrollHeight;
 }
 
-function stopCurrentGame() {
-  if (currentGame) {
-    currentGame.stop();
-    currentGame = null;
+// Reset character grid buffer
+function resetBuffer() {
+  cellBuffer = [];
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let c = 0; c < cols; c++) {
+      row.push({ char: ' ', color: 'white', bg: 'black' });
+    }
+    cellBuffer.push(row);
   }
 }
 
-function runCode() {
-  stopCurrentGame();
-  consoleOutput.innerHTML = '';
-  const code = editor.value;
+// Javascript API bridge exposed to Pyodide
+function js_game_init(width: number, height: number, title?: string) {
+  cols = width || 40;
+  rows = height || 25;
+  
+  // Dynamically size canvas based on grid dimensions
+  canvas.width = cols * cellW;
+  canvas.height = rows * cellH;
+  
+  if (title) {
+    log(`[SISTEMA DOS] Inicializado: ${cols}x${rows} - "${title}"`);
+  }
+  resetBuffer();
+}
 
-  try {
-    const tokens = tokenize(code);
-    const ast = parse(tokens);
-
-    canvas.width = ast.screenWidth;
-    canvas.height = ast.screenHeight;
-
-    currentGame = new Game(ast, canvas);
-    currentGame.interpreter.onSay = (msg) => {
-      log(`> ${msg}`);
-    };
-
-    currentGame.start();
-    log(`Programa em execução! (${ast.screenWidth}x${ast.screenHeight}, ${ast.actors.length} atores)`);
-  } catch (err: unknown) {
-    if (err instanceof Error) {
-      log(`Erro: ${err.message}`, true);
-    } else {
-      log(`Erro desconhecido: ${String(err)}`, true);
+function js_game_clear(colorName?: string) {
+  let normalizedBg = colorName ? String(colorName).toLowerCase().trim() : 'black';
+  if (PORTUGUESE_COLOR_MAP[normalizedBg]) {
+    normalizedBg = PORTUGUESE_COLOR_MAP[normalizedBg];
+  }
+  bg_color = DOS_COLORS[normalizedBg] ? normalizedBg : 'black';
+  
+  // Fill all cells with blank spaces
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (cellBuffer[r]?.[c]) {
+        cellBuffer[r][c].char = ' ';
+        cellBuffer[r][c].color = 'white';
+        cellBuffer[r][c].bg = bg_color;
+      }
     }
   }
 }
 
-// Modal open/close logic
+function js_game_draw(x: number, y: number, text: any, colorName: string) {
+  let normalizedColor = colorName ? String(colorName).toLowerCase().trim() : 'white';
+  if (PORTUGUESE_COLOR_MAP[normalizedColor]) {
+    normalizedColor = PORTUGUESE_COLOR_MAP[normalizedColor];
+  }
+  if (!DOS_COLORS[normalizedColor]) {
+    normalizedColor = 'white';
+  }
+
+  const lines = String(text).split('\n');
+  lines.forEach((line, lineOffset) => {
+    const currentY = Math.floor(y) + lineOffset;
+    if (currentY < 0 || currentY >= rows) return;
+
+    // Correctly split characters to preserve multi-byte emojis
+    const chars = Array.from(line);
+    chars.forEach((char, charOffset) => {
+      const currentX = Math.floor(x) + charOffset;
+      if (currentX < 0 || currentX >= cols) return;
+
+      if (cellBuffer[currentY]?.[currentX]) {
+        cellBuffer[currentY][currentX] = {
+          char: char,
+          color: normalizedColor,
+          bg: bg_color
+        };
+      }
+    });
+  });
+}
+
+function js_game_key(keyName: string): boolean {
+  const name = String(keyName).toLowerCase().trim();
+  if (name === 'espaco' || name === 'space') {
+    return pressedKeys.has(' ') || pressedKeys.has('espaco');
+  }
+  if (name === 'cima' || name === 'up') {
+    return pressedKeys.has('arrowup') || pressedKeys.has('cima');
+  }
+  if (name === 'baixo' || name === 'down') {
+    return pressedKeys.has('arrowdown') || pressedKeys.has('baixo');
+  }
+  if (name === 'esquerda' || name === 'left') {
+    return pressedKeys.has('arrowleft') || pressedKeys.has('esquerda');
+  }
+  if (name === 'direita' || name === 'right') {
+    return pressedKeys.has('arrowright') || pressedKeys.has('direita');
+  }
+  return pressedKeys.has(name);
+}
+
+function js_game_beep(freq: number, duration: number) {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
+    if (audioCtx.state === 'suspended') {
+      audioCtx.resume();
+    }
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'square'; // Authentic PC Speaker square wave
+    osc.frequency.setValueAtTime(freq || 440, audioCtx.currentTime);
+
+    gain.gain.setValueAtTime(0.08, audioCtx.currentTime); // comfortable volume
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+  } catch (err) {
+    console.warn("Could not play retro speaker beep:", err);
+  }
+}
+
+function js_game_log(msg: any) {
+  log(`> ${String(msg)}`);
+}
+
+function js_game_random(min: number, max: number): number {
+  const rMin = Math.ceil(min);
+  const rMax = Math.floor(max);
+  return Math.floor(Math.random() * (rMax - rMin + 1)) + rMin;
+}
+
+function js_game_time(): number {
+  return (performance.now() - gameStartTime) / 1000.0;
+}
+
+function js_game_loop(updateFunc: any) {
+  pythonUpdateFunc = updateFunc;
+}
+
+// Render the grid monospace characters onto the canvas
+function renderTerminalCanvas() {
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Render background color
+  ctx.fillStyle = DOS_COLORS[bg_color] || '#000000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Configure high-definition pixelated font rendering
+  ctx.font = `bold ${cellH}px "Fira Code", "Courier New", Courier, monospace`;
+  ctx.textBaseline = 'top';
+
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const cell = cellBuffer[r]?.[c];
+      if (!cell || cell.char === ' ') continue;
+
+      // Draw custom background if any
+      if (cell.bg && cell.bg !== 'black' && DOS_COLORS[cell.bg]) {
+        ctx.fillStyle = DOS_COLORS[cell.bg];
+        ctx.fillRect(c * cellW, r * cellH, cellW, cellH);
+      }
+
+      // Draw character
+      ctx.fillStyle = DOS_COLORS[cell.color] || '#ffffff';
+      // Restrict text rendering width to ensure alignment
+      ctx.fillText(cell.char, c * cellW, r * cellH, cellW);
+    }
+  }
+}
+
+// Core loop ticker
+function gameTick() {
+  if (!isRunning) return;
+
+  if (pythonUpdateFunc) {
+    try {
+      pythonUpdateFunc();
+    } catch (err: any) {
+      log(`Erro de Execução Python: ${err.message || String(err)}`, true);
+      stopCurrentGame();
+      return;
+    }
+  }
+
+  renderTerminalCanvas();
+
+  if (isRunning) {
+    animationFrameId = requestAnimationFrame(gameTick);
+  }
+}
+
+// Load and spin up Pyodide WebAssembly
+async function ensurePyodide() {
+  if (pyodide) return pyodide;
+  if (isPyodideLoading) {
+    while (isPyodideLoading) {
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+    return pyodide;
+  }
+
+  isPyodideLoading = true;
+  log("Iniciando interpretador Python (Pyodide) via WebAssembly...");
+  try {
+    pyodide = await (window as any).loadPyodide({
+      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
+    });
+
+    // Expose Javascript functions directly to pyodide scope
+    pyodide.globals.set("js_game_init", js_game_init);
+    pyodide.globals.set("js_game_clear", js_game_clear);
+    pyodide.globals.set("js_game_draw", js_game_draw);
+    pyodide.globals.set("js_game_key", js_game_key);
+    pyodide.globals.set("js_game_beep", js_game_beep);
+    pyodide.globals.set("js_game_log", js_game_log);
+    pyodide.globals.set("js_game_random", js_game_random);
+    pyodide.globals.set("js_game_time", js_game_time);
+    pyodide.globals.set("js_game_loop", js_game_loop);
+
+    // Register modules in python
+    await pyodide.runPythonAsync(`
+import sys
+import types
+
+def python_init(width=40, height=25, title="Jogo"):
+    js_game_init(width, height, title)
+
+def python_clear(color="black"):
+    js_game_clear(color)
+
+def python_draw(x, y, texto, cor="white"):
+    js_game_draw(x, y, texto, cor)
+
+def python_key(nome_da_tecla):
+    return js_game_key(nome_da_tecla)
+
+def python_beep(frequencia=440, duracao=0.1):
+    js_game_beep(frequencia, duracao)
+
+def python_log(mensagem):
+    js_game_log(mensagem)
+
+def python_random(min_val, max_val):
+    return js_game_random(min_val, max_val)
+
+def python_time():
+    return js_game_time()
+
+def python_loop(funcao_de_atualizacao):
+    js_game_loop(funcao_de_atualizacao)
+
+_game_mod = types.ModuleType('game')
+_game_mod.init = python_init
+_game_mod.clear = python_clear
+_game_mod.draw = python_draw
+_game_mod.key = python_key
+_game_mod.beep = python_beep
+_game_mod.log = python_log
+_game_mod.random = python_random
+_game_mod.time = python_time
+_game_mod.loop = python_loop
+
+_dos_mod = types.ModuleType('dos')
+_dos_mod.init = python_init
+_dos_mod.clear = python_clear
+_dos_mod.draw = python_draw
+_dos_mod.key = python_key
+_dos_mod.beep = python_beep
+_dos_mod.log = python_log
+_dos_mod.random = python_random
+_dos_mod.time = python_time
+_dos_mod.loop = python_loop
+
+sys.modules['game'] = _game_mod
+sys.modules['dos'] = _dos_mod
+`);
+
+    log("Interpretador Python carregado! Motor pronto para execução.");
+    isPyodideLoading = false;
+    return pyodide;
+  } catch (err: any) {
+    log(`Falha ao carregar o interpretador Python: ${err.message || String(err)}`, true);
+    isPyodideLoading = false;
+    throw err;
+  }
+}
+
+function stopCurrentGame() {
+  isRunning = false;
+  pythonUpdateFunc = null;
+  if (animationFrameId !== null) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+}
+
+async function runCode() {
+  stopCurrentGame();
+  consoleOutput.innerHTML = '';
+  
+  const code = editor.value;
+  log("Compilando código Python...");
+  
+  try {
+    const py = await ensurePyodide();
+    
+    // Default grid config
+    cols = 40;
+    rows = 25;
+    bg_color = 'black';
+    resetBuffer();
+    
+    // Match logical dimensions
+    canvas.width = cols * cellW;
+    canvas.height = rows * cellH;
+
+    // Reset loop function and execution stopwatch
+    pythonUpdateFunc = null;
+    gameStartTime = performance.now();
+    isRunning = true;
+
+    // Execute user code
+    await py.runPythonAsync(code);
+
+    log("Código executado! Iniciando game loop retro...");
+    gameTick();
+  } catch (err: any) {
+    log(`Erro na Execução: ${err.message || String(err)}`, true);
+    stopCurrentGame();
+  }
+}
+
+// Keyboards bindings
+window.addEventListener('keydown', (e) => {
+  const key = e.key.toLowerCase();
+  pressedKeys.add(key);
+  if (key === 'arrowleft') pressedKeys.add('esquerda');
+  if (key === 'arrowright') pressedKeys.add('direita');
+  if (key === 'arrowup') pressedKeys.add('cima');
+  if (key === 'arrowdown') pressedKeys.add('baixo');
+  if (key === ' ') pressedKeys.add('espaco');
+});
+
+window.addEventListener('keyup', (e) => {
+  const key = e.key.toLowerCase();
+  pressedKeys.delete(key);
+  if (key === 'arrowleft') pressedKeys.delete('esquerda');
+  if (key === 'arrowright') pressedKeys.delete('direita');
+  if (key === 'arrowup') pressedKeys.delete('cima');
+  if (key === 'arrowdown') pressedKeys.delete('baixo');
+  if (key === ' ') pressedKeys.delete('espaco');
+});
+
+// Modals Setup
 function openModal() {
   inputProgramName.value = 'Meu Novo Jogo';
-  currentTemplateKey = 'personagem';
+  currentTemplateKey = 'hello_world';
   templateCards.forEach((c) => {
     const key = c.getAttribute('data-template');
-    if (key === 'personagem') c.classList.add('selected');
+    if (key === 'hello_world') c.classList.add('selected');
     else c.classList.remove('selected');
   });
   modal.classList.remove('hidden');
@@ -873,7 +953,7 @@ templateCards.forEach((card) => {
   card.addEventListener('click', () => {
     templateCards.forEach((c) => c.classList.remove('selected'));
     card.classList.add('selected');
-    currentTemplateKey = card.getAttribute('data-template') || 'personagem';
+    currentTemplateKey = card.getAttribute('data-template') || 'hello_world';
   });
 });
 
@@ -883,10 +963,9 @@ btnModalCancel.addEventListener('click', closeModal);
 
 btnModalConfirm.addEventListener('click', () => {
   const title = inputProgramName.value.trim() || 'Meu Novo Jogo';
-  const templateGen = STARTER_TEMPLATES[currentTemplateKey] || STARTER_TEMPLATES.personagem;
+  const templateGen = STARTER_TEMPLATES[currentTemplateKey] || STARTER_TEMPLATES.hello_world;
   const newCode = templateGen(title);
 
-  // Switch select to user's program
   exampleSelect.value = 'meu_programa';
   projectTitle.textContent = title;
   editor.value = newCode;
@@ -894,23 +973,10 @@ btnModalConfirm.addEventListener('click', () => {
 
   closeModal();
   runCode();
-  log(`Novo programa "${title}" criado com sucesso!`);
+  log(`Novo programa "${title}" criado em Python com sucesso!`);
 });
 
-// Library Logic & Rendering
-function insertCodeAtCursor(codeToInsert: string) {
-  const start = editor.selectionStart;
-  const end = editor.selectionEnd;
-  const before = editor.value.substring(0, start);
-  const after = editor.value.substring(end);
-
-  editor.value = before + codeToInsert + after;
-  editor.selectionStart = editor.selectionEnd = start + codeToInsert.length;
-  editor.focus();
-  notifyEditing();
-  updateCursorPos();
-}
-
+// Library Rendering and search
 function renderLibraryList() {
   const query = currentLibSearch.trim().toLowerCase();
   libList.innerHTML = '';
@@ -932,7 +998,7 @@ function renderLibraryList() {
     empty.style.textAlign = 'center';
     empty.style.padding = '24px';
     empty.style.color = 'var(--text-muted)';
-    empty.textContent = 'Nenhum item encontrado na biblioteca para a busca.';
+    empty.textContent = 'Nenhum comando encontrado.';
     libList.appendChild(empty);
     return;
   }
@@ -981,7 +1047,7 @@ function renderLibraryList() {
           btnCopy.textContent = '📋 Copiar';
         }, 1200);
       } catch {
-        btnCopy.textContent = 'Erro ao copiar';
+        btnCopy.textContent = 'Erro';
       }
     });
 
@@ -992,7 +1058,7 @@ function renderLibraryList() {
       const toInsert = `\n${item.example || item.syntax}\n`;
       insertCodeAtCursor(toInsert);
       closeLibraryModal();
-      log(`Comando "${item.name}" inserido no editor.`);
+      log(`Comando "${item.name}" inserido.`);
     });
 
     actions.appendChild(btnCopy);
@@ -1042,12 +1108,25 @@ libCatBtns.forEach((btn) => {
   });
 });
 
-// Snippet Insertion
+// Code Snippets Insertions
+function insertCodeAtCursor(codeToInsert: string) {
+  const start = editor.selectionStart;
+  const end = editor.selectionEnd;
+  const before = editor.value.substring(0, start);
+  const after = editor.value.substring(end);
+
+  editor.value = before + codeToInsert + after;
+  editor.selectionStart = editor.selectionEnd = start + codeToInsert.length;
+  editor.focus();
+  notifyEditing();
+  updateCursorPos();
+}
+
 const SNIPPETS: Record<string, string> = {
-  ator: `\nator NovoAtor\n  desenho quadrado 8, ciano\n  posição 40, 40\n  controlado por setas\n  limita à tela\nfim\n`,
-  se: `\nse CONDIÇÃO então\n  # faça algo\nfim\n`,
-  repita: `\nrepita 5 vezes\n  # comandos repetidos\nfim\n`,
-  diga: `\ndiga "Olá, mundo!"\n`
+  import: `import game\n`,
+  draw: `game.draw(x, y, "😎", "green_bright")\n`,
+  loop: `def update():\n    game.clear()\n    game.draw(20, 12, "●", "white")\n\ngame.loop(update)\n`,
+  beep: `game.beep(frequency=440, duration=0.1)\n`
 };
 
 document.querySelectorAll('.btn-snippet').forEach((btn) => {
@@ -1060,7 +1139,6 @@ document.querySelectorAll('.btn-snippet').forEach((btn) => {
   });
 });
 
-// Event Listeners for Editor
 editor.addEventListener('input', () => {
   notifyEditing();
   updateCursorPos();
@@ -1068,11 +1146,11 @@ editor.addEventListener('input', () => {
 editor.addEventListener('click', updateCursorPos);
 editor.addEventListener('keyup', updateCursorPos);
 
-// Run & Stop
+// Game Control Bindings
 btnRun.addEventListener('click', runCode);
 btnStop.addEventListener('click', () => {
   stopCurrentGame();
-  log('Execução interrompida.');
+  log('Execução pausada. Sistema limpo.');
 });
 
 exampleSelect.addEventListener('change', () => {
@@ -1093,7 +1171,30 @@ exampleSelect.addEventListener('change', () => {
   runCode();
 });
 
-// AI Assistant Logic
+// AI Assistant UI configurations
+const AI_ACTION_CONFIG: Record<string, { label: string; placeholder: string }> = {
+  new_game: {
+    label: 'Qual jogo estilo terminal MS-DOS você deseja criar com IA?',
+    placeholder: 'Ex: Crie um jogo de corrida retro desviando de buracos com beeps ao colidir...'
+  },
+  add_feature: {
+    label: 'Qual recurso ou elemento você deseja adicionar a este código?',
+    placeholder: 'Ex: Adicione uma mecânica de atirar lasers com a barra de espaço...'
+  },
+  fix: {
+    label: 'Qual erro ou comportamento você quer corrigir neste código Python?',
+    placeholder: 'Ex: Corrija o movimento para não deixar o jogador atravessar as paredes...'
+  },
+  explain: {
+    label: 'O que você deseja que a IA explique sobre a lógica deste código?',
+    placeholder: 'Ex: Explique detalhadamente como funciona a física da gravidade...'
+  },
+  custom: {
+    label: 'Escreva sua dúvida livre sobre Python MS-DOS:',
+    placeholder: 'Ex: Como fazer um texto piscar de 1 em 1 segundo usando game.time()?'
+  }
+};
+
 function setAiAction(action: string) {
   currentAiAction = action;
   aiChips.forEach((chip) => {
@@ -1121,12 +1222,12 @@ function closeAiModal() {
 
 function renderFormattedAiReply(text: string) {
   aiReplyContent.innerHTML = '';
-  // Split on triple-backtick blocks
-  const parts = text.split(/(```(?:bit)?[\s\S]*?```)/g);
+  // Split on python code blocks
+  const parts = text.split(/(```(?:python)?[\s\S]*?```)/g);
 
   for (const part of parts) {
     if (part.startsWith('```')) {
-      const match = part.match(/```(?:bit)?\s*([\s\S]*?)```/);
+      const match = part.match(/```(?:python)?\s*([\s\S]*?)```/);
       const code = match ? match[1].trim() : part.replace(/```/g, '').trim();
       const pre = document.createElement('pre');
       pre.className = 'ai-code-block';
@@ -1184,8 +1285,8 @@ async function requestAiAssistance() {
       btnAiInsert.style.display = 'inline-flex';
       btnAiReplace.style.display = 'inline-flex';
     }
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : String(err);
+  } catch (err: any) {
+    const msg = err.message || String(err);
     aiReplyContent.innerHTML = `<div style="color: var(--danger); padding: 8px;">⚠️ Não foi possível obter resposta da IA: ${msg}</div>`;
     aiResponseContainer.classList.remove('hidden');
     btnAiCopy.style.display = 'none';
@@ -1229,7 +1330,7 @@ btnAiCopy.addEventListener('click', async () => {
       btnAiCopy.textContent = '📋 Copiar Código';
     }, 1200);
   } catch {
-    btnAiCopy.textContent = 'Erro ao copiar';
+    btnAiCopy.textContent = 'Erro';
   }
 });
 
@@ -1246,10 +1347,11 @@ btnAiReplace.addEventListener('click', () => {
   editor.value = lastAiExtractedCode;
   saveUserCode(lastAiExtractedCode);
   closeAiModal();
-  log('Código da IA aplicado ao editor! Executando...');
+  log('Código da IA aplicado no editor! Executando...');
   runCode();
 });
 
+// Local file save and open logic
 btnExport.addEventListener('click', () => {
   const code = editor.value;
   const title = projectTitle.textContent?.trim() || 'meu_jogo';
@@ -1258,17 +1360,17 @@ btnExport.addEventListener('click', () => {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9_\-]/g, '_') || 'meu_jogo';
-    
+
   const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
-  a.download = `${safeName}.bit`;
+  a.download = `${safeName}.py`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  log(`Código exportado com sucesso como "${safeName}.bit"!`);
+  log(`Código exportado com sucesso como "${safeName}.py"!`);
 });
 
 btnImport.addEventListener('click', () => {
@@ -1283,7 +1385,7 @@ fileImport.addEventListener('change', (e) => {
   reader.onload = (event) => {
     const content = event.target?.result;
     if (typeof content === 'string') {
-      let title = file.name.replace(/\.bit$/i, '');
+      let title = file.name.replace(/\.py$/i, '');
       const firstLine = content.split('\n')[0]?.trim();
       if (firstLine && firstLine.startsWith('#')) {
         const potentialTitle = firstLine.replace(/^#\s*/, '').trim();
@@ -1291,7 +1393,7 @@ fileImport.addEventListener('change', (e) => {
           title = potentialTitle;
         }
       }
-      
+
       projectTitle.textContent = title;
       editor.value = content;
       exampleSelect.value = 'meu_programa';
@@ -1304,17 +1406,17 @@ fileImport.addEventListener('change', (e) => {
   target.value = '';
 });
 
-// Virtual Pad
+// Gamepad controls mappings
 function bindPadBtn(id: string, keyName: string) {
   const btn = document.getElementById(id);
   if (!btn) return;
   const press = (e: Event) => {
     e.preventDefault();
-    if (currentGame) currentGame.handleKeyDown(keyName);
+    pressedKeys.add(keyName.toLowerCase());
   };
   const release = (e: Event) => {
     e.preventDefault();
-    if (currentGame) currentGame.handleKeyUp(keyName);
+    pressedKeys.delete(keyName.toLowerCase());
   };
 
   btn.addEventListener('mousedown', press);
@@ -1329,11 +1431,16 @@ bindPadBtn('pad-left', 'ArrowLeft');
 bindPadBtn('pad-right', 'ArrowRight');
 bindPadBtn('pad-act', ' ');
 
-// Initial load: start with user's saved program or default starter
+// Initialize Pyodide compiling environment in background on load
+ensurePyodide();
+
+// Load saved user code or default example
 const initialCode = loadUserCode();
 const initialTitle = loadUserTitle();
 projectTitle.textContent = initialTitle;
-exampleSelect.value = 'meu_programa';
+exampleSelect.value = 'hello_world'; // Set default view example selection to first example
 editor.value = initialCode;
 saveStatus.textContent = 'Salvo';
+
+// Run user code automatically on start
 runCode();

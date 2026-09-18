@@ -1,53 +1,66 @@
-tela 160x120
+tela 40x30
 fundo preto
 
 pontos1 recebe 0
 pontos2 recebe 0
 
 ator Jogador1
-  desenho retângulo 4, 24, branco
-  posição 8, 48
-  controlado por setas
-  limita à tela
+  desenho texto 1, "█\n█\n█\n█", azul
+  posição 2, 13
+  quando atualiza:
+    se tecla("w") ou tecla("arrowup") então
+      se y > 0 então
+        y recebe y - 0.5
+      fim
+    fim
+    se tecla("s") ou tecla("arrowdown") então
+      se y < 26 então
+        y recebe y + 0.5
+      fim
+    fim
+  fim
 fim
 
 ator Jogador2
-  desenho retângulo 4, 24, branco
-  posição 148, 48
-  limita à tela
+  desenho texto 1, "█\n█\n█\n█", verde
+  posição 37, 13
   quando atualiza:
-    se Bola.y > y então
-      y recebe y + 1.2
-    senão se Bola.y < y então
-      y recebe y - 1.2
+    se Bola.y > y + 1 então
+      se y < 26 então
+        y recebe y + 0.4
+      fim
+    senão se Bola.y < y + 1 então
+      se y > 0 então
+        y recebe y - 0.4
+      fim
     fim
   fim
 fim
 
 ator Bola
-  desenho quadrado 4, branco
-  posição 78, 58
-  velocidade 2, 1.5
+  desenho texto 1, "●", branco
+  posição 20, 15
+  velocidade 0.5, 0.3
   quica nas bordas verticais
   quando atualiza:
     se x < 0 então
       pontos2 recebe pontos2 + 1
-      x recebe 78
-      y recebe 58
-      vx recebe 2
+      x recebe 20
+      y recebe 15
+      vx recebe 0.5
       diga "Ponto Jogador 2!"
-    senão se x > 160 então
+    senão se x > 40 então
       pontos1 recebe pontos1 + 1
-      x recebe 78
-      y recebe 58
-      vx recebe -2
+      x recebe 20
+      y recebe 15
+      vx recebe -0.5
       diga "Ponto Jogador 1!"
     fim
   fim
   quando colide com "Jogador1":
-    vx recebe 2.2
+    vx recebe 0.55
   fim
   quando colide com "Jogador2":
-    vx recebe -2.2
+    vx recebe -0.55
   fim
 fim

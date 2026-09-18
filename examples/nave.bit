@@ -1,44 +1,78 @@
-tela 160x120
+tela 40x30
 fundo preto
 
 pontos recebe 0
 
 ator Nave
-  desenho retângulo 12, 8, verde
-  posição 74, 100
-  controlado por setas
-  limita à tela
+  desenho texto 1, " ▲ \n■■■", verde
+  posição 18, 26
   quando atualiza:
-    se tecla("espaco") então
-      diga "Laser disparado!"
+    se tecla("esquerda") ou tecla("a") então
+      se x > 1 então
+        x recebe x - 0.6
+      fim
+    fim
+    se tecla("direita") ou tecla("d") então
+      se x < 36 então
+        x recebe x + 0.6
+      fim
+    fim
+    # Disparar laser único
+    se tecla("espaco") ou tecla("enter") então
+      se Laser.y < 0 então
+        Laser.x recebe x + 1
+        Laser.y recebe y - 1
+      fim
+    fim
+  fim
+fim
+
+ator Laser
+  desenho texto 1, "│", amarelo
+  posição 0, -10
+  velocidade 0, -0.8
+  quando atualiza:
+    se y < -5 então
+      y recebe -10
+      vy recebe 0
     fim
   fim
 fim
 
 ator Inimigo
-  desenho quadrado 8, vermelho
-  posição 76, 10
-  velocidade 1, 0.6
+  desenho texto 1, "👾", vermelho
+  posição 18, 2
+  velocidade 0.3, 0.2
   quica nas bordas horizontais
   quando atualiza:
-    se y > 120 então
+    se y > 30 então
       y recebe 0
-      x recebe aleatorio(10, 140)
+      x recebe aleatorio(2, 36)
     fim
   fim
   quando colide com "Nave":
-    diga "Alerta de colisão!"
+    diga "Alerta de colisão! Fim de jogo!"
+    pontos recebe 0
+    y recebe 0
+    x recebe aleatorio(2, 36)
+  fim
+  quando colide com "Laser":
+    pontos recebe pontos + 10
+    diga "Inimigo destruído! Pontos: " + pontos
+    y recebe 0
+    x recebe aleatorio(2, 36)
+    Laser.y recebe -10
   fim
 fim
 
 ator Estrela
-  desenho quadrado 2, amarelo
-  posição 80, 20
-  velocidade 0, 1
+  desenho texto 1, "·", cinza_claro
+  posição 20, 5
+  velocidade 0, 0.4
   quando atualiza:
-    se y > 120 então
+    se y > 30 então
       y recebe 0
-      x recebe aleatorio(0, 160)
+      x recebe aleatorio(0, 40)
     fim
   fim
 fim

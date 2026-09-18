@@ -1,6 +1,6 @@
 {
-  "name": "BIT 1.2",
-  "description": "Linguagem textual brasileira para criação de jogos 2D com arquivos .bit.",
+  "name": "PYTHON MS-DOS 1.2",
+  "description": "Console retro e compilador de jogos textuais criados inteiramente em Python com ASCII Art.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

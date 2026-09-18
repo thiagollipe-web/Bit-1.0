@@ -14,8 +14,8 @@ describe('Exemplos da Linguagem Bit', () => {
     expect(tokens.length).toBeGreaterThan(0);
 
     const ast = parse(tokens);
-    expect(ast.screenWidth).toBe(160);
-    expect(ast.screenHeight).toBe(120);
+    expect(ast.screenWidth).toBe(40);
+    expect(ast.screenHeight).toBe(30);
     expect(ast.actors.length).toBe(3); // Jogador1, Jogador2, Bola
 
     const game = new Game(ast);
@@ -33,7 +33,7 @@ describe('Exemplos da Linguagem Bit', () => {
 
     const tokens = tokenize(content);
     const ast = parse(tokens);
-    expect(ast.actors.length).toBe(3); // Nave, Inimigo, Estrela
+    expect(ast.actors.length).toBe(4); // Nave, Laser, Inimigo, Estrela
 
     const game = new Game(ast);
     for (let i = 0; i < 10; i++) {
@@ -75,7 +75,7 @@ describe('Exemplos da Linguagem Bit', () => {
 
     const tokens = tokenize(content);
     const ast = parse(tokens);
-    expect(ast.actors.length).toBe(7); // Chao, LinhaChao, Jogador, Espinho1, Espinho2, BlocoAereo, EstrelaNeon
+    expect(ast.actors.length).toBe(4); // Chao, Jogador, Obstaculo, EstrelaNeon
 
     const game = new Game(ast);
     for (let i = 0; i < 20; i++) {

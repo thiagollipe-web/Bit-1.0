@@ -1,123 +1,67 @@
-tela 160x120
+tela 40x30
 fundo preto
 
 pontos recebe 0
 tipo recebe 1
 
 ator BordaEsq
-  desenho retângulo 2, 108, cinza
-  posição 48, 6
+  desenho texto 1, "║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║", cinza
+  posição 10, 2
 fim
 
 ator BordaDir
-  desenho retângulo 2, 108, cinza
-  posição 112, 6
+  desenho texto 1, "║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║\n║", cinza
+  posição 28, 2
 fim
 
 ator Chao
-  desenho retângulo 66, 4, cinza
-  posição 48, 114
+  desenho texto 1, "╚══════════════════╝", cinza
+  posição 10, 26
 fim
 
-ator Pilha1
-  desenho retângulo 18, 6, azul
-  posição 54, 108
+ator BlocoCaido1
+  desenho texto 1, "▓▓▓▓", azul
+  posição 12, 25
 fim
 
-ator Pilha2
-  desenho retângulo 18, 6, verde
-  posição 90, 108
+ator BlocoCaido2
+  desenho texto 1, "▓▓▓▓", verde
+  posição 22, 25
 fim
 
 ator Peca
-  desenho texto 6, "■■\n■■", amarelo
-  posição 72, 8
-  velocidade 0, 0.8
+  desenho texto 1, "████", ciano
+  posição 18, 3
+  velocidade 0, 0.3
   quando atualiza:
-    # Movimento lateral
-    se tecla("arrowleft") ou tecla("a") então
-      se x > 52 então
-        x recebe x - 1.5
+    se tecla("esquerda") ou tecla("a") então
+      se x > 11 então
+        x recebe x - 1
       fim
     fim
-
-    se tecla("arrowright") ou tecla("d") então
-      se x < 92 então
-        x recebe x + 1.5
+    se tecla("direita") ou tecla("d") então
+      se x < 23 então
+        x recebe x + 1
       fim
     fim
-
-    # Acelerar descida
-    se tecla("arrowdown") ou tecla("s") então
-      y recebe y + 1.5
+    se tecla("baixo") ou tecla("s") então
+      y recebe y + 0.4
     fim
-
-    # Ao atingir o fundo (chão)
-    se y >= 102 então
+    se y >= 24 então
       pontos recebe pontos + 10
-      diga "Peça encaixada! Pontos: " + pontos
-      y recebe 8
-      x recebe 72
-      
-      # Escolha aleatória de peças clássicas em ASCII Art (7 Tipos Tradicionais)
-      tipo recebe aleatorio(1, 7)
-      se tipo == 1 então
-        texto recebe "■■■■"
-        largura recebe 24
-        cor recebe "ciano"
-      senão se tipo == 2 então
-        texto recebe "■■\n■■"
-        largura recebe 12
-        cor recebe "amarelo"
-      senão se tipo == 3 então
-        texto recebe " ■ \n■■■"
-        largura recebe 18
-        cor recebe "roxo"
-      senão se tipo == 4 então
-        texto recebe " ■■\n■■ "
-        largura recebe 18
-        cor recebe "verde"
-      senão se tipo == 5 então
-        texto recebe "■■ \n ■■"
-        largura recebe 18
-        cor recebe "vermelho"
-      senão se tipo == 6 então
-        texto recebe "■  \n■■■"
-        largura recebe 18
-        cor recebe "laranja"
-      senão
-        texto recebe "  ■\n■■■"
-        largura recebe 18
-        cor recebe "azul"
-      fim
-    fim
-
-    # Game Over se a pilha subir demais
-    se Pilha1.y < 30 ou Pilha2.y < 30 então
-      diga "💥 GAME OVER! Pontos: " + pontos
-      Pilha1.y recebe 108
-      Pilha1.altura recebe 6
-      Pilha2.y recebe 108
-      Pilha2.altura recebe 6
-      pontos recebe 0
+      diga "Encaixado! Pontos: " + pontos
+      y recebe 3
+      x recebe aleatorio(12, 22)
     fim
   fim
-
-  quando colide com "Pilha1":
+  quando colide com "BlocoCaido1":
     pontos recebe pontos + 15
-    diga "Empilhado na Pilha 1!"
-    Pilha1.y recebe Pilha1.y - 6
-    Pilha1.altura recebe Pilha1.altura + 6
-    y recebe 8
-    x recebe 72
+    y recebe 3
+    x recebe aleatorio(12, 22)
   fim
-
-  quando colide com "Pilha2":
+  quando colide com "BlocoCaido2":
     pontos recebe pontos + 15
-    diga "Empilhado na Pilha 2!"
-    Pilha2.y recebe Pilha2.y - 6
-    Pilha2.altura recebe Pilha2.altura + 6
-    y recebe 8
-    x recebe 72
+    y recebe 3
+    x recebe aleatorio(12, 22)
   fim
 fim

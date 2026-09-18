@@ -9,255 +9,85 @@ export interface LibraryItem {
 export const BIT_LIBRARY: LibraryItem[] = [
   // Cenário & Configuração
   {
-    name: 'tela',
+    name: 'game.init',
     category: 'cenario',
-    syntax: 'tela LARGURAxALTURA',
-    desc: 'Define a resolução nativa da tela do jogo (ex: 160x120 para estética retrô pixel art).',
-    example: 'tela 160x120'
+    syntax: 'game.init(colunas, linhas, titulo)',
+    desc: 'Inicializa o terminal MS-DOS com as dimensões de grade (padrão 40x25 ou customizado) e o título da janela.',
+    example: 'import game\n\ngame.init(width=40, height=25, title="MEU JOGO RETRO")'
   },
   {
-    name: 'fundo',
+    name: 'game.clear',
     category: 'cenario',
-    syntax: 'fundo COR',
-    desc: 'Define a cor de fundo do cenário do jogo.',
-    example: 'fundo preto'
+    syntax: 'game.clear(cor)',
+    desc: 'Limpa a tela do terminal inteira, preenchendo o plano de fundo com a cor selecionada (padrão "black").',
+    example: 'game.clear("black")'
   },
   {
-    name: 'recebe (atribuição)',
+    name: 'game.log',
     category: 'cenario',
-    syntax: 'variavel recebe VALOR',
-    desc: 'Cria uma variável ou atualiza o seu valor.',
-    example: 'pontos recebe 0\nvidas recebe 3'
-  },
-  {
-    name: 'diga',
-    category: 'cenario',
-    syntax: 'diga EXPRESSAO',
-    desc: 'Exibe uma mensagem ou valor no console do jogo.',
-    example: 'diga "Jogo Iniciado!"\ndiga "Pontos: " + pontos'
+    syntax: 'game.log(mensagem)',
+    desc: 'Exibe uma string de mensagem ou logs no painel inferior do sistema, simulando o prompt do DOS.',
+    example: 'game.log(f"Pontuação atualizada: {pontos}")'
   },
 
-  // Atores
+  // Desenho / Arte
   {
-    name: 'ator ... fim',
+    name: 'game.draw',
     category: 'atores',
-    syntax: 'ator NomeDoAtor\n  ...\nfim',
-    desc: 'Declara um novo ator/objeto com seus atributos visuais e comportamentos.',
-    example: 'ator Jogador\n  desenho quadrado 8, verde\n  posição 76, 56\nfim'
-  },
-  {
-    name: 'desenho quadrado',
-    category: 'atores',
-    syntax: 'desenho quadrado TAMANHO, COR',
-    desc: 'Define o formato visual do ator como um quadrado.',
-    example: 'desenho quadrado 8, azul'
-  },
-  {
-    name: 'desenho retângulo',
-    category: 'atores',
-    syntax: 'desenho retângulo LARGURA, ALTURA, COR',
-    desc: 'Define o formato visual do ator como um retângulo com largura e altura personalizadas.',
-    example: 'desenho retângulo 20, 6, amarelo'
-  },
-  {
-    name: 'posição',
-    category: 'atores',
-    syntax: 'posição X, Y',
-    desc: 'Posiciona o ator nas coordenadas iniciais X e Y da tela.',
-    example: 'posição 80, 60'
-  },
-  {
-    name: 'velocidade',
-    category: 'atores',
-    syntax: 'velocidade VX, VY',
-    desc: 'Aplica velocidade contínua aos eixos horizontal (vx) e vertical (vy).',
-    example: 'velocidade 2, 1.5'
+    syntax: 'game.draw(x, y, texto_ou_ascii, cor)',
+    desc: 'Desenha um caractere ou uma arte ASCII multi-linha nas coordenadas de grade (X: coluna, Y: linha). Se a string contiver quebras de linha (\\n), o motor desenha cada linha sequencialmente.',
+    example: 'game.draw(18, 12, "😎", "green_bright")\n# Para ASCII multi-linha:\ngame.draw(5, 5, " ▲ \\n■■■", "cyan")'
   },
 
-  // Comportamentos Automáticos
+  // Ações / Áudio
   {
-    name: 'controlado por setas',
+    name: 'game.beep',
     category: 'comportamento',
-    syntax: 'controlado por setas',
-    desc: 'Permite controlar o ator automaticamente usando as setas do teclado (ou gamepad na tela).',
-    example: 'ator Nave\n  desenho retângulo 10, 6, ciano\n  controlado por setas\nfim'
-  },
-  {
-    name: 'limita à tela',
-    category: 'comportamento',
-    syntax: 'limita à tela',
-    desc: 'Impede o ator de ultrapassar as quatro bordas da tela.',
-    example: 'limita à tela'
-  },
-  {
-    name: 'quica nas bordas',
-    category: 'comportamento',
-    syntax: 'quica nas bordas',
-    desc: 'Faz o ator rebater automaticamente ao encostar em qualquer uma das quatro bordas.',
-    example: 'quica nas bordas'
-  },
-  {
-    name: 'quica nas bordas horizontais',
-    category: 'comportamento',
-    syntax: 'quica nas bordas horizontais',
-    desc: 'Rebate a velocidade horizontal (vx) ao atingir os limites esquerdo e direito.',
-    example: 'quica nas bordas horizontais'
-  },
-  {
-    name: 'quica nas bordas verticais',
-    category: 'comportamento',
-    syntax: 'quica nas bordas verticais',
-    desc: 'Rebate a velocidade vertical (vy) ao atingir o teto e o chão.',
-    example: 'quica nas bordas verticais'
+    syntax: 'game.beep(frequencia, duracao)',
+    desc: 'Sintetiza um som clássico de PC Speaker retro (onda quadrada) com frequência em Hz e duração em segundos.',
+    example: 'game.beep(440, 0.1) # Beep do PC Speaker em Lá (440Hz)\ngame.beep(150, 0.3) # Som de Game Over ou colisão grave'
   },
 
-  // Eventos
+  // Eventos & Loops
   {
-    name: 'quando atualiza:',
+    name: 'game.loop',
     category: 'eventos',
-    syntax: 'quando atualiza:\n  ...\nfim',
-    desc: 'Bloco executado repetidamente a cada quadro de animação (game loop).',
-    example: 'quando atualiza:\n  se x > 160 então\n    x recebe 0\n  fim\nfim'
-  },
-  {
-    name: 'quando colide com:',
-    category: 'eventos',
-    syntax: 'quando colide com "NomeDoOutroAtor":\n  ...\nfim',
-    desc: 'Executado no momento exato em que o ator colide com outro ator especificado.',
-    example: 'quando colide com "Moeda":\n  pontos recebe pontos + 1\n  diga "Pegou a moeda!"\nfim'
+    syntax: 'game.loop(funcao_de_atualizacao)',
+    desc: 'Inicia o loop do jogo registrando a função que o motor deve executar a cada frame (aproximadamente 30/60 fps).',
+    example: 'def atualizar():\n    game.clear()\n    game.draw(20, 12, "★", "yellow")\n\ngame.loop(atualizar)'
   },
 
-  // Controle de Fluxo
+  // Entradas / Controles
   {
-    name: 'se ... então ... fim',
+    name: 'game.key',
     category: 'controle',
-    syntax: 'se CONDIÇÃO então\n  ...\nfim',
-    desc: 'Executa comandos se a condição for verdadeira.',
-    example: 'se vidas <= 0 então\n  diga "Fim de Jogo!"\nfim'
-  },
-  {
-    name: 'senão se / senão',
-    category: 'controle',
-    syntax: 'se C1 então\n  ...\nsenão se C2 então\n  ...\nsenão\n  ...\nfim',
-    desc: 'Cria ramificações alternativas para testar múltiplas condições.',
-    example: 'se pontos > 10 então\n  fundo verde\nsenão\n  fundo preto\nfim'
-  },
-  {
-    name: 'repita N vezes',
-    category: 'controle',
-    syntax: 'repita QUANTIDADE vezes\n  ...\nfim',
-    desc: 'Executa um bloco de comandos o número determinado de vezes.',
-    example: 'repita 3 vezes\n  diga "Contagem!"\nfim'
-  },
-  {
-    name: 'enquanto ... faça',
-    category: 'controle',
-    syntax: 'enquanto CONDIÇÃO faça\n  ...\nfim',
-    desc: 'Repete o bloco de código enquanto a condição permanecer verdadeira.',
-    example: 'enquanto contagem > 0 faça\n  contagem recebe contagem - 1\nfim'
+    syntax: 'game.key(nome_da_tecla)',
+    desc: 'Retorna verdadeiro se a tecla informada estiver pressionada. Teclas suportadas: "arrowup" ou "cima", "arrowdown" ou "baixo", "arrowleft" ou "esquerda", "arrowright" ou "direita", "espaco", "enter", "w", "a", "s", "d", "r", etc.',
+    example: 'if game.key("arrowleft") or game.key("a"):\n    jogador_x -= 1'
   },
 
-  // Funções Nativas (Built-ins da Biblioteca)
+  // Utilitários / Funções
   {
-    name: 'aleatorio(min, max)',
+    name: 'game.random',
     category: 'funcoes',
-    syntax: 'aleatorio(min, max)',
-    desc: 'Retorna um número inteiro pseudo-aleatório entre min e max (inclusive). Aceita com ou sem acento.',
-    example: 'x recebe aleatorio(10, 150)'
+    syntax: 'game.random(min, max)',
+    desc: 'Retorna um número inteiro aleatório entre min e max (inclusive). Útil para spawnar itens ou inimigos de forma aleatória.',
+    example: 'obstaculo_x = game.random(5, 35)'
   },
   {
-    name: 'distancia(x1, y1, x2, y2)',
+    name: 'game.time',
     category: 'funcoes',
-    syntax: 'distancia(x1, y1, x2, y2)',
-    desc: 'Calcula a distância euclidiana entre dois pontos (x1, y1) e (x2, y2).',
-    example: 'd recebe distancia(x, y, Inimigo.x, Inimigo.y)'
-  },
-  {
-    name: 'tecla("nome")',
-    category: 'funcoes',
-    syntax: 'tecla("nome")',
-    desc: 'Retorna verdadeiro se a tecla informada estiver pressionada (ex: "arrowup", "espaco", "a", "w").',
-    example: 'se tecla("espaco") então\n  diga "Tiro disparado!"\nfim'
-  },
-  {
-    name: 'toque()',
-    category: 'funcoes',
-    syntax: 'toque()',
-    desc: 'Retorna verdadeiro se a tela do celular ou tablet estiver sendo tocada.',
-    example: 'se toque() então\n  y recebe y - 1\nfim'
-  },
-  {
-    name: 'tempo()',
-    category: 'funcoes',
-    syntax: 'tempo()',
-    desc: 'Retorna o tempo decorrido desde o início da execução em segundos.',
-    example: 'segundos recebe tempo()'
-  },
-  {
-    name: 'seno(angulo) / cosseno(angulo)',
-    category: 'funcoes',
-    syntax: 'seno(graus) ou cosseno(graus)',
-    desc: 'Calcula o seno ou cosseno trigonométrico para o ângulo informado em graus.',
-    example: 'offset recebe seno(tempo() * 60) * 10'
-  },
-  {
-    name: 'raiz(valor)',
-    category: 'funcoes',
-    syntax: 'raiz(numero)',
-    desc: 'Calcula a raiz quadrada de um número.',
-    example: 'r recebe raiz(16) # r = 4'
-  },
-  {
-    name: 'absoluto(valor)',
-    category: 'funcoes',
-    syntax: 'absoluto(numero)',
-    desc: 'Retorna o módulo (valor positivo absoluto).',
-    example: 'distX recebe absoluto(x - Inimigo.x)'
-  },
-  {
-    name: 'piso(v) / teto(v) / arredonda(v)',
-    category: 'funcoes',
-    syntax: 'piso(v), teto(v), arredonda(v)',
-    desc: 'Funções de arredondamento para baixo (piso), para cima (teto) e para o inteiro mais próximo (arredonda).',
-    example: 'inteiro recebe piso(3.8) # 3'
+    syntax: 'game.time()',
+    desc: 'Retorna o tempo de execução decorrido desde o início do jogo em segundos (como um float de alta precisão).',
+    example: 'segundos = game.time()\nif segundos % 2 < 1:\n    game.draw(2, 2, "PISCAR", "white")'
   },
 
-  // Propriedades dos Atores
+  // Cores DOS Suportadas
   {
-    name: 'x / y',
-    category: 'propriedades',
-    syntax: 'x, y (ou Ator.x, Ator.y)',
-    desc: 'Coordenadas horizontais e verticais do ator no plano 2D.',
-    example: 'x recebe x + 2\nInimigo.y recebe 10'
-  },
-  {
-    name: 'vx / vy',
-    category: 'propriedades',
-    syntax: 'vx, vy (ou Ator.vx, Ator.vy)',
-    desc: 'Velocidade vetorial nos eixos X e Y aplicada automaticamente a cada quadro.',
-    example: 'vx recebe -1.5\nvy recebe 0'
-  },
-  {
-    name: 'largura / altura',
-    category: 'propriedades',
-    syntax: 'largura, altura (ou Ator.largura, Ator.altura)',
-    desc: 'Dimensões dinâmicas do ator em pixels.',
-    example: 'largura recebe 24\naltura recebe 8'
-  },
-  {
-    name: 'ativo',
-    category: 'propriedades',
-    syntax: 'ativo (ou Ator.ativo)',
-    desc: 'Indica se o ator está visível e participando das colisões (verdadeiro/falso).',
-    example: 'ativo recebe falso'
-  },
-
-  // Cores Suportadas
-  {
-    name: 'Cores Padrão do Bit',
+    name: 'Paleta MS-DOS 16 cores',
     category: 'cores',
-    syntax: 'preto, branco, vermelho, verde, azul, amarelo, ciano, magenta, cinza, laranja, roxo, rosa, marrom, invisivel',
-    desc: 'Paleta padrão integrada de cores 8-bit pré-definidas.',
-    example: 'fundo azul\ndesenho quadrado 10, amarelo'
+    syntax: 'Cores retro disponíveis',
+    desc: 'Cores suportadas pelo console MS-DOS: "black" (preto), "blue" (azul), "green" (verde), "cyan" (ciano), "red" (vermelho), "magenta" (rosa escuro), "brown" (marrom/laranja), "gray" (cinza), "dark_gray" (cinza escuro), "blue_bright" (azul claro), "green_bright" (verde claro), "cyan_bright" (ciano claro), "red_bright" (vermelho claro), "magenta_bright" (rosa claro), "yellow" (amarelo), "white" (branco).',
+    example: 'game.clear("black")\ngame.draw(10, 10, "ERRO NO DISCO", "red_bright")'
   }
 ];

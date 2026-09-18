@@ -20,80 +20,38 @@ function getAiClient(): GoogleGenAI {
   return aiClient;
 }
 
-const BIT_SYSTEM_INSTRUCTION = `Você é o assistente de programação especialista na linguagem BIT 1.2 (uma linguagem textual brasileira para criação de jogos 2D).
-Sua missão é ajudar o desenvolvedor a criar, corrigir, otimizar e entender programas e jogos escritos em BIT (.bit).
+const BIT_SYSTEM_INSTRUCTION = `Você é o assistente de programação especialista em desenvolvimento de jogos retro estilo MS-DOS rodando em Python com o módulo 'game' (ou 'dos').
+Sua missão é ajudar o desenvolvedor a criar, corrigir, otimizar e entender códigos Python focados em gráficos baseados inteiramente em texto ASCII Art em um terminal de grade (ex: 40x25).
 
-REGRAS SINTÁTICAS E GRAMATICAIS DA LINGUAGEM BIT 1.2:
-1. Dimensão da tela:
-   tela 160x120
-   fundo preto (cores válidas: preto, branco, vermelho, verde, azul, amarelo, ciano, magenta, cinza, laranja, roxo, rosa, marrom, invisivel)
-
-2. Declaração de Variáveis:
-   pontos recebe 0
-   # ou: pontos = 0
-
-3. Declaração de Atores:
-   ator NomeDoAtor
-     desenho quadrado 8, verde
-     # ou: desenho retângulo 16, 6, azul
-     # ou: desenho circulo 5, amarelo
-     # ou: desenho texto 10, "Texto", branco
-     posição 76, 56
-     velocidade 1.5, 2.0
-     controlado por setas
-     limita à tela
-     quica nas bordas
-     quando atualiza:
-       # código a cada quadro
-     fim
-     quando colide com "OutroAtor":
-       # código executado ao colidir
-     fim
-   fim
-
-4. Estruturas de Controle:
-   se condição então
-     # comandos
-   senão se outra_condição então
-     # comandos
-   senão
-     # comandos
-   fim
-
-   repita 5 vezes
-     # comandos
-   fim
-
-   enquanto condição faça
-     # comandos
-   fim
-
-5. Funções:
-   função somar(a, b)
-     retorne a + b
-   fim
-
-6. Mensagens no Console:
-   diga "Mensagem aqui"
-   diga "Pontos: " + pontos
-
-7. Funções Embutidas (Built-ins):
-   - aleatorio(min, max): número aleatório entre min e max
-   - distancia(x1, y1, x2, y2): distância euclidiana entre dois pontos
-   - tecla("arrowup"), tecla("arrowdown"), tecla("arrowleft"), tecla("arrowright"), tecla("espaco"), tecla("a"), tecla("w"), etc.
-   - tempo(): tempo decorrido em segundos
-   - seno(graus), cosseno(graus), raiz(val), absoluto(val), arredonda(val), piso(val), teto(val)
-
-8. Propriedades de Atores:
-   Dentro do próprio ator: x, y, vx, vy, largura, altura, ativo.
-   Acessando outro ator: NomeDoAtor.x, NomeDoAtor.y, etc.
+A biblioteca 'game' (também importável como 'dos') expõe as seguintes funções embutidas para controle do terminal:
+1. game.init(width=40, height=25, title="Jogo")
+   Inicializa a resolução do terminal de texto (colunas e linhas) e o título da janela. O padrão é 40 colunas por 25 linhas.
+2. game.clear(color="black")
+   Limpa a tela preenchendo-a com a cor escolhida. Cores válidas:
+   - "black", "blue", "green", "cyan", "red", "magenta", "brown", "gray"
+   - "dark_gray", "blue_bright", "green_bright", "cyan_bright", "red_bright", "magenta_bright", "yellow", "white"
+3. game.draw(x, y, texto, cor)
+   Desenha um caractere ou uma arte ASCII multi-linha (com '\\n') nas coordenadas x (coluna) e y (linha). Se a string contiver quebras de linha, desenha cada linha na linha correspondente y + i.
+4. game.key(nome_da_tecla)
+   Retorna True se a tecla estiver sendo pressionada no teclado. Teclas válidas:
+   - "arrowup" (ou "cima"), "arrowdown" (ou "baixo"), "arrowleft" (ou "esquerda"), "arrowright" (ou "direita")
+   - "espaco", "enter", "w", "a", "s", "d", "r"
+5. game.beep(frequencia, duracao)
+   Toca um som clássico de PC Speaker de onda quadrada com a frequência em Hz e duração em segundos.
+6. game.log(mensagem)
+   Imprime uma mensagem no console DOS abaixo da tela do jogo.
+7. game.random(min_val, max_val)
+   Retorna um número inteiro aleatório entre min_val e max_val (inclusive).
+8. game.time()
+   Retorna o tempo de execução decorrido desde o início do jogo em segundos (float).
+9. game.loop(funcao_de_atualizacao)
+   Registra e executa a função de atualização do jogo como loop principal (game loop) em cada quadro (não use loops infinitos 'while True' no código principal, pois travam o navegador WebAssembly, use sempre o registro com game.loop).
 
 DIRETRIZES DE RESPOSTA:
-- Sempre responda em português claro e amigável.
-- Quando fornecer código BIT, coloque-o dentro de blocos de código markdown com marcador \`\`\`bit.
-- Certifique-se de que TODO código .bit gerado siga rigorosamente a sintaxe acima (termine blocos com 'fim', use 'se ... então', 'quando atualiza:', etc.).
-- Se o usuário pedir um jogo novo, forneça o código completo e executável.
-- Se o usuário pedir para corrigir ou adicionar uma funcionalidade, explique brevemente a alteração e mostre o código pronto.`;
+- Sempre responda em português claro, direto e profissional de Engenheiro de Jogos Retro.
+- Quando fornecer código Python, coloque-o dentro de blocos de código markdown com marcador \`\`\`python.
+- Se o usuário pedir um jogo novo, forneça o código Python completo, executável e otimizado usando import game, definindo o setup inicial, as variáveis globais de estado do jogo e a função de atualização (update) registrada com game.loop(update).
+- Os jogos criados devem ser visualmente refinados dentro das limitações de caracteres, usando blocos de preenchimento (como "■" ou "█") e elementos ASCII coloridos de forma criativa e harmoniosa.`;
 
 export interface AssistantRequest {
   prompt: string;
@@ -119,19 +77,19 @@ export async function handleAiRequest(body: AssistantRequest): Promise<Assistant
 
   let userMessage = prompt || '';
   if (action === 'explain') {
-    userMessage = `Explique em detalhes como funciona o seguinte código BIT, quais são os atores e qual a lógica de jogo:\n\`\`\`bit\n${currentCode || ''}\n\`\`\``;
+    userMessage = `Explique em detalhes como funciona o seguinte código Python de terminal MS-DOS, listando a lógica de estados e desenho:\n\`\`\`python\n${currentCode || ''}\n\`\`\``;
   } else if (action === 'fix') {
-    userMessage = `Analise o código BIT abaixo, identifique possíveis erros sintáticos ou lógicos de colisão/movimento, e forneça a versão corrigida completa e funcional:\n\`\`\`bit\n${currentCode || ''}\n\`\`\`\nInstrução adicional: ${prompt || 'Corrija erros e deixe o jogo funcionando perfeitamente.'}`;
+    userMessage = `Analise o código Python abaixo, identifique possíveis erros lógicos, de sintaxe ou de importação no loop de jogo do terminal, e forneça a versão corrigida completa e funcional:\n\`\`\`python\n${currentCode || ''}\n\`\`\`\nInstrução adicional: ${prompt || 'Corrija erros e deixe o jogo funcionando perfeitamente.'}`;
   } else if (action === 'add_feature') {
-    userMessage = `Com base no código BIT atual abaixo, implemente a seguinte funcionalidade: "${prompt}". Retorne o código atualizado completo:\n\`\`\`bit\n${currentCode || ''}\n\`\`\``;
+    userMessage = `Com base no código Python atual abaixo, implemente a seguinte funcionalidade de jogo: "${prompt}". Retorne o código atualizado completo:\n\`\`\`python\n${currentCode || ''}\n\`\`\``;
   } else if (action === 'new_game') {
-    userMessage = `Crie um novo jogo 2D completo na linguagem BIT de acordo com o pedido: "${prompt}". O jogo deve ser divertido, ter tela 160x120, atores com desenhos coloridos, movimento, colisões e pontuação ou objetivo claro.`;
+    userMessage = `Crie um novo jogo completo em Python estilo terminal MS-DOS de acordo com o pedido: "${prompt}". O jogo deve ser divertido, ter tela inicializada com game.init(40, 25), arte em caracteres ASCII ou blocos Unicode, movimento de jogador, colisões simples, pontuação e som com game.beep(). Termine registrando o game loop via game.loop(update).`;
   } else if (currentCode && currentCode.trim().length > 0) {
-    userMessage = `${prompt}\n\n[Código BIT atual no editor]:\n\`\`\`bit\n${currentCode}\n\`\`\``;
+    userMessage = `${prompt}\n\n[Código Python atual no editor]:\n\`\`\`python\n${currentCode}\n\`\`\``;
   }
 
   // Preferred models to try in order
-  const models = ['gemini-3.6-flash', 'gemini-3.8-flash', 'gemini-flash-latest'];
+  const models = ['gemini-3.8-flash', 'gemini-3.5-flash', 'gemini-flash-latest'];
   let lastError: Error | null = null;
   let replyText = '';
 
@@ -153,7 +111,6 @@ export async function handleAiRequest(body: AssistantRequest): Promise<Assistant
       }
     } catch (err) {
       lastError = err instanceof Error ? err : new Error(String(err));
-      // Try next model if available
       continue;
     }
   }
@@ -165,10 +122,10 @@ export async function handleAiRequest(body: AssistantRequest): Promise<Assistant
     };
   }
 
-  // Extract .bit code block if present
+  // Extract .py or python code block if present
   let extractedCode = '';
-  const bitCodeRegex = /```(?:bit)?\s*([\s\S]*?)```/i;
-  const match = replyText.match(bitCodeRegex);
+  const pythonCodeRegex = /```(?:python)?\s*([\s\S]*?)```/i;
+  const match = replyText.match(pythonCodeRegex);
   if (match && match[1]) {
     extractedCode = match[1].trim();
   }

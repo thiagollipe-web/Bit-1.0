@@ -298,12 +298,90 @@ export class Game {
   render(): void {
     if (!this.ctx || !this.canvas) return;
 
-    const { screenWidth, screenHeight, backgroundColor } = this.ast;
-    this.ctx.fillStyle = resolveColor(backgroundColor, '#000000');
-    this.ctx.fillRect(0, 0, screenWidth, screenHeight);
+    const cols = Math.max(1, Math.round(this.ast.screenWidth));
+    const rows = Math.max(1, Math.round(this.ast.screenHeight));
+    const backgroundColor = this.ast.backgroundColor;
 
+    // Create a terminal character buffer
+    // Each cell contains a character and a color
+    const buffer: { char: string; color: string }[][] = [];
+    for (let r = 0; r < rows; r++) {
+      const rowArr: { char: string; color: string }[] = [];
+      for (let c = 0; c < cols; c++) {
+        rowArr.push({ char: ' ', color: 'branco' });
+      }
+      buffer.push(rowArr);
+    }
+
+    // Sort actors if needed, or draw them in order
     for (const actor of this.actors.values()) {
-      actor.draw(this.ctx);
+      if (!actor.active) continue;
+
+      const actorColor = actor.shape?.color ?? 'branco';
+      const shapeType = actor.shape?.type ?? 'quadrado';
+
+      if (shapeType === 'texto' && actor.shape?.text) {
+        const text = actor.shape.text;
+        const lines = text.split('\n');
+        for (let rIdx = 0; rIdx < lines.length; rIdx++) {
+          const line = lines[rIdx];
+          for (let cIdx = 0; cIdx < line.length; cIdx++) {
+            const ch = line[cIdx];
+            const gridX = Math.round(actor.x) + cIdx;
+            const gridY = Math.round(actor.y) + rIdx;
+            if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows) {
+              buffer[gridY][gridX] = { char: ch, color: actorColor };
+            }
+          }
+        }
+      } else {
+        // Handle geometric shapes as solid blocks
+        const w = Math.max(1, Math.round(actor.width));
+        const h = Math.max(1, Math.round(actor.height));
+        const fillChar = shapeType === 'circulo' ? '●' : shapeType === 'triangulo' ? '▲' : '█';
+
+        for (let rIdx = 0; rIdx < h; rIdx++) {
+          for (let cIdx = 0; cIdx < w; cIdx++) {
+            const gridX = Math.round(actor.x) + cIdx;
+            const gridY = Math.round(actor.y) + rIdx;
+            if (gridX >= 0 && gridX < cols && gridY >= 0 && gridY < rows) {
+              buffer[gridY][gridX] = { char: fillChar, color: actorColor };
+            }
+          }
+        }
+      }
+    }
+
+    // Now render the buffer onto the canvas
+    const canvasWidth = this.canvas.width;
+    const canvasHeight = this.canvas.height;
+    const cellW = canvasWidth / cols;
+    const cellH = canvasHeight / rows;
+
+    this.ctx.fillStyle = resolveColor(backgroundColor, '#000000');
+    this.ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+    const fontSize = Math.floor(cellH * 0.95);
+    this.ctx.font = `bold ${fontSize}px Fira Code, Courier New, monospace`;
+    this.ctx.textAlign = 'center';
+    this.ctx.textBaseline = 'middle';
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = buffer[r][c];
+        if (cell && cell.char !== ' ') {
+          this.ctx.fillStyle = resolveColor(cell.color, '#ffffff');
+          const charX = c * cellW + cellW / 2;
+          const charY = r * cellH + cellH / 2;
+          this.ctx.fillText(cell.char, charX, charY);
+        }
+      }
+    }
+
+    // CRT scanline overlays for that beautiful retro terminal feeling
+    this.ctx.fillStyle = 'rgba(0, 0, 0, 0.12)';
+    for (let y = 0; y < canvasHeight; y += 4) {
+      this.ctx.fillRect(0, y, canvasWidth, 1.5);
     }
   }
 
