@@ -1,5 +1,24 @@
 import { BIT_LIBRARY, type LibraryItem } from './library-data.ts';
 
+// Safeguard global prompt/confirm to prevent "Illegal invocation" in sandboxed iframes
+if (typeof window !== 'undefined') {
+  try {
+    const rawPrompt = typeof window.prompt === 'function' ? window.prompt.bind(window) : null;
+    (window as any).prompt = function (message?: string, _default?: string): string | null {
+      try {
+        if (rawPrompt) {
+          return rawPrompt(message, _default);
+        }
+      } catch {
+        // Sandboxed iframes without modal permissions throw Illegal invocation or SecurityError
+      }
+      return null;
+    };
+  } catch {
+    // Ignore any environment restrictions
+  }
+}
+
 // retro MS-DOS color hex mappings
 const DOS_COLORS: Record<string, string> = {
   black: '#000000',
@@ -1037,8 +1056,26 @@ async function ensurePyodide() {
 
     drawBiosScreen("Iniciando motor virtual Pyodide...", 65);
     pyodide = await (window as any).loadPyodide({
-      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
+      indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/",
+      stdin: () => null,
+      stdout: (text: string) => {
+        log(text);
+      },
+      stderr: (text: string) => {
+        log(text, true);
+      }
     });
+
+    if (typeof pyodide.setStdin === 'function') {
+      try {
+        pyodide.setStdin({
+          stdin: () => null,
+          autoEOF: true
+        });
+      } catch (e) {
+        console.warn("Could not set pyodide stdin:", e);
+      }
+    }
 
     drawBiosScreen("Exportando bibliotecas nativas...", 85);
     // Expose Javascript functions directly to pyodide scope
@@ -1055,8 +1092,28 @@ async function ensurePyodide() {
     // Register modules in python
     await pyodide.runPythonAsync(`
 import sys
+import io
 import types
+import builtins
 from pyodide.ffi import create_proxy
+
+# Configure non-blocking virtual stdin to avoid Emscripten prompt() invocation
+class NonBlockingStdin(io.TextIOBase):
+    def read(self, size=-1):
+        return ""
+    def readline(self, size=-1):
+        return ""
+    def readable(self):
+        return True
+
+sys.stdin = NonBlockingStdin()
+
+def safe_input(prompt_text=""):
+    if prompt_text:
+        js_game_log(str(prompt_text))
+    return ""
+
+builtins.input = safe_input
 
 def python_init(width=40, height=25, title="Jogo"):
     js_game_init(width, height, title)
