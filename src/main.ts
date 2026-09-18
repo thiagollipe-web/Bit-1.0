@@ -732,6 +732,49 @@ function resetBuffer() {
   }
 }
 
+function drawBiosScreen(message: string, progress: number) {
+  cols = 40;
+  rows = 25;
+  canvas.width = cols * cellW;
+  canvas.height = rows * cellH;
+  resetBuffer();
+  
+  js_game_draw(1, 1, "ROM BIOS (C) 2026 RETRO SYSTEMS INC.", "cyan");
+  js_game_draw(1, 2, "PROCESSADOR: PYTHON WASM v0.26.4", "white");
+  js_game_draw(1, 3, "MEMORIA: 640KB RAM OK", "green_bright");
+  js_game_draw(1, 4, "SISTEMA OPERACIONAL RETRO DOS v1.2", "white");
+  js_game_draw(1, 5, "----------------------------------------", "dark_gray");
+  
+  js_game_draw(1, 8, "C:\\> INICIALIZANDO INTERPRETADOR...", "gray");
+  js_game_draw(1, 10, message, "yellow");
+  
+  const barWidth = 20;
+  const filled = Math.min(barWidth, Math.round((progress / 100) * barWidth));
+  const bar = "[" + "█".repeat(filled) + "░".repeat(barWidth - filled) + "]";
+  js_game_draw(1, 12, bar, "green_bright");
+  js_game_draw(23, 12, `${progress}%`, "white");
+  
+  js_game_draw(1, 16, "Aperte 'Executar' para iniciar ou", "dark_gray");
+  js_game_draw(1, 17, "reiniciar se travar.", "dark_gray");
+  
+  renderTerminalCanvas();
+}
+
+function drawCommandLinePrompt() {
+  cols = 40;
+  rows = 25;
+  canvas.width = cols * cellW;
+  canvas.height = rows * cellH;
+  resetBuffer();
+  js_game_draw(1, 1, "ROM BIOS (C) 2026 RETRO SYSTEMS INC.", "cyan");
+  js_game_draw(1, 3, "Microsoft MS-DOS Versao 6.22", "white");
+  js_game_draw(1, 5, "C:\\> PYTHON3.EXE JOGO.PY", "white");
+  js_game_draw(1, 7, "Programa interrompido pelo usuario.", "yellow");
+  js_game_draw(1, 9, "C:\\>", "green_bright");
+  js_game_draw(6, 9, "▒", "white");
+  renderTerminalCanvas();
+}
+
 // Javascript API bridge exposed to Pyodide
 function js_game_init(width: number, height: number, title?: string) {
   cols = width || 40;
@@ -960,15 +1003,17 @@ async function ensurePyodide() {
     while (isPyodideLoading) {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
-    return pyodide;
+    if (pyodide) return pyodide;
   }
 
   isPyodideLoading = true;
   log("Iniciando interpretador Python (Pyodide) via WebAssembly...");
+  drawBiosScreen("Baixando compilador WASM...", 20);
   try {
     // Garante resiliência carregando dinamicamente de CDNs alternativos se o script falhou ou atrasou no head
     if (!(window as any).loadPyodide) {
       log("Buscando recursos WebAssembly (Tentando CDN Principal)...");
+      drawBiosScreen("Conectando com CDNs resilientes...", 40);
       const cdns = [
         "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js",
         "https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.26.4/pyodide.js",
@@ -990,10 +1035,12 @@ async function ensurePyodide() {
       }
     }
 
+    drawBiosScreen("Iniciando motor virtual Pyodide...", 65);
     pyodide = await (window as any).loadPyodide({
       indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
     });
 
+    drawBiosScreen("Exportando bibliotecas nativas...", 85);
     // Expose Javascript functions directly to pyodide scope
     pyodide.globals.set("js_game_init", js_game_init);
     pyodide.globals.set("js_game_clear", js_game_clear);
@@ -1065,6 +1112,7 @@ sys.modules['dos'] = _dos_mod
 `);
 
     log("Interpretador Python carregado! Motor pronto para execução.");
+    drawBiosScreen("Motor pronto para execucao!", 100);
     isPyodideLoading = false;
     return pyodide;
   } catch (err: any) {
@@ -1119,6 +1167,7 @@ function stopCurrentGame() {
     cancelAnimationFrame(animationFrameId);
     animationFrameId = null;
   }
+  drawCommandLinePrompt();
 }
 
 async function runCode() {
@@ -1131,6 +1180,9 @@ async function runCode() {
   
   try {
     const py = await ensurePyodide();
+    if (!py) {
+      throw new Error("O interpretador Python falhou ao carregar ou está offline. Por favor, clique em 'Executar' novamente para reiniciar.");
+    }
     
     // Default grid config
     cols = 40;
