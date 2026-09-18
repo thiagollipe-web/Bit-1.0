@@ -292,11 +292,16 @@ export class Game {
     const decl = this.ast.actors.find(a => a.name.toLowerCase() === actor.name.toLowerCase());
     if (!decl) return;
 
-    const handler = decl.events[eventKey] || decl.events[eventKey.toLowerCase()];
+    const normalizedKey = eventKey.toLowerCase();
+    const exactKey = Object.keys(decl.events).find(key => key.toLowerCase() === normalizedKey);
+    const handler = exactKey ? decl.events[exactKey] : undefined;
     if (handler && handler.length > 0) {
       this.interpreter.currentActor = actor;
-      this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
-      this.interpreter.currentActor = undefined;
+      try {
+        this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
+      } finally {
+        this.interpreter.currentActor = undefined;
+      }
     }
   }
 
