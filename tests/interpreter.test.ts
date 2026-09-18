@@ -79,7 +79,7 @@ describe('Interpreter', () => {
       diga 100 + 200
     `;
     const { output } = runProgram(code);
-    expect(output).toEqual(['Olá, Bit 1.0!', '300']);
+    expect(output).toEqual(['Olá, MicroConda!', '300']);
   });
 });
 
