@@ -428,6 +428,145 @@ def update():
     game.draw(10, 10, "TELA EM BRANCO", "green_bright")
 
 game.loop(update)
+`,
+
+  bomberman: (title: string) => `import game
+
+# Inicializa tela compacta 40x25
+game.init(30, 20, "BOMBERMAN MINI")
+
+W, H = 11, 9
+px, py = 1, 1
+pts, vds = 0, 3
+fim, win = False, False
+grade = [['#' if r in (0,H-1) or c in (0,W-1) or (r%2==0 and c%2==0) else ('B' if game.random(1,10)<=6 and not (r<=2 and c<=2) else ' ') for c in range(W)] for r in range(H)]
+inimigos = [{"x": 9, "y": 7, "dx": -1, "dy": 0, "t": 0}]
+bombas, explosoes = [], []
+ult_t = 0
+
+def livre(gx, gy):
+    if gx < 0 or gx >= W or gy < 0 or gy >= H: return False
+    if grade[gy][gx] in ('#', 'B'): return False
+    return not any(b["x"] == gx and b["y"] == gy for b in bombas)
+
+def atualizar():
+    global px, py, pts, vds, fim, win, ult_t, grade, bombas, explosoes
+    t = game.time()
+    game.clear("black")
+    
+    # Moldura retro
+    game.draw(0, 0, "█"*30, "blue")
+    game.draw(0, 19, "█"*30, "blue")
+    game.draw(7, 1, "BOMBERMAN RETRO", "yellow")
+
+    if fim:
+        game.draw(8, 9, "GAME OVER!", "red")
+        game.draw(5, 11, "Pressione 'R' p/ reiniciar", "cyan_bright")
+        if game.key("r"):
+            px, py, pts, vds, fim, win = 1, 1, 0, 3, False, False
+            bombas.clear(); explosoes.clear(); inimigos.clear()
+            inimigos.append({"x": 9, "y": 7, "dx": -1, "dy": 0, "t": 0})
+            game.beep(300, 0.1)
+        return
+
+    if win:
+        game.draw(8, 9, "VOCE VENCEU!", "green_bright")
+        game.draw(5, 11, "Pressione 'R' p/ novo jogo", "cyan_bright")
+        if game.key("r"): fim = True
+        return
+
+    # Controles
+    if t - ult_t > 0.15:
+        dx, dy = 0, 0
+        if game.key("arrowleft") or game.key("a"): dx = -1
+        elif game.key("arrowright") or game.key("d"): dx = 1
+        elif game.key("arrowup") or game.key("w"): dy = -1
+        elif game.key("arrowdown") or game.key("s"): dy = 1
+
+        if (dx or dy) and livre(px+dx, py+dy):
+            px += dx
+            py += dy
+            ult_t = t
+            game.beep(500, 0.02)
+
+        if (game.key("espaco") or game.key("enter")) and not bombas:
+            bombas.append({"x": px, "y": py, "t": t})
+            ult_t = t
+            game.beep(200, 0.05)
+
+    # Detonação de Bombas
+    bombas_restantes = []
+    for b in bombas:
+        if t - b["t"] >= 1.3:
+            game.beep(100, 0.2)
+            for rx, ry in [(0,0), (0,-1), (0,1), (-1,0), (1,0)]:
+                ex, ey = b["x"]+rx, b["y"]+ry
+                if 0 <= ex < W and 0 <= ey < H and grade[ey][ex] != '#':
+                    explosoes.append({"x": ex, "y": ey, "t": t})
+                    if grade[ey][ex] == 'B':
+                        grade[ey][ex] = ' '
+                        pts += 50
+                    for en in list(inimigos):
+                        if en["x"] == ex and en["y"] == ey:
+                            inimigos.remove(en)
+                            pts += 200
+                    if px == ex and py == ey:
+                        vds -= 1
+                        px, py = 1, 1
+                        game.beep(150, 0.3)
+                        if vds <= 0: fim = True
+        else:
+            bombas_restantes.append(b)
+    bombas = bombas_restantes
+
+    explosoes = [e for e in explosoes if t - e["t"] < 0.35]
+
+    # Movimento Inimigos
+    for en in inimigos:
+        en["t"] += 1
+        if en["t"] >= 7:
+            en["t"] = 0
+            nx, ny = en["x"]+en["dx"], en["y"]+en["dy"]
+            if livre(nx, ny) and game.random(1, 10) > 2:
+                en["x"], en["y"] = nx, ny
+            else:
+                dirs = [(dx,dy) for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)] if livre(en["x"]+dx, en["y"]+dy)]
+                if dirs:
+                    en["dx"], en["dy"] = dirs[game.random(0, len(dirs)-1)]
+                    en["x"] += en["dx"]
+                    en["y"] += en["dy"]
+            if en["x"] == px and en["y"] == py:
+                vds -= 1
+                px, py = 1, 1
+                game.beep(150, 0.3)
+                if vds <= 0: fim = True
+
+    if not inimigos and not fim: win = True
+
+    # Renderiza Grid Centralizado
+    ox, oy = 4, 4
+    for r in range(H):
+        for c in range(W):
+            char = grade[r][c]
+            if char == '#': game.draw(ox+c*2, oy+r, "██", "gray")
+            elif char == 'B': game.draw(ox+c*2, oy+r, "▓▓", "brown")
+            else: game.draw(ox+c*2, oy+r, "░░", "dark_gray")
+
+    for b in bombas:
+        game.draw(ox+b["x"]*2, oy+b["y"], "💣", "red_bright" if int(t*4)%2==0 else "red")
+    for e in explosoes:
+        game.draw(ox+e["x"]*2, oy+e["y"], "☼☼", "yellow")
+    for en in inimigos:
+        game.draw(ox+en["x"]*2, oy+en["y"], "👾", "red_bright")
+
+    game.draw(ox+px*2, oy+py, "☺", "green_bright")
+
+    # Status
+    game.draw(2, 2, f"PTS: {pts:04d}", "cyan_bright")
+    game.draw(18, 2, f"VIDAS: {'♥'*vds}", "magenta_bright")
+    game.draw(1, 18, "Setas/WASD: Mover  Espaco: Bomba", "white")
+
+game.loop(atualizar)
 `
 };
 
@@ -436,7 +575,8 @@ const EXAMPLES: Record<string, string> = {
   interactive_move: STARTER_TEMPLATES.interactive_move("Controle de Ator"),
   pong: STARTER_TEMPLATES.pong("Retro Pong"),
   space_invaders: STARTER_TEMPLATES.space_invaders("Space Invaders"),
-  tetris: STARTER_TEMPLATES.tetris("MS-DOS Tetris")
+  tetris: STARTER_TEMPLATES.tetris("MS-DOS Tetris"),
+  bomberman: STARTER_TEMPLATES.bomberman("Bomberman Retro")
 };
 
 // UI Elements Queries
