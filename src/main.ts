@@ -1634,6 +1634,12 @@ async function requestAiAssistance() {
   btnAiSubmit.disabled = true;
 
   try {
+    // GitHub Pages é hospedagem estática: não existe backend para /api/ai/assistant.
+    // Evita uma chamada de rede que sempre falharia em produção e informa claramente o motivo.
+    if (window.location.hostname.endsWith('github.io')) {
+      throw new Error('O Assistente IA requer um servidor backend e não pode ser executado diretamente no GitHub Pages.');
+    }
+
     const res = await fetch('/api/ai/assistant', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
