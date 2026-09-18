@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { MICROCONDA_LIBRARY } from '../src/library-data.ts';
-import { criarJogoBit } from '../src/index.ts';
+import { criarJogoMicroConda } from '../src/index.ts';
 
-describe('Biblioteca do Bit', () => {
+describe('Biblioteca do MicroConda', () => {
   it('contém todos os comandos e categorias principais', () => {
     expect(MICROCONDA_LIBRARY.length).toBeGreaterThan(8);
 
@@ -25,8 +25,8 @@ describe('Biblioteca do Bit', () => {
     }
   });
 
-  it('exporta criarJogoBit pela biblioteca pública index.ts', () => {
-    const { game, ast } = criarJogoBit(`tela 160x120\nfundo preto\nator Teste\n  desenho quadrado 4, branco\n  posição 10, 10\nfim`);
+  it('exporta criarJogoMicroConda pela biblioteca pública index.ts', () => {
+    const { game, ast } = criarJogoMicroConda(`tela 160x120\nfundo preto\nator Teste\n  desenho quadrado 4, branco\n  posição 10, 10\nfim`);
     expect(ast.screenWidth).toBe(160);
     expect(ast.screenHeight).toBe(120);
     expect(game.actors.size).toBe(1);
