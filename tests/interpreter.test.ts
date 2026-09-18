@@ -82,3 +82,21 @@ describe('Interpreter', () => {
     expect(output).toEqual(['Olá, Bit 1.0!', '300']);
   });
 });
+
+
+describe('Interpreter semantics', () => {
+  it('preserves zero in numeric operations', () => {
+    const ast = parse(tokenize('a recebe 0
+b recebe a + 5'));
+    const interpreter = new Interpreter(createBuiltins());
+    interpreter.executeBlock(ast.globalStatements, interpreter.globalEnv);
+    expect(interpreter.globalEnv.get('b')).toBe(5);
+  });
+
+  it('supports short-circuit boolean operators', () => {
+    const ast = parse(tokenize('a recebe falso e inexistente'));
+    const interpreter = new Interpreter(createBuiltins());
+    interpreter.executeBlock(ast.globalStatements, interpreter.globalEnv);
+    expect(interpreter.globalEnv.get('a')).toBe(false);
+  });
+});

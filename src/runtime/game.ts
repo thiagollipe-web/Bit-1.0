@@ -191,6 +191,7 @@ export class Game {
     }
 
     // Execute global statements
+    this.interpreter.resetBudget();
     this.interpreter.executeBlock(ast.globalStatements, this.interpreter.globalEnv);
 
     // Execute initial statements inside each actor declaration
@@ -248,6 +249,10 @@ export class Game {
   }
 
   step(): void {
+    if (!this.running && this.animationFrameId === null) {
+      // step() is also used directly by tests and tooling.
+    }
+    this.interpreter.resetBudget();
     const { screenWidth, screenHeight } = this.ast;
 
     // 1. Update physics and positions of actors
