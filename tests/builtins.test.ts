@@ -66,10 +66,13 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
       cima: ['arrowup', 'w'],
       baixo: ['arrowdown', 's']
     };
+    const canonicalize = (key: string) =>
+      key.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
     const builtins = createBuiltins({
       isKeyDown: (key) => {
-        const normalized = key.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
-        return (aliases[normalized] ?? [normalized]).some(candidate => pressed.has(candidate));
+        const normalized = canonicalize(key);
+        const candidates = aliases[normalized] ?? [normalized];
+        return candidates.some(candidate => pressed.has(candidate));
       }
     });
     expect(builtins.get('tecla')!(['direita'])).toBe(true);
