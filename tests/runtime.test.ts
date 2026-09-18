@@ -276,7 +276,10 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
       return id;
     }) as typeof requestAnimationFrame;
     (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = ((id: number) => { pendingFrame = id; }) as typeof cancelAnimationFrame;
-    (globalThis as { window?: unknown }).window = {};
+    (globalThis as { window?: unknown }).window = {
+      addEventListener() {},
+      removeEventListener() {}
+    };
 
     game.start();
 
