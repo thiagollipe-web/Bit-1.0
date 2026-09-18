@@ -1,0 +1,73 @@
+tela 40x30
+fundo preto
+
+pontos recebe 0
+
+ator Paleta
+  desenho texto 1, "■■■■■■", azul
+  posição 17, 27
+  quando atualiza:
+    se tecla("esquerda") ou tecla("a") então
+      se x > 1 então
+        x recebe x - 0.6
+      fim
+    fim
+    se tecla("direita") ou tecla("d") então
+      se x < 33 então
+        x recebe x + 0.6
+      fim
+    fim
+  fim
+fim
+
+ator Bola
+  desenho texto 1, "●", branco
+  posição 20, 15
+  velocidade 0.4, -0.4
+  quica nas bordas
+  quando atualiza:
+    se y > 30 então
+      # Perdeu a bola - reinicia
+      y recebe 15
+      x recebe 20
+      vy recebe -0.4
+      diga "Bola perdida! Tente novamente."
+    fim
+  fim
+  quando colide com "Paleta":
+    vy recebe -0.4
+  fim
+  quando colide com "Bloco1":
+    vy recebe 0.4
+    pontos recebe pontos + 10
+    diga "Bloco Vermelho destruído! +10"
+    Bloco1.y recebe -100
+  fim
+  quando colide com "Bloco2":
+    vy recebe 0.4
+    pontos recebe pontos + 10
+    diga "Bloco Amarelo destruído! +10"
+    Bloco2.y recebe -100
+  fim
+  quando colide com "Bloco3":
+    vy recebe 0.4
+    pontos recebe pontos + 10
+    diga "Bloco Verde destruído! +10"
+    Bloco3.y recebe -100
+  fim
+fim
+
+ator Bloco1
+  desenho texto 1, "■■■■■", vermelho
+  posição 6, 6
+fim
+
+ator Bloco2
+  desenho texto 1, "■■■■■", amarelo
+  posição 17, 6
+fim
+
+ator Bloco3
+  desenho texto 1, "■■■■■", verde
+  posição 28, 6
+fim
