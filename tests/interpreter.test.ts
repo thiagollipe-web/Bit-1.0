@@ -75,7 +75,7 @@ describe('Interpreter', () => {
 
   it('executa comando diga e registra mensagens de saída', () => {
     const code = `
-      diga "Olá, Bit 1.0!"
+      diga "Olá, MicroConda!"
       diga 100 + 200
     `;
     const { output } = runProgram(code);
