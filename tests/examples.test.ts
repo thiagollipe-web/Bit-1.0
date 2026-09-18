@@ -6,6 +6,26 @@ import { parse } from '../src/parser.ts';
 import { Game } from '../src/runtime/game.ts';
 
 describe('Exemplos da Linguagem MicroConda', () => {
+  const EXAMPLE_FILES = [
+    'hello.micro',
+    'movement.micro',
+    'pong.micro',
+    'nave.micro',
+    'breakout.micro',
+    'tetris.micro',
+    'geometric_run.micro'
+  ];
+
+  it.each(EXAMPLE_FILES)('faz smoke test de 60 frames para %s sem erro', (filename) => {
+    const filePath = path.resolve(process.cwd(), 'examples', filename);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const ast = parse(tokenize(content));
+    const game = new Game(ast);
+    for (let i = 0; i < 60; i++) {
+      game.step();
+    }
+    expect(game.interpreter.currentActor).toBeUndefined();
+  });
   it('faz parse e executa steps de examples/pong.micro', () => {
     const filePath = path.resolve(process.cwd(), 'examples/pong.micro');
     const content = fs.readFileSync(filePath, 'utf-8');
