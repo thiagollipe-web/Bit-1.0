@@ -178,6 +178,43 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     expect(mira.y).toBe(18);
   });
 
+
+  it('não deixa listeners registrados quando a construção do jogo falha', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator A
+        desenho quadrado 2, branco
+        posição 10, 10
+        desconhecida
+      fim
+    `));
+
+    const listeners = new Map<string, number>();
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalDocument = (globalThis as { document?: unknown }).document;
+
+    const fakeTarget = {
+      addEventListener(type: string) {
+        listeners.set(type, (listeners.get(type) ?? 0) + 1);
+      },
+      removeEventListener(type: string) {
+        listeners.set(type, Math.max(0, (listeners.get(type) ?? 0) - 1));
+      }
+    };
+
+    (globalThis as { window?: unknown }).window = fakeTarget;
+    (globalThis as { document?: unknown }).document = {
+      activeElement: null
+    };
+
+    expect(() => new Game(ast)).toThrow();
+
+    expect([...listeners.values()].every(count => count === 0)).toBe(true);
+
+    (globalThis as { window?: unknown }).window = originalWindow;
+    (globalThis as { document?: unknown }).document = originalDocument;
+  });
+
   it('limpa o input ao parar o jogo para evitar tecla travada ao reiniciar', () => {
     const ast = parse(tokenize(`
       tela 40x25
