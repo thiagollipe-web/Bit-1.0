@@ -50,9 +50,12 @@ export const MICROCONDA_GRAMMAR = {
   builtins: [
     "aleatorio(min,max)", "distancia(x1,y1,x2,y2)", "tecla(nome)", "toque()", "tempo()",
     "seno(graus)", "cosseno(graus)", "raiz(valor)", "absoluto(valor)",
-    "piso(valor)", "teto(valor)", "arredonda(valor)", "colide(a,b)"
+    "piso(valor)", "teto(valor)", "arredonda(valor)", "colide(a,b)", "limitar(valor,min,max)",
+    "interpolar(a,b,t)", "potencia(base,expoente)", "angulo(x1,y1,x2,y2)", "mouse_x()", "mouse_y()",
+    "mouse_pressionado()", "para_texto(valor)", "para_numero(valor)", "gravar(chave,valor)",
+    "carregar(chave,padrao)", "tocar_som(nome)", "bip(frequencia,duracao)"
   ],
-  actorProperties: ["x","y","vx","vy","largura","altura","ativo"],
+  actorProperties: ["x","y","vx","vy","largura","altura","ativo","visivel","cor","texto","angulo","alfa","opacidade"],
   colors: ["preto","branco","vermelho","verde","azul","amarelo","ciano","magenta","cinza","laranja","roxo","rosa","marrom","invisivel"],
   comments: ["# comentário","// comentário"],
 } as const;
