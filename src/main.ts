@@ -859,8 +859,45 @@ function js_game_time(): number {
 }
 
 function js_game_loop(updateFunc: any) {
+  // Evita vazamento de memória liberando o proxy Python anterior se ele puder ser destruído
+  if (pythonUpdateFunc && typeof (pythonUpdateFunc as any).destroy === 'function') {
+    try {
+      (pythonUpdateFunc as any).destroy();
+    } catch (e) {
+      console.warn("Falha ao destruir proxy anterior:", e);
+    }
+  }
   pythonUpdateFunc = updateFunc;
 }
+
+// Auxiliar para carregamento dinâmico e resiliente de scripts via CDN
+function loadScriptAsync(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = url;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(`Falha no download: ${url}`));
+    document.head.appendChild(script);
+  });
+}
+
+// Ouvintes globais para restaurar contexto de áudio em qualquer interação do usuário
+const resumeAudio = () => {
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume().catch((err) => console.warn("Falha ao reativar áudio:", err));
+  }
+};
+window.addEventListener('click', resumeAudio, { passive: true });
+window.addEventListener('touchstart', resumeAudio, { passive: true });
+window.addEventListener('keydown', resumeAudio, { passive: true });
+
+// Monitoramento de conexão offline/online estilo prompt do DOS
+window.addEventListener('offline', () => {
+  log("⚠️ CONEXÃO PERDIDA: Você está desconectado da Internet. Recursos como IA ou carregamento inicial do interpretador podem falhar.", true);
+});
+window.addEventListener('online', () => {
+  log("📶 CONEXÃO RESTABELECIDA: Conexão com a rede reestabelecida com sucesso!", false);
+});
 
 // Render the grid monospace characters onto the canvas
 function renderTerminalCanvas() {
@@ -928,6 +965,30 @@ async function ensurePyodide() {
   isPyodideLoading = true;
   log("Iniciando interpretador Python (Pyodide) via WebAssembly...");
   try {
+    // Garante resiliência carregando dinamicamente de CDNs alternativos se o script falhou ou atrasou no head
+    if (!(window as any).loadPyodide) {
+      log("Buscando recursos WebAssembly (Tentando CDN Principal)...");
+      const cdns = [
+        "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js",
+        "https://cdnjs.cloudflare.com/ajax/libs/pyodide/0.26.4/pyodide.js",
+        "https://unpkg.com/pyodide@0.26.4/pyodide.js"
+      ];
+      let success = false;
+      for (const cdn of cdns) {
+        try {
+          await loadScriptAsync(cdn);
+          success = true;
+          log(`Conexão bem-sucedida! Pacote baixado de: ${cdn}`);
+          break;
+        } catch (e) {
+          console.warn(`Falha na conexão com o CDN: ${cdn}. Tentando backup...`);
+        }
+      }
+      if (!success) {
+        throw new Error("ERRO DE CONEXÃO: Todos os CDNs do Pyodide falharam. Verifique seu sinal de internet e recarregue.");
+      }
+    }
+
     pyodide = await (window as any).loadPyodide({
       indexURL: "https://cdn.jsdelivr.net/pyodide/v0.26.4/full/"
     });
