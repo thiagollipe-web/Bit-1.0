@@ -67,7 +67,7 @@ export interface AssistantResponse {
 function buildUserMessage(body: AssistantRequest): string {
   const prompt = body.prompt?.trim() || 'Ajude a programar em MicroConda.';
   const code = body.currentCode?.trim() || '';
-  const context = code ? `\n\n[Código MicroConda atual]:\n```bit\n${code}\n```` : '';
+  const context = code ? `\n\n[Código MicroConda atual]:\n```micro\n${code}\n```` : '';
 
   switch (body.action) {
     case 'explain':
