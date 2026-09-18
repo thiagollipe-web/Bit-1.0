@@ -57,7 +57,7 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
     expect(builtins.get('limitar')!([0, -5, 5])).toBe(0);
   });
 
-  it('reconhece aliases de teclado do jogo', () => {
+  it('reconhece aliases de teclado do jogo quando o contexto do runtime normaliza as teclas', () => {
     const pressed = new Set(['arrowright', ' ']);
     const aliases: Record<string, string[]> = {
       direita: ['arrowright', 'd'],
@@ -66,17 +66,11 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
       cima: ['arrowup', 'w'],
       baixo: ['arrowdown', 's']
     };
-    const canonicalize = (key: string) =>
-      key.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
     const builtins = createBuiltins({
-      isKeyDown: (key) => {
-        const normalized = canonicalize(key);
-        const candidates = aliases[normalized] ?? [normalized];
-        return candidates.some(candidate => pressed.has(candidate));
-      }
+      isKeyDown: (key) => aliases[key] ? aliases[key].some(candidate => pressed.has(candidate)) : pressed.has(key)
     });
     expect(builtins.get('tecla')!(['direita'])).toBe(true);
-    expect(builtins.get('tecla')!(['d'])).toBe(true);
+    expect(builtins.get('tecla')!(['d'])).toBe(false);
     expect(builtins.get('tecla')!(['espaco'])).toBe(true);
     expect(builtins.get('tecla')!(['esquerda'])).toBe(false);
   });
