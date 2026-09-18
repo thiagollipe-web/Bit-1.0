@@ -634,6 +634,7 @@ const tabCode = document.getElementById('tab-code') as HTMLButtonElement;
 const tabGame = document.getElementById('tab-game') as HTMLButtonElement;
 const editorPane = document.querySelector('.editor-pane') as HTMLDivElement;
 const previewPane = document.querySelector('.preview-pane') as HTMLDivElement;
+const btnFullscreen = document.getElementById('btn-fullscreen') as HTMLButtonElement;
 
 // State Management
 let currentAiAction = 'new_game';
@@ -1095,6 +1096,22 @@ if (tabGame) {
   tabGame.addEventListener('click', () => switchMobileTab('game'));
 }
 
+function toggleFullscreen() {
+  const container = document.querySelector('.canvas-container');
+  if (!container) return;
+  if (!document.fullscreenElement) {
+    container.requestFullscreen().catch((err) => {
+      console.warn(`Erro ao tentar entrar em tela cheia: ${err.message}`);
+    });
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+if (btnFullscreen) {
+  btnFullscreen.addEventListener('click', toggleFullscreen);
+}
+
 function stopCurrentGame() {
   isRunning = false;
   pythonUpdateFunc = null;
@@ -1149,6 +1166,10 @@ window.addEventListener('keydown', (e) => {
   }
 
   const key = e.key.toLowerCase();
+  if (key === 'f') {
+    toggleFullscreen();
+    return;
+  }
   pressedKeys.add(key);
   if (key === 'arrowleft') pressedKeys.add('esquerda');
   if (key === 'arrowright') pressedKeys.add('direita');

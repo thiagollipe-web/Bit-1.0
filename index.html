@@ -292,6 +292,57 @@
       width: 100%;
       height: 100%;
     }
+    /* Fullscreen optimizations & overlay */
+    .btn-fullscreen-overlay {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(7, 13, 9, 0.85);
+      border: 1px solid var(--border);
+      color: var(--primary);
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: bold;
+      padding: 4px 8px;
+      cursor: pointer;
+      z-index: 10;
+      opacity: 0.6;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-radius: 0px;
+    }
+    .canvas-container:hover .btn-fullscreen-overlay {
+      opacity: 1;
+      border-color: var(--primary);
+      box-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    }
+    .canvas-container:fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: none !important;
+      max-height: none !important;
+      border: none !important;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .canvas-container:fullscreen #game-canvas {
+      width: auto !important;
+      height: 100vh !important;
+      max-width: 100vw !important;
+      object-fit: contain;
+    }
+    .canvas-container:fullscreen .btn-fullscreen-overlay {
+      top: 16px;
+      right: 16px;
+      bottom: auto;
+      font-size: 13px;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.8);
+    }
     .virtual-gamepad {
       display: grid;
       grid-template-columns: repeat(3, 44px);
@@ -875,6 +926,7 @@
     <div class="preview-pane mobile-hidden">
       <div class="canvas-container">
         <canvas id="game-canvas" width="320" height="240"></canvas>
+        <button id="btn-fullscreen" class="btn-fullscreen-overlay" title="Alternar Tela Cheia (F)">📺 Tela Cheia</button>
       </div>
       <div class="virtual-gamepad">
         <div></div>
