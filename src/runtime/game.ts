@@ -397,12 +397,21 @@ export class Game {
 
   start(): void {
     if (this.running) return;
-    this.running = true;
+    if (typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') {
+      throw new Error('O runtime do navegador é necessário para iniciar o loop do jogo.');
+    }
 
+    this.running = true;
     const loop = () => {
       if (!this.running) return;
-      this.step();
-      this.animationFrameId = requestAnimationFrame(loop);
+      try {
+        this.step();
+        this.animationFrameId = requestAnimationFrame(loop);
+      } catch (error) {
+        this.running = false;
+        this.animationFrameId = null;
+        throw error;
+      }
     };
 
     this.animationFrameId = requestAnimationFrame(loop);
