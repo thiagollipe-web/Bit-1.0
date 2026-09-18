@@ -1145,7 +1145,7 @@ if (tabGame) {
 }
 
 function toggleFullscreen() {
-  const container = document.querySelector('.canvas-container');
+  const container = document.querySelector('.preview-pane');
   if (!container) return;
   if (!document.fullscreenElement) {
     container.requestFullscreen().catch((err) => {
