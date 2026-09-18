@@ -414,6 +414,13 @@ export class Game {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    this.keysDown.clear();
+    this.input.up = false;
+    this.input.down = false;
+    this.input.left = false;
+    this.input.right = false;
+    this.input.action = false;
+    this.input.touchActive = false;
     this.cleanupListeners();
   }
 }
