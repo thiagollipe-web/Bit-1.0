@@ -86,8 +86,8 @@ describe('Interpreter', () => {
 
 describe('Interpreter semantics', () => {
   it('preserves zero in numeric operations', () => {
-    const ast = parse(tokenize('a recebe 0
-b recebe a + 5'));
+    const ast = parse(tokenize(`a recebe 0
+b recebe a + 5`));
     const interpreter = new Interpreter(createBuiltins());
     interpreter.executeBlock(ast.globalStatements, interpreter.globalEnv);
     expect(interpreter.globalEnv.get('b')).toBe(5);
