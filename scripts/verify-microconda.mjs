@@ -14,7 +14,8 @@ const REQUIRED = [
   'examples/nave.micro','examples/breakout.micro','examples/tetris.micro',
   'tests/lexer.test.ts','tests/parser.test.ts','tests/builtins.test.ts',
   'tests/interpreter.test.ts','tests/runtime.test.ts','tests/examples.test.ts',
-  'tests/library.test.ts'
+  'tests/library.test.ts',
+  'examples/geometric_run.micro'
 ];
 
 let ok=true;
