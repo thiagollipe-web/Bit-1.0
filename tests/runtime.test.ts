@@ -266,13 +266,16 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     const raf = globalThis.requestAnimationFrame;
     const cancel = globalThis.cancelAnimationFrame;
     const originalWindow = (globalThis as { window?: unknown }).window;
+    let pendingFrame: number | null = null;
     const originalLogs = game.logs.length;
 
     (globalThis as { requestAnimationFrame?: typeof requestAnimationFrame }).requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      const id = 1;
+      pendingFrame = id;
       cb(0);
-      return 1;
+      return id;
     }) as typeof requestAnimationFrame;
-    (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = (() => {}) as typeof cancelAnimationFrame;
+    (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = ((id: number) => { pendingFrame = id; }) as typeof cancelAnimationFrame;
     (globalThis as { window?: unknown }).window = {};
 
     game.start();
@@ -280,6 +283,7 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     expect(game.running).toBe(false);
     expect(game.animationFrameId).toBeNull();
     expect(game.logs.length).toBeGreaterThan(originalLogs);
+    expect(pendingFrame).toBe(1);
 
     (globalThis as { requestAnimationFrame?: typeof requestAnimationFrame }).requestAnimationFrame = raf;
     (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = cancel;
