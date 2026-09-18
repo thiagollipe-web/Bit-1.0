@@ -214,6 +214,5 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     game.step();
     expect(game.actors.get('observador')!.x).toBe(15);
   });
-  });
 
 });
