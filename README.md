@@ -1,30 +1,37 @@
-# BIT — Linguagem Brasileira para Criação de Jogos 2D
+# MicroConda
 
-BIT é uma linguagem textual em português para criação de jogos 2D. Os programas usam a extensão .bit e são executados pelo runtime TypeScript no navegador.
+MicroConda é um ambiente educacional, mobile-first e executado no navegador para criação de jogos 2D com uma linguagem textual em português.
 
-## Arquitetura
+O repositório reúne o compilador da linguagem, interpretador, runtime de jogos, IDE, biblioteca de comandos, exemplos e testes.
 
-- Lexer: src/lexer.ts
-- Parser/AST: src/parser.ts
-- Interpretador: src/interp/interpreter.ts
-- Biblioteca padrão: src/interp/builtins.ts
-- Runtime: src/runtime/
-- IDE: index.html + src/main.ts
-- Exemplos: examples/
-- Testes: tests/
-- Referência: docs/BIT-LANGUAGE-REFERENCE.md
+## Estrutura
 
-## Exemplo
+- Lexer: `src/lexer.ts`
+- Parser/AST: `src/parser.ts`
+- Interpretador: `src/interp/interpreter.ts`
+- Biblioteca padrão: `src/interp/builtins.ts`
+- Runtime: `src/runtime/`
+- IDE: `index.html` + `src/main.ts`
+- Biblioteca: `src/library-data.ts`
+- Exemplos: `examples/`
+- Testes: `tests/`
+- Referência: `docs/MICROCONDA-LANGUAGE-REFERENCE.md`
 
-```bit
-tela 160x120
+## Primeiro programa
+
+```microconda
+tela 40x25
 fundo preto
 
 ator Jogador
-  desenho quadrado 8, verde
-  posição 20, 20
+  desenho quadrado 1, verde
+  posição 10, 12
   controlado por setas
   limita à tela
+
+  quando atualiza:
+    diga "MicroConda em execução"
+  fim
 fim
 ```
 
@@ -38,4 +45,8 @@ npm run build
 npm run verify
 ```
 
-A série 1.x prioriza simplicidade para iniciantes, mensagens de erro claras e uma engine pequena para jogos retro.
+## Princípios
+
+MicroConda prioriza uma sintaxe em português, feedback de erro explícito, execução determinística dentro de limites, funcionamento local no navegador e uma experiência simples para iniciantes.
+
+A extensão de projeto usada pelo Studio é `.micro`.
