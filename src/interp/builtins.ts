@@ -84,7 +84,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
     return getTime();
   };
 
-  // Funções matemáticas e utilitárias adicionais (BIT 1.3)
+  // Funções matemáticas e utilitárias adicionais
   const limitarFn: Builtin = (args: unknown[]): number => {
     const val = Number(args[0]) || 0;
     const min = Number(args[1]) || 0;
@@ -138,7 +138,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
   // Persistência local no navegador (gravação de recordes/estados)
   const gravarFn: Builtin = (args: unknown[]): boolean => {
     try {
-      const key = 'bit_storage_' + String(args[0] ?? 'padrao');
+      const key = 'microconda_storage_' + String(args[0] ?? 'padrao');
       const val = JSON.stringify(args[1]);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(key, val);
@@ -152,7 +152,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
 
   const carregarFn: Builtin = (args: unknown[]): unknown => {
     try {
-      const key = 'bit_storage_' + String(args[0] ?? 'padrao');
+      const key = 'microconda_storage_' + String(args[0] ?? 'padrao');
       const defVal = args[1];
       if (typeof localStorage !== 'undefined') {
         const item = localStorage.getItem(key);
@@ -194,7 +194,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
     ['teto', tetoFn],
     ['arredonda', arredondaFn],
     ['tempo', tempoFn],
-    // Novas em BIT 1.3
+    // Funções utilitárias MicroConda
     ['limitar', limitarFn],
     ['clamp', limitarFn],
     ['interpolar', interpolarFn],
