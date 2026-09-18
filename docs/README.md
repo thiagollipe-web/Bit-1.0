@@ -1,6 +1,6 @@
-# BIT Documentation
+# MicroConda Documentation
 
-A documentação canônica da linguagem está em [BIT-LANGUAGE-REFERENCE.md](./BIT-LANGUAGE-REFERENCE.md).
+A documentação canônica da linguagem está em [MicroConda-LANGUAGE-REFERENCE.md](./MicroConda-LANGUAGE-REFERENCE.md).
 
 A gramática declarativa usada por ferramentas está em [../src/grammar.ts](../src/grammar.ts).
 
@@ -10,8 +10,8 @@ Exemplos executáveis ficam em [../examples](../examples).
 
 ## Modelo de desenvolvimento
 
-1. Criar um arquivo `jogo.bit` em qualquer editor de texto simples.
-2. Validar o código com o lexer/parser da BIT.
+1. Criar um arquivo `jogo.micro` em qualquer editor de texto simples.
+2. Validar o código com o lexer/parser da MicroConda.
 3. Executar no runtime.
 4. Empacotar o projeto somente quando a linguagem estiver estável.
 
