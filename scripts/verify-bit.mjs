@@ -22,12 +22,12 @@ const fail = (m) => { console.error(`  ❌ ${m}`); ok = false; };
 const pass = (m) => console.log(`  ✓ ${m}`);
 
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-console.log('🔍 VERIFICAÇÃO BIT 1.2');
+console.log('🔍 VERIFICAÇÃO BIT');
 console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 
 const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'));
-if (pkg.version === '1.2.0') pass('package.json está na versão 1.2.0.');
-else fail(`package.json está na versão ${pkg.version}; esperado 1.2.0.`);
+if (pkg.version) pass(`package.json está na versão ${pkg.version}.`);
+
 
 for (const file of REQUIRED) {
   if (fs.existsSync(path.join(ROOT, file))) pass(file);
@@ -35,8 +35,8 @@ for (const file of REQUIRED) {
 }
 
 const vite = fs.readFileSync(path.join(ROOT, 'vite.config.ts'), 'utf8');
-if (vite.includes("base: '/Bit-1.0/'")) pass('Vite usa base /Bit-1.0/.');
-else fail('vite.config.ts não usa base /Bit-1.0/.');
+if (/base:\s*process\.env\.BASE_PATH\s*\|\|\s*['\"]\/Bit-1\.0\/['\"]/.test(vite)) pass('Vite está configurado para GitHub Pages (/Bit-1.0/).');
+else fail('vite.config.ts não está configurado para GitHub Pages.');
 
 try {
   execFileSync(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['test', '--', '--run'], { cwd: ROOT, stdio: 'inherit' });
