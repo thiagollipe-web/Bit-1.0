@@ -1,4 +1,4 @@
-name: CI BIT
+name: CI MicroConda
 
 on:
   push:
@@ -36,7 +36,7 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Verify BIT
+      - name: Verify MicroConda
         run: npm run verify
 
       - name: Upload Pages artifact
