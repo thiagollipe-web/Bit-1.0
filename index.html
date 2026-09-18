@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>PYTHON MS-DOS 1.2 — Console Retro & ASCII Art Games</title>
-  <meta name="description" content="Console retro e compilador de jogos textuais criados inteiramente em Python com ASCII Art." />
-  <meta property="og:title" content="PYTHON MS-DOS 1.2 — Console Retro & ASCII Art Games" />
-  <meta property="og:description" content="Console retro e compilador de jogos textuais criados inteiramente em Python com ASCII Art." />
+  <title>Bit 1.0 — Console Retro & ASCII Art Games</title>
+  <meta name="description" content="Ambiente educacional para criação de jogos 2D com a linguagem Bit." />
+  <meta property="og:title" content="Bit 1.0 — Console Retro & ASCII Art Games" />
+  <meta property="og:description" content="Console retro e compilador de jogos textuais criados inteiramente  em Bit com ASCII Art." />
   <meta name="theme-color" content="#030604" />
   <link rel="manifest" href="manifest.webmanifest" />
   
-  <!-- Carga do Motor de Python (Pyodide) para execução no navegador -->
+  <!-- Carga do Motor  de Bit (Pyodide) para execução no navegador -->
   <script src="https://cdn.jsdelivr.net/pyodide/v0.26.4/full/pyodide.js"></script>
 
   <style>
@@ -901,18 +901,18 @@
       <span class="brand-tag">v1.2.0</span>
     </div>
     <div class="header-actions">
-      <button id="btn-new" class="btn-new" title="Criar um novo jogo em Python">✨ + Novo Programa</button>
+      <button id="btn-new" class="btn-new" title="Criar um novo jogo  em Bit">✨ + Novo Programa</button>
       <button id="btn-export" class="btn-lib" style="background: #1e293b; border-color: #334155; color: #f8fafc; font-weight: 500;" title="Exportar código para um arquivo .py">📥 Salvar .py</button>
       <button id="btn-import" class="btn-lib" style="background: #1e293b; border-color: #334155; color: #f8fafc; font-weight: 500;" title="Importar código de um arquivo .py">📤 Abrir .py</button>
       <input type="file" id="file-import" accept=".py" style="display: none;" />
-      <button id="btn-library" class="btn-lib" title="Consultar comandos e referências da biblioteca game do Python">📚 Biblioteca</button>
-      <button id="btn-ai" class="btn-ai" title="Assistente de IA para gerar jogos, tirar dúvidas e programar em Python retro">🤖 Assistente IA</button>
+      <button id="btn-library" class="btn-lib" title="Consultar comandos e referências da biblioteca do Bit">📚 Biblioteca</button>
+      <button id="btn-ai" class="btn-ai" title="Assistente de IA para gerar jogos, tirar dúvidas e programar  em Bit retro">🤖 Assistente IA</button>
       <select id="example-select">
         <optgroup label="Seu Projeto">
           <option value="meu_programa">★ Meu Programa</option>
         </optgroup>
         <optgroup label="Exemplos Prontos">
-          <option value="hello_world" selected>⚡ C:\> Olá, Mundo!</option>
+          <option value="hello_world" selected>⚡ BIT: Olá, Mundo!</option>
           <option value="interactive_move">🎮 Movimentação ASCII</option>
           <option value="pong">🎾 MS-DOS Pong</option>
           <option value="space_invaders">👾 Space Invaders</option>
@@ -973,7 +973,7 @@
   <div id="new-modal" class="modal-overlay hidden">
     <div class="modal-card">
       <div class="modal-header">
-        <div class="modal-title">Novo Programa Python DOS</div>
+        <div class="modal-title">Novo Programa Bit</div>
         <button id="btn-modal-close" class="modal-close">✕</button>
       </div>
       <div class="form-group">
@@ -1024,7 +1024,7 @@
   <div id="library-modal" class="modal-overlay hidden">
     <div class="modal-card modal-card-library">
       <div class="modal-header">
-        <div class="modal-title">📚 Biblioteca PYTHON DOS</div>
+        <div class="modal-title">📚 Biblioteca BIT</div>
         <button id="btn-lib-close" class="modal-close">✕</button>
       </div>
       
@@ -1092,7 +1092,7 @@
         <div class="ai-response-header">
           <span style="font-weight: 600; font-size: 13px; color: var(--accent);">Resposta da IA:</span>
           <div style="display: flex; gap: 6px; flex-wrap: wrap;">
-            <button id="btn-ai-copy" class="btn-lib-action" title="Copiar código Python gerado">📋 Copiar Código</button>
+            <button id="btn-ai-copy" class="btn-lib-action" title="Copiar código Bit gerado">📋 Copiar Código</button>
             <button id="btn-ai-insert" class="btn-lib-action" title="Inserir código gerado na posição do cursor">➕ Inserir no Editor</button>
             <button id="btn-ai-replace" class="btn-lib-action btn-run" title="Substituir todo o código do editor e rodar o jogo">▶ Substituir & Rodar</button>
           </div>
