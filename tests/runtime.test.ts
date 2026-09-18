@@ -195,4 +195,25 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     expect(game.interpreter.currentActor).toBeUndefined();
   });
 
+  it('aceita propriedades de outro ator em eventos do ator atual', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Alvo
+        desenho quadrado 2, verde
+        posição 10, 10
+      fim
+      ator Observador
+        desenho quadrado 2, branco
+        posição 20, 10
+        quando atualiza:
+          x recebe Alvo.x + 5
+        fim
+      fim
+    `));
+    const game = new Game(ast);
+    game.step();
+    expect(game.actors.get('observador')!.x).toBe(15);
+  });
+  });
+
 });
