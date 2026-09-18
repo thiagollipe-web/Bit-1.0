@@ -1053,6 +1053,11 @@ async function runCode() {
 
 // Keyboards bindings
 window.addEventListener('keydown', (e) => {
+  // Ignora se o usuário estiver digitando no editor de código ou em algum campo de texto
+  if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+    return;
+  }
+
   const key = e.key.toLowerCase();
   pressedKeys.add(key);
   if (key === 'arrowleft') pressedKeys.add('esquerda');
@@ -1060,9 +1065,20 @@ window.addEventListener('keydown', (e) => {
   if (key === 'arrowup') pressedKeys.add('cima');
   if (key === 'arrowdown') pressedKeys.add('baixo');
   if (key === ' ') pressedKeys.add('espaco');
+
+  // Evita o comportamento padrão de rolagem da página ao jogar com as setas, espaço ou enter
+  const gameKeys = ['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' ', 'enter', 'w', 'a', 's', 'd'];
+  if (isRunning && gameKeys.includes(key)) {
+    e.preventDefault();
+  }
 });
 
 window.addEventListener('keyup', (e) => {
+  // Ignora se o usuário estiver digitando no editor de código ou em algum campo de texto
+  if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') {
+    return;
+  }
+
   const key = e.key.toLowerCase();
   pressedKeys.delete(key);
   if (key === 'arrowleft') pressedKeys.delete('esquerda');

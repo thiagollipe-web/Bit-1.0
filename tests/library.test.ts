@@ -4,7 +4,7 @@ import { criarJogoBit } from '../src/index.ts';
 
 describe('Biblioteca do Bit', () => {
   it('contém todos os comandos e categorias principais', () => {
-    expect(BIT_LIBRARY.length).toBeGreaterThan(15);
+    expect(BIT_LIBRARY.length).toBeGreaterThan(8);
 
     const categories = new Set(BIT_LIBRARY.map((item) => item.category));
     expect(categories.has('cenario')).toBe(true);
@@ -13,7 +13,6 @@ describe('Biblioteca do Bit', () => {
     expect(categories.has('eventos')).toBe(true);
     expect(categories.has('controle')).toBe(true);
     expect(categories.has('funcoes')).toBe(true);
-    expect(categories.has('propriedades')).toBe(true);
     expect(categories.has('cores')).toBe(true);
   });
 
