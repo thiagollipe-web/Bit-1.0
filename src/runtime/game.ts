@@ -53,7 +53,20 @@ export class Game {
 
     // Set up Builtin Context with real mouse and touch tracking
     const builtinCtx: BuiltinContext = {
-      isKeyDown: (key) => this.keysDown.has(key.toLowerCase()),
+      isKeyDown: (key) => {
+        const normalized = key.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        const aliases: Record<string, string[]> = {
+          esquerda: ['arrowleft', 'a'],
+          direita: ['arrowright', 'd'],
+          cima: ['arrowup', 'w'],
+          baixo: ['arrowdown', 's'],
+          espaco: [' ', 'space'],
+          barra_de_espaco: [' ', 'space'],
+          enter: ['enter']
+        };
+        const candidates = aliases[normalized] ?? [normalized];
+        return candidates.some(candidate => this.keysDown.has(candidate));
+      },
       isTouchActive: () => this.input.touchActive,
       getMousePos: () => ({
         x: this.input.touchX ?? 0,
@@ -190,17 +203,27 @@ export class Game {
       this.addTrackedListener(window, 'keyup', handleWinKeyUp);
     }
 
-    // Execute global statements
-    this.interpreter.executeBlock(ast.globalStatements, this.interpreter.globalEnv);
+    try {
+      // Execute global statements
+      this.interpreter.resetBudget();
+      this.interpreter.executeBlock(ast.globalStatements, this.interpreter.globalEnv);
 
-    // Execute initial statements inside each actor declaration
-    for (const actorDecl of ast.actors) {
-      const actor = this.actors.get(actorDecl.name.toLowerCase());
-      if (actor && actorDecl.statements.length > 0) {
-        this.interpreter.currentActor = actor;
-        this.interpreter.executeBlock(actorDecl.statements, this.interpreter.globalEnv);
-        this.interpreter.currentActor = undefined;
+      // Execute initial statements inside each actor declaration
+      for (const actorDecl of ast.actors) {
+        const actor = this.actors.get(actorDecl.name.toLowerCase());
+        if (actor && actorDecl.statements.length > 0) {
+          this.interpreter.currentActor = actor;
+          try {
+            this.interpreter.executeBlock(actorDecl.statements, this.interpreter.globalEnv);
+          } finally {
+            this.interpreter.currentActor = undefined;
+          }
+        }
       }
+    } catch (error) {
+      this.interpreter.currentActor = undefined;
+      this.cleanupListeners();
+      throw error;
     }
   }
 
@@ -248,6 +271,7 @@ export class Game {
   }
 
   step(): void {
+    this.interpreter.resetBudget();
     const { screenWidth, screenHeight } = this.ast;
 
     // 1. Update physics and positions of actors
@@ -287,11 +311,16 @@ export class Game {
     const decl = this.ast.actors.find(a => a.name.toLowerCase() === actor.name.toLowerCase());
     if (!decl) return;
 
-    const handler = decl.events[eventKey] || decl.events[eventKey.toLowerCase()];
+    const normalizedKey = eventKey.toLowerCase();
+    const exactKey = Object.keys(decl.events).find(key => key.toLowerCase() === normalizedKey);
+    const handler = exactKey ? decl.events[exactKey] : undefined;
     if (handler && handler.length > 0) {
       this.interpreter.currentActor = actor;
-      this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
-      this.interpreter.currentActor = undefined;
+      try {
+        this.interpreter.executeBlock(handler, this.interpreter.globalEnv);
+      } finally {
+        this.interpreter.currentActor = undefined;
+      }
     }
   }
 
@@ -387,12 +416,24 @@ export class Game {
 
   start(): void {
     if (this.running) return;
-    this.running = true;
+    if (typeof window === 'undefined' || typeof requestAnimationFrame !== 'function') {
+      throw new Error('O runtime do navegador é necessário para iniciar o loop do jogo.');
+    }
 
+    this.running = true;
     const loop = () => {
       if (!this.running) return;
-      this.step();
-      this.animationFrameId = requestAnimationFrame(loop);
+      try {
+        this.step();
+      } catch (error) {
+        this.running = false;
+        this.animationFrameId = null;
+        this.logs.push(error instanceof Error ? error.message : String(error));
+        return;
+      }
+      if (this.running) {
+        this.animationFrameId = requestAnimationFrame(loop);
+      }
     };
 
     this.animationFrameId = requestAnimationFrame(loop);
@@ -404,6 +445,13 @@ export class Game {
       cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
+    this.keysDown.clear();
+    this.input.up = false;
+    this.input.down = false;
+    this.input.left = false;
+    this.input.right = false;
+    this.input.action = false;
+    this.input.touchActive = false;
     this.cleanupListeners();
   }
 }

@@ -49,6 +49,32 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
     expect(dist1).toBe(dist2);
   });
 
+  it('preserva valores zero nas conversões numéricas e no lerp', () => {
+    const builtins = createBuiltins();
+    expect(builtins.get('para_numero')!([0])).toBe(0);
+    expect(builtins.get('interpolar')!([10, 20, 0])).toBe(10);
+    expect(builtins.get('potencia')!([0, 2])).toBe(0);
+    expect(builtins.get('limitar')!([0, -5, 5])).toBe(0);
+  });
+
+  it('reconhece aliases de teclado do jogo quando o contexto do runtime normaliza as teclas', () => {
+    const pressed = new Set(['arrowright', ' ']);
+    const aliases: Record<string, string[]> = {
+      direita: ['arrowright', 'd'],
+      esquerda: ['arrowleft', 'a'],
+      espaco: [' ', 'space'],
+      cima: ['arrowup', 'w'],
+      baixo: ['arrowdown', 's']
+    };
+    const builtins = createBuiltins({
+      isKeyDown: (key) => aliases[key] ? aliases[key].some(candidate => pressed.has(candidate)) : pressed.has(key)
+    });
+    expect(builtins.get('tecla')!(['direita'])).toBe(true);
+    expect(builtins.get('tecla')!(['d'])).toBe(false);
+    expect(builtins.get('tecla')!(['espaco'])).toBe(true);
+    expect(builtins.get('tecla')!(['esquerda'])).toBe(false);
+  });
+
   it('funções matemáticas retornam number', () => {
     const builtins = createBuiltins();
 

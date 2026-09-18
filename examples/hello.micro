@@ -1,4 +1,4 @@
 tela 40x25
 fundo azul
-nome recebe "BIT"
+nome recebe "MicroConda"
 diga "Olá, " + nome

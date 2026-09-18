@@ -70,10 +70,18 @@ export class Actor {
       this.y += this.vy;
     }
 
-    // Touch control if mobile touch is active
-    if (this.controlledBy === 'toque' && input.touchActive && input.touchX !== undefined && input.touchY !== undefined) {
-      this.x = input.touchX - this.width / 2;
-      this.y = input.touchY - this.height / 2;
+    // Pointer control for touch and mouse
+    if (
+      (this.controlledBy === 'toque' || this.controlledBy === 'mouse') &&
+      input.touchX !== undefined &&
+      input.touchY !== undefined
+    ) {
+      if (this.controlledBy === 'toque' && !input.touchActive) {
+        // Keep the last position when the touch is released.
+      } else if (this.controlledBy === 'mouse' || input.touchActive) {
+        this.x = input.touchX - this.width / 2;
+        this.y = input.touchY - this.height / 2;
+      }
     }
 
     // Bounce logic - strictly respects which borders are configured to bounce!

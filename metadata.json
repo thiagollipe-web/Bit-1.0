@@ -1,6 +1,6 @@
 {
-  "name": "PYTHON MS-DOS 1.2",
-  "description": "Console retro e compilador de jogos textuais criados inteiramente em Python com ASCII Art.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "name": "MicroConda Studio",
+  "description": "IDE educacional e runtime para criação de jogos 2D com a linguagem MicroConda.",
+  "version": "1.0.0",
+  "requestFramePermissions": []
 }

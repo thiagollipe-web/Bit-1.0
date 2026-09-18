@@ -39,7 +39,7 @@ function aiAssistantPlugin(): Plugin {
 
 export default defineConfig({
   plugins: [aiAssistantPlugin()],
-  // Base path: configured for root serving in AI Studio while preserving base: '/Bit-1.0/' for GitHub Pages
+  // Relative base keeps the Studio portable in root hosting and GitHub Pages subpaths
   base: process.env.BASE_PATH || './',
   build: {
     target: 'es2022',

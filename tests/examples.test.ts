@@ -5,9 +5,29 @@ import { tokenize } from '../src/lexer.ts';
 import { parse } from '../src/parser.ts';
 import { Game } from '../src/runtime/game.ts';
 
-describe('Exemplos da Linguagem Bit', () => {
-  it('faz parse e executa steps de examples/pong.bit', () => {
-    const filePath = path.resolve(process.cwd(), 'examples/pong.bit');
+describe('Exemplos da Linguagem MicroConda', () => {
+  const EXAMPLE_FILES = [
+    'hello.micro',
+    'movement.micro',
+    'pong.micro',
+    'nave.micro',
+    'breakout.micro',
+    'tetris.micro',
+    'geometric_run.micro'
+  ];
+
+  it.each(EXAMPLE_FILES)('faz smoke test de 60 frames para %s sem erro', (filename) => {
+    const filePath = path.resolve(process.cwd(), 'examples', filename);
+    const content = fs.readFileSync(filePath, 'utf-8');
+    const ast = parse(tokenize(content));
+    const game = new Game(ast);
+    for (let i = 0; i < 60; i++) {
+      game.step();
+    }
+    expect(game.interpreter.currentActor).toBeUndefined();
+  });
+  it('faz parse e executa steps de examples/pong.micro', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/pong.micro');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const tokens = tokenize(content);
@@ -27,8 +47,8 @@ describe('Exemplos da Linguagem Bit', () => {
     }
   });
 
-  it('faz parse e executa steps de examples/nave.bit', () => {
-    const filePath = path.resolve(process.cwd(), 'examples/nave.bit');
+  it('faz parse e executa steps de examples/nave.micro', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/nave.micro');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const tokens = tokenize(content);
@@ -41,8 +61,8 @@ describe('Exemplos da Linguagem Bit', () => {
     }
   });
 
-  it('faz parse e executa steps de examples/breakout.bit', () => {
-    const filePath = path.resolve(process.cwd(), 'examples/breakout.bit');
+  it('faz parse e executa steps de examples/breakout.micro', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/breakout.micro');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const tokens = tokenize(content);
@@ -55,8 +75,8 @@ describe('Exemplos da Linguagem Bit', () => {
     }
   });
 
-  it('faz parse e executa steps de examples/tetris.bit', () => {
-    const filePath = path.resolve(process.cwd(), 'examples/tetris.bit');
+  it('faz parse e executa steps de examples/tetris.micro', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/tetris.micro');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const tokens = tokenize(content);
@@ -69,8 +89,8 @@ describe('Exemplos da Linguagem Bit', () => {
     }
   });
 
-  it('faz parse e executa steps de examples/geometric_run.bit', () => {
-    const filePath = path.resolve(process.cwd(), 'examples/geometric_run.bit');
+  it('faz parse e executa steps de examples/geometric_run.micro', () => {
+    const filePath = path.resolve(process.cwd(), 'examples/geometric_run.micro');
     const content = fs.readFileSync(filePath, 'utf-8');
 
     const tokens = tokenize(content);

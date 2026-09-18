@@ -116,4 +116,201 @@ describe('Runtime - Atores, Quique e Pontuação de Pong', () => {
     game.step();
     expect(game.interpreter.globalEnv.get('bateu')).toBe(1);
   });
+  it('move ator controlado pelas setas sem escalar velocidade por frame', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Jogador
+        desenho quadrado 2, verde
+        posição 10, 10
+        controlado por setas
+        limita à tela
+      fim
+    `));
+    const game = new Game(ast);
+    const jogador = game.actors.get('jogador')!;
+    game.handleKeyDown('ArrowRight');
+    game.step();
+    expect(jogador.x).toBe(12);
+    game.step();
+    expect(jogador.x).toBe(14);
+    game.handleKeyUp('ArrowRight');
+    game.step();
+    expect(jogador.x).toBe(14);
+  });
+
+  it('controle por toque posiciona o ator no ponto lógico do toque', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Jogador
+        desenho quadrado 4, verde
+        posição 5, 5
+        controlado por toque
+        limita à tela
+      fim
+    `));
+    const game = new Game(ast);
+    const jogador = game.actors.get('jogador')!;
+    game.handleTouch(20, 12, true);
+    game.step();
+    expect(jogador.x).toBe(18);
+    expect(jogador.y).toBe(10);
+    game.handleTouch(undefined, undefined, false);
+    game.step();
+    expect(jogador.x).toBe(18);
+    expect(jogador.y).toBe(10);
+  });
+
+  it('mouse controla o ator pelo ponto lógico informado', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Mira
+        desenho quadrado 4, azul
+        posição 5, 5
+        controlado por mouse
+        limita à tela
+      fim
+    `));
+    const game = new Game(ast);
+    const mira = game.actors.get('mira')!;
+    game.handleTouch(30, 20, false);
+    game.step();
+    expect(mira.x).toBe(28);
+    expect(mira.y).toBe(18);
+  });
+
+
+  it('não deixa listeners registrados quando a construção do jogo falha', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator A
+        desenho quadrado 2, branco
+        posição 10, 10
+        desconhecida
+      fim
+    `));
+
+    const listeners = new Map<string, number>();
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    const originalDocument = (globalThis as { document?: unknown }).document;
+
+    const fakeTarget = {
+      addEventListener(type: string) {
+        listeners.set(type, (listeners.get(type) ?? 0) + 1);
+      },
+      removeEventListener(type: string) {
+        listeners.set(type, Math.max(0, (listeners.get(type) ?? 0) - 1));
+      }
+    };
+
+    (globalThis as { window?: unknown }).window = fakeTarget;
+    (globalThis as { document?: unknown }).document = {
+      activeElement: null
+    };
+
+    expect(() => new Game(ast)).toThrow();
+
+    expect([...listeners.values()].every(count => count === 0)).toBe(true);
+
+    (globalThis as { window?: unknown }).window = originalWindow;
+    (globalThis as { document?: unknown }).document = originalDocument;
+  });
+
+  it('limpa o input ao parar o jogo para evitar tecla travada ao reiniciar', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Jogador
+        desenho quadrado 2, verde
+        posição 10, 10
+        controlado por setas
+        limita à tela
+      fim
+    `));
+    const game = new Game(ast);
+    game.handleKeyDown('ArrowRight');
+    game.handleTouch(20, 10, true);
+    game.stop();
+    expect(game.keysDown.size).toBe(0);
+    expect(game.input.right).toBe(false);
+    expect(game.input.touchActive).toBe(false);
+  });
+
+  it('restaura currentActor mesmo quando um evento lança erro', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator A
+        desenho quadrado 4, branco
+        posição 10, 10
+        quando atualiza:
+          desconhecida
+        fim
+      fim
+    `));
+    const game = new Game(ast);
+    expect(() => game.step()).toThrow();
+    expect(game.interpreter.currentActor).toBeUndefined();
+  });
+
+
+  it('encerra o loop com segurança quando um evento de frame lança erro', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator A
+        desenho quadrado 2, branco
+        posição 10, 10
+        quando atualiza:
+          desconhecida
+        fim
+      fim
+    `));
+    const game = new Game(ast);
+    const raf = globalThis.requestAnimationFrame;
+    const cancel = globalThis.cancelAnimationFrame;
+    const originalWindow = (globalThis as { window?: unknown }).window;
+    let pendingFrame: number | null = null;
+    const originalLogs = game.logs.length;
+
+    (globalThis as { requestAnimationFrame?: typeof requestAnimationFrame }).requestAnimationFrame = ((cb: FrameRequestCallback) => {
+      const id = 1;
+      pendingFrame = id;
+      cb(0);
+      return id;
+    }) as typeof requestAnimationFrame;
+    (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = ((id: number) => { pendingFrame = id; }) as typeof cancelAnimationFrame;
+    (globalThis as { window?: unknown }).window = {
+      addEventListener() {},
+      removeEventListener() {}
+    };
+
+    game.start();
+
+    expect(game.running).toBe(false);
+    expect(game.animationFrameId).toBeNull();
+    expect(game.logs.length).toBeGreaterThan(originalLogs);
+    expect(pendingFrame).toBe(1);
+
+    (globalThis as { requestAnimationFrame?: typeof requestAnimationFrame }).requestAnimationFrame = raf;
+    (globalThis as { cancelAnimationFrame?: typeof cancelAnimationFrame }).cancelAnimationFrame = cancel;
+    (globalThis as { window?: unknown }).window = originalWindow;
+  });
+
+  it('aceita propriedades de outro ator em eventos do ator atual', () => {
+    const ast = parse(tokenize(`
+      tela 40x25
+      ator Alvo
+        desenho quadrado 2, verde
+        posição 10, 10
+      fim
+      ator Observador
+        desenho quadrado 2, branco
+        posição 20, 10
+        quando atualiza:
+          x recebe Alvo.x + 5
+        fim
+      fim
+    `));
+    const game = new Game(ast);
+    game.step();
+    expect(game.actors.get('observador')!.x).toBe(15);
+  });
+
 });

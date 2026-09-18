@@ -1,4 +1,4 @@
-import { playBitSound, playBeep } from '../runtime/audio.ts';
+import { playMicroCondaSound, playBeep } from '../runtime/audio.ts';
 
 export type Builtin = (args: unknown[]) => unknown;
 
@@ -19,7 +19,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
   const checkCollision = context?.checkCollision ?? (() => false);
   const getTime = context?.getTime ?? (() => performance.now() / 1000);
   const getMousePos = context?.getMousePos ?? (() => ({ x: 0, y: 0, pressed: false }));
-  const soundPlayer = context?.playSound ?? ((name: string) => playBitSound(name));
+  const soundPlayer = context?.playSound ?? ((name: string) => playMicroCondaSound(name));
   const beepPlayer = context?.playBeepSound ?? ((freq: number, dur: number) => playBeep(freq, dur));
 
   const aleatorioFn: Builtin = (args: unknown[]): number => {
@@ -84,24 +84,24 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
     return getTime();
   };
 
-  // Funções matemáticas e utilitárias adicionais (BIT 1.3)
+  // Funções matemáticas e utilitárias adicionais
   const limitarFn: Builtin = (args: unknown[]): number => {
     const val = Number(args[0]) || 0;
-    const min = Number(args[1]) || 0;
-    const max = Number(args[2]) || 0;
+    const min = Number(args[1]);
+    const max = Number(args[2]);
     return Math.min(Math.max(val, min), max);
   };
 
   const interpolarFn: Builtin = (args: unknown[]): number => {
     const a = Number(args[0]) || 0;
     const b = Number(args[1]) || 0;
-    const t = Number(args[2]) || 0;
+    const t = Number(args[2]);
     return a + (b - a) * Math.min(Math.max(t, 0), 1);
   };
 
   const potenciaFn: Builtin = (args: unknown[]): number => {
-    const base = Number(args[0]) || 0;
-    const exp = Number(args[1]) || 0;
+    const base = Number(args[0]);
+    const exp = Number(args[1]);
     return Math.pow(base, exp);
   };
 
@@ -132,13 +132,13 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
   };
 
   const paraNumeroFn: Builtin = (args: unknown[]): number => {
-    return Number(args[0]) || 0;
+    return Number(args[0]);
   };
 
   // Persistência local no navegador (gravação de recordes/estados)
   const gravarFn: Builtin = (args: unknown[]): boolean => {
     try {
-      const key = 'bit_storage_' + String(args[0] ?? 'padrao');
+      const key = 'microconda_storage_' + String(args[0] ?? 'padrao');
       const val = JSON.stringify(args[1]);
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem(key, val);
@@ -152,7 +152,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
 
   const carregarFn: Builtin = (args: unknown[]): unknown => {
     try {
-      const key = 'bit_storage_' + String(args[0] ?? 'padrao');
+      const key = 'microconda_storage_' + String(args[0] ?? 'padrao');
       const defVal = args[1];
       if (typeof localStorage !== 'undefined') {
         const item = localStorage.getItem(key);
@@ -194,7 +194,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
     ['teto', tetoFn],
     ['arredonda', arredondaFn],
     ['tempo', tempoFn],
-    // Novas em BIT 1.3
+    // Funções utilitárias MicroConda
     ['limitar', limitarFn],
     ['clamp', limitarFn],
     ['interpolar', interpolarFn],

@@ -645,7 +645,7 @@ export function parse(tokens: Token[]): ProgramAST {
           continue;
         }
 
-        // Statements or events inside actor
+            // Statements or events inside actor
         const stmt = parseStmt();
         if (stmt.kind === 'event') {
           const key = stmt.event === 'colide' && stmt.arg ? `colide:${stmt.arg}` : stmt.event;
