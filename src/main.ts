@@ -941,6 +941,7 @@ async function ensurePyodide() {
     await pyodide.runPythonAsync(`
 import sys
 import types
+from pyodide.ffi import create_proxy
 
 def python_init(width=40, height=25, title="Jogo"):
     js_game_init(width, height, title)
@@ -967,7 +968,7 @@ def python_time():
     return js_game_time()
 
 def python_loop(funcao_de_atualizacao):
-    js_game_loop(funcao_de_atualizacao)
+    js_game_loop(create_proxy(funcao_de_atualizacao))
 
 _game_mod = types.ModuleType('game')
 _game_mod.init = python_init
