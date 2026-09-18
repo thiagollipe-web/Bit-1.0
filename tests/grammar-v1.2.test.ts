@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { tokenize } from '../src/lexer.ts';
 import { parse } from '../src/parser.ts';
 
-describe('BIT 1.2 - gramática', () => {
-  it('aceita programa de jogo escrito como texto .bit', () => {
+describe('MicroConda 1.0 - gramática', () => {
+  it('aceita programa de jogo escrito como texto .micro', () => {
     const code = `
       tela 320x180
       fundo preto
