@@ -2,10 +2,10 @@ import { Expr, Stmt } from '../types.ts';
 import { Builtin } from './builtins.ts';
 import { Actor } from '../runtime/actor.ts';
 
-export class BitRuntimeError extends Error {
+export class MicroCondaRuntimeError extends Error {
   constructor(message: string) {
     super(message);
-    this.name = 'BitRuntimeError';
+    this.name = 'MicroCondaRuntimeError';
   }
 }
 
@@ -41,7 +41,7 @@ export class Environment {
       this.parent.assign(name, value);
       return;
     }
-    throw new BitRuntimeError(`A variável "${name}" não foi criada.`);
+    throw new MicroCondaRuntimeError(`A variável "${name}" não foi criada.`);
   }
 
   has(name: string): boolean {
@@ -62,7 +62,7 @@ function numberValue(value: unknown, context: string): number {
     const n = Number(value);
     if (Number.isFinite(n)) return n;
   }
-  throw new BitRuntimeError(`${context} precisa ser um número.`);
+  throw new MicroCondaRuntimeError(`${context} precisa ser um número.`);
 }
 
 export class Interpreter {
@@ -91,7 +91,7 @@ export class Interpreter {
   private tick(): void {
     this.instructionCount++;
     if (this.instructionCount > this.maxInstructions) {
-      throw new BitRuntimeError('Limite de execução excedido. Verifique laços que podem nunca terminar.');
+      throw new MicroCondaRuntimeError('Limite de execução excedido. Verifique laços que podem nunca terminar.');
     }
   }
 
@@ -122,7 +122,7 @@ export class Interpreter {
           if (name in actor.props) return actor.props[name];
         }
 
-        throw new BitRuntimeError(`Identificador "${expr.name}" não existe.`);
+        throw new MicroCondaRuntimeError(`Identificador "${expr.name}" não existe.`);
       }
 
       case 'binary': {
@@ -144,7 +144,7 @@ export class Interpreter {
         const val = this.evalExpr(expr.expr, env);
         if (expr.op === '-') return -numberValue(val, 'Operação unária');
         if (expr.op === '!' || expr.op === 'nao' || expr.op === 'não') return !val;
-        throw new BitRuntimeError(`Operador unário "${expr.op}" não suportado.`);
+        throw new MicroCondaRuntimeError(`Operador unário "${expr.op}" não suportado.`);
       }
 
       case 'member': {
@@ -164,7 +164,7 @@ export class Interpreter {
           if (prop === 'angulo' || prop === 'ângulo') return obj.angle;
           if (prop === 'alfa' || prop === 'opacidade') return obj.opacity;
           if (prop in obj.props) return obj.props[prop];
-          throw new BitRuntimeError(`A propriedade "${expr.property}" não existe no ator "${obj.name}".`);
+          throw new MicroCondaRuntimeError(`A propriedade "${expr.property}" não existe no ator "${obj.name}".`);
         }
 
         if (obj && typeof obj === 'object') {
@@ -172,7 +172,7 @@ export class Interpreter {
           if (key) return (obj as Record<string, unknown>)[key];
         }
 
-        throw new BitRuntimeError(`Não é possível acessar a propriedade "${expr.property}".`);
+        throw new MicroCondaRuntimeError(`Não é possível acessar a propriedade "${expr.property}".`);
       }
 
       case 'call': {
@@ -185,11 +185,11 @@ export class Interpreter {
 
         const userFn = env.get(calleeName) as UserFunction | undefined;
         if (!userFn || !userFn.params || !userFn.body) {
-          throw new BitRuntimeError(`A função "${expr.callee}" não existe.`);
+          throw new MicroCondaRuntimeError(`A função "${expr.callee}" não existe.`);
         }
 
         if (args.length !== userFn.params.length) {
-          throw new BitRuntimeError(
+          throw new MicroCondaRuntimeError(
             `A função "${expr.callee}" esperava ${userFn.params.length} argumento(s), mas recebeu ${args.length}.`
           );
         }
@@ -224,12 +224,12 @@ export class Interpreter {
         return numberValue(left, 'Multiplicação') * numberValue(right, 'Multiplicação');
       case '/': {
         const divisor = numberValue(right, 'Divisão');
-        if (divisor === 0) throw new BitRuntimeError('Divisão por zero não é permitida.');
+        if (divisor === 0) throw new MicroCondaRuntimeError('Divisão por zero não é permitida.');
         return numberValue(left, 'Divisão') / divisor;
       }
       case '%': {
         const divisor = numberValue(right, 'Módulo');
-        if (divisor === 0) throw new BitRuntimeError('Módulo por zero não é permitido.');
+        if (divisor === 0) throw new MicroCondaRuntimeError('Módulo por zero não é permitido.');
         return numberValue(left, 'Módulo') % divisor;
       }
       case '==':
@@ -245,7 +245,7 @@ export class Interpreter {
       case '>=':
         return numberValue(left, 'Comparação') >= numberValue(right, 'Comparação');
       default:
-        throw new BitRuntimeError(`Operador "${op}" não suportado.`);
+        throw new MicroCondaRuntimeError(`Operador "${op}" não suportado.`);
     }
   }
 
@@ -259,7 +259,7 @@ export class Interpreter {
         if (stmt.property) {
           const obj = env.get(stmt.target);
           if (!(obj instanceof Actor)) {
-            throw new BitRuntimeError(`"${stmt.target}" não é um ator válido.`);
+            throw new MicroCondaRuntimeError(`"${stmt.target}" não é um ator válido.`);
           }
 
           const prop = stmt.property.toLowerCase();
@@ -276,11 +276,11 @@ export class Interpreter {
           } else if (prop === 'ativo' || prop === 'visivel' || prop === 'visível') {
             obj.active = Boolean(value);
           } else if (prop === 'cor') {
-            if (!obj.shape) throw new BitRuntimeError(`O ator "${obj.name}" não possui desenho.`);
+            if (!obj.shape) throw new MicroCondaRuntimeError(`O ator "${obj.name}" não possui desenho.`);
             obj.shape.color = String(value);
           } else if (prop === 'texto' || prop === 'text') {
             if (!obj.shape || obj.shape.type !== 'texto') {
-              throw new BitRuntimeError(`O ator "${obj.name}" não possui texto editável.`);
+              throw new MicroCondaRuntimeError(`O ator "${obj.name}" não possui texto editável.`);
             }
             obj.shape.text = String(value);
           } else if (prop === 'angulo' || prop === 'ângulo') {
@@ -327,13 +327,13 @@ export class Interpreter {
         const start = numberValue(this.evalExpr(stmt.start, env), 'início do para');
         const end = numberValue(this.evalExpr(stmt.end, env), 'fim do para');
         const step = stmt.step ? numberValue(this.evalExpr(stmt.step, env), 'passo do para') : (start <= end ? 1 : -1);
-        if (step === 0) throw new BitRuntimeError('O passo do para não pode ser zero.');
+        if (step === 0) throw new MicroCondaRuntimeError('O passo do para não pode ser zero.');
 
         const scope = new Environment(env);
         let value = start;
         let iterations = 0;
         while (step > 0 ? value <= end : value >= end) {
-          if (++iterations > this.maxInstructions) throw new BitRuntimeError('Limite de execução excedido no para.');
+          if (++iterations > this.maxInstructions) throw new MicroCondaRuntimeError('Limite de execução excedido no para.');
           scope.set(stmt.variable, value);
           this.executeBlock(stmt.body, scope);
           value += step;
@@ -344,7 +344,7 @@ export class Interpreter {
       case 'while': {
         let iterations = 0;
         while (Boolean(this.evalExpr(stmt.cond, env))) {
-          if (++iterations > this.maxInstructions) throw new BitRuntimeError('Limite de execução excedido no enquanto.');
+          if (++iterations > this.maxInstructions) throw new MicroCondaRuntimeError('Limite de execução excedido no enquanto.');
           this.executeBlock(stmt.body, new Environment(env));
         }
         break;
@@ -365,7 +365,7 @@ export class Interpreter {
       }
 
       case 'turn': {
-        if (!this.currentActor) throw new BitRuntimeError('"vira" só pode ser usado dentro de um ator.');
+        if (!this.currentActor) throw new MicroCondaRuntimeError('"vira" só pode ser usado dentro de um ator.');
         this.currentActor.angle = (this.currentActor.angle + numberValue(this.evalExpr(stmt.angle, env), 'Ângulo')) % 360;
         break;
       }
@@ -390,10 +390,10 @@ export class Interpreter {
       else if (prop === 'angulo' || prop === 'ângulo') actor.angle = n;
       else actor.opacity = Math.max(0, Math.min(1, n));
     } else if (prop === 'cor') {
-      if (!actor.shape) throw new BitRuntimeError(`O ator "${actor.name}" não possui desenho.`);
+      if (!actor.shape) throw new MicroCondaRuntimeError(`O ator "${actor.name}" não possui desenho.`);
       actor.shape.color = String(value);
     } else if (prop === 'texto' || prop === 'text') {
-      if (!actor.shape || actor.shape.type !== 'texto') throw new BitRuntimeError(`O ator "${actor.name}" não possui texto editável.`);
+      if (!actor.shape || actor.shape.type !== 'texto') throw new MicroCondaRuntimeError(`O ator "${actor.name}" não possui texto editável.`);
       actor.shape.text = String(value);
     } else {
       actor.active = Boolean(value);
