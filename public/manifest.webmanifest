@@ -1,11 +1,11 @@
 {
-  "name": "Bit 1.0 — Criação de Jogos 2D",
-  "short_name": "Bit 1.0",
+  "name": "MicroConda Studio — Criação de Jogos 2D",
+  "short_name": "MicroConda",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0f1016",
-  "theme_color": "#1a1b26",
-  "description": "Linguagem educacional para criação de jogos 2D no navegador e mobile",
+  "background_color": "#030604",
+  "theme_color": "#0b1f14",
+  "description": "Ambiente educacional para criar e executar jogos 2D com a linguagem MicroConda.",
   "icons": [
     {
       "src": "favicon.ico",
