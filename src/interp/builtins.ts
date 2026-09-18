@@ -87,21 +87,21 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
   // Funções matemáticas e utilitárias adicionais
   const limitarFn: Builtin = (args: unknown[]): number => {
     const val = Number(args[0]) || 0;
-    const min = Number(args[1]) || 0;
-    const max = Number(args[2]) || 0;
+    const min = Number(args[1]);
+    const max = Number(args[2]);
     return Math.min(Math.max(val, min), max);
   };
 
   const interpolarFn: Builtin = (args: unknown[]): number => {
     const a = Number(args[0]) || 0;
     const b = Number(args[1]) || 0;
-    const t = Number(args[2]) || 0;
+    const t = Number(args[2]);
     return a + (b - a) * Math.min(Math.max(t, 0), 1);
   };
 
   const potenciaFn: Builtin = (args: unknown[]): number => {
-    const base = Number(args[0]) || 0;
-    const exp = Number(args[1]) || 0;
+    const base = Number(args[0]);
+    const exp = Number(args[1]);
     return Math.pow(base, exp);
   };
 
@@ -132,7 +132,7 @@ export function createBuiltins(context?: Partial<BuiltinContext>): Map<string, B
   };
 
   const paraNumeroFn: Builtin = (args: unknown[]): number => {
-    return Number(args[0]) || 0;
+    return Number(args[0]);
   };
 
   // Persistência local no navegador (gravação de recordes/estados)
