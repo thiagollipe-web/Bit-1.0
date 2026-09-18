@@ -57,6 +57,15 @@ describe('Built-ins - Tipos de retorno e Nomes acentuados', () => {
     expect(builtins.get('limitar')!([0, -5, 5])).toBe(0);
   });
 
+  it('reconhece aliases de teclado do jogo', () => {
+    const pressed = new Set(['arrowright', ' ']);
+    const builtins = createBuiltins({ isKeyDown: (key) => pressed.has(key) });
+    expect(builtins.get('tecla')!(['direita'])).toBe(true);
+    expect(builtins.get('tecla')!(['d'])).toBe(true);
+    expect(builtins.get('tecla')!(['espaco'])).toBe(true);
+    expect(builtins.get('tecla')!(['esquerda'])).toBe(false);
+  });
+
   it('funções matemáticas retornam number', () => {
     const builtins = createBuiltins();
 
