@@ -53,7 +53,20 @@ export class Game {
 
     // Set up Builtin Context with real mouse and touch tracking
     const builtinCtx: BuiltinContext = {
-      isKeyDown: (key) => this.keysDown.has(key.toLowerCase()),
+      isKeyDown: (key) => {
+        const normalized = key.toLowerCase().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '');
+        const aliases: Record<string, string[]> = {
+          esquerda: ['arrowleft', 'a'],
+          direita: ['arrowright', 'd'],
+          cima: ['arrowup', 'w'],
+          baixo: ['arrowdown', 's'],
+          espaco: [' ', 'space'],
+          barra_de_espaco: [' ', 'space'],
+          enter: ['enter']
+        };
+        const candidates = aliases[normalized] ?? [normalized];
+        return candidates.some(candidate => this.keysDown.has(candidate));
+      },
       isTouchActive: () => this.input.touchActive,
       getMousePos: () => ({
         x: this.input.touchX ?? 0,
