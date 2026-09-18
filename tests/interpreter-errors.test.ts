@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { tokenize } from '../src/lexer.ts';
 import { parse } from '../src/parser.ts';
 import { createBuiltins } from '../src/interp/builtins.ts';
-import { Interpreter, BitRuntimeError, Environment } from '../src/interp/interpreter.ts';
+import { Interpreter, MicroCondaRuntimeError, Environment } from '../src/interp/interpreter.ts';
 
 function run(code: string) {
   const ast = parse(tokenize(code));
@@ -11,9 +11,9 @@ function run(code: string) {
   return interpreter;
 }
 
-describe('BIT runtime safety', () => {
+describe('MicroConda runtime safety', () => {
   it('reports unknown identifiers instead of converting them to zero', () => {
-    expect(() => run('resultado recebe inexistente + 1')).toThrow(BitRuntimeError);
+    expect(() => run('resultado recebe inexistente + 1')).toThrow(MicroCondaRuntimeError);
   });
 
   it('reports division by zero', () => {
