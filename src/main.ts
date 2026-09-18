@@ -11,6 +11,7 @@ const modal=document.getElementById('modal') as HTMLDivElement;
 const modalTitle=document.getElementById('modalTitle') as HTMLElement;
 const modalBody=document.getElementById('modalBody') as HTMLElement;
 const fileInput=document.getElementById('file') as HTMLInputElement;
+const engineEl=document.getElementById('engine') as HTMLElement;
 let game:ReturnType<typeof criarJogoMicroConda>['game']|null=null;
 let autosaveTimer: ReturnType<typeof setTimeout>|undefined;
 let currentTitle='Meu Projeto';
@@ -27,8 +28,8 @@ function log(message:string,error=false){const line=document.createElement('div'
 function setModal(title:string,body:HTMLElement|string){modalTitle.textContent=title;modalBody.replaceChildren();if(typeof body==='string')modalBody.innerHTML=body;else modalBody.appendChild(body);modal.classList.remove('hidden');}
 function saveLocal(){try{localStorage.setItem(STORAGE_CODE,editor.value);localStorage.setItem(STORAGE_TITLE,currentTitle);saveState.textContent='Salvo';}catch{saveState.textContent='Não foi possível salvar';}}
 function loadLocal(){try{editor.value=localStorage.getItem(STORAGE_CODE)||EXAMPLES.movimento;currentTitle=localStorage.getItem(STORAGE_TITLE)||'Meu Projeto';}catch{editor.value=EXAMPLES.movimento;currentTitle='Meu Projeto';}titleEl.textContent=currentTitle;}
-function stopGame(){if(game){game.stop();game=null;}document.getElementById('engine')!.textContent='MicroConda Runtime parado';}
-function runGame(){stopGame();consoleEl.textContent='';log('Compilando programa MicroConda...');try{const result=criarJogoMicroConda(editor.value,canvas);game=result.game;canvas.width=result.ast.screenWidth;canvas.height=result.ast.screenHeight;game.start();log('Executando '+result.ast.screenWidth+'x'+result.ast.screenHeight+'.');document.getElementById('engine')!.textContent='MicroConda Runtime em execução';}catch(error){log(error instanceof Error?error.message:String(error),true);document.getElementById('engine')!.textContent='Erro de execução';}}
+function stopGame(){if(game){game.stop();game=null;}engineEl.textContent='MicroConda Runtime parado';}
+function runGame(){stopGame();consoleEl.textContent='';log('Compilando programa MicroConda...');try{const result=criarJogoMicroConda(editor.value,canvas);game=result.game;canvas.width=result.ast.screenWidth;canvas.height=result.ast.screenHeight;game.start();log('Executando '+result.ast.screenWidth+'x'+result.ast.screenHeight+'.');engineEl.textContent='MicroConda Runtime em execução';}catch(error){log(error instanceof Error?error.message:String(error),true);engineEl.textContent='Erro de execução';}}
 function exportCode(){const blob=new Blob([editor.value],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(currentTitle.replace(/[^\p{L}\p{N}_-]+/gu,'_')||'projeto')+'.micro';a.click();URL.revokeObjectURL(a.href);}
 editor.addEventListener('input',()=>{saveState.textContent='Editando...';if(autosaveTimer)clearTimeout(autosaveTimer);autosaveTimer=setTimeout(saveLocal,300);});
 editor.addEventListener('click',updateCursor);editor.addEventListener('keyup',updateCursor);
