@@ -17,6 +17,13 @@
 <main class="main">
 <section class="panel left">
   <div class="section-title">Conversa com o agente</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:7px">
+    <select id="ai-provider" style="background:#060b0d;color:var(--text);border:1px solid var(--line);padding:8px">
+      <option value="maritaca">Maritaca AI</option>
+      <option value="ollama">Ollama</option>
+    </select>
+    <input id="ai-model" placeholder="modelo (opcional)" style="background:#060b0d;color:var(--text);border:1px solid var(--line);padding:8px;min-width:0">
+  </div>
   <div id="chat" class="chat"><div id="chat-log" class="chat-log"></div><div class="chatbar"><input id="chat-input" placeholder="Ex.: Meu cachorro se chama Thor" autocomplete="off"><button id="chat-send">Enviar</button></div></div>
   <div class="chips">
     <button class="chip" data-chat="Aprenda que Guinho é meu chatbot.">Aprender</button>
@@ -40,7 +47,7 @@
   <div id="validation" class="validation">Aguardando validação.</div>
   <div class="symbolic"><div class="section-title">Processamento simbólico</div><div id="symbolic-intent">Intenção: —</div><div id="symbolic-confidence">Confiança: —</div><div id="symbolic-entities">Entidades: —</div><div id="symbolic-trace" class="trace" style="margin-top:8px"></div></div>
   <div class="section-title" style="margin-top:16px">Console do agente</div><div id="agent-log" class="log"></div>
-  <div class="hint">O motor simbólico não usa modelo de IA para interpretar fatos, contexto, consultas, regras ou memória. A camada Gemini continua opcional para linguagem generativa.</div>
+  <div class="hint">O motor simbólico não usa modelo de IA para interpretar fatos, contexto, consultas, regras ou memória. As respostas generativas usam o backend seguro e podem usar Maritaca AI ou Ollama. As chaves ficam somente no servidor.</div>
 </section>
 </main>
 </div>
