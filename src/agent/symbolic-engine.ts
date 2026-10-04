@@ -446,26 +446,25 @@ export class SymbolicEngine {
     const features: string[] = [];
     const entities: string[] = extractQuoted(text);
 
-    const candidates: Array<[IntentName, number, string[]]> = [
-      ['consultar_memoria', this.scoreIntent(n, [/\b(qual|quem|onde|como se chama) (e|é) meu\b/, /mostre (a )?memoria/, /o que voce sabe/], ['memoria', 'nome', 'sabe']), ['consulta']],
-      ['aprender_fato', this.scoreIntent(n, [/\b(meu nome|se chama|e meu|é meu)\b/, /\b(aprenda|ensine|guarde)\b/], ['aprender', 'ensine', 'memorize']), ['aprendizado']],
-      ['corrigir_conhecimento', this.scoreIntent(n, [/\b(corrija|na verdade|esta errado|está errado)\b/], ['corrigir']), ['correcao']],
-      ['esquecer_conhecimento', this.scoreIntent(n, [/\b(esqueca|apague|remova|delete)\b/], ['esquecer']), ['esquecimento']],
-      ['consultar_conhecimento', this.scoreIntent(n, [/\b(o que e|o que é|quem e|quem é|usa|tem|possui)\b/], ['o que é', 'usa']), ['consulta_grafo']],
-      ['diagnostico', this.scoreIntent(n, [/\b(caiu|nao responde|não responde|erro|falha|bug|problema|diagnostique)\b/], ['diagnostico', 'problema', 'falha', 'caiu']), ['diagnostico']],
-      ['assunto_programacao', this.scoreIntent(n, [/\b(python|javascript|typescript|programacao|programação|codigo|código)\b/], ['programacao', 'codigo']), ['programacao']],
-      ['alterar_projeto', this.scoreIntent(n, [/\b(adicione|adicionar|remova|remover|mude|troque|altere|corrija)\b/], ['projeto', 'codigo', 'jogo']), ['edicao']],
-      ['criar_jogo', this.scoreIntent(n, [/\b(crie|criar|faça|faca|desenvolva)\b.*\b(jogo|pong|shooter|plataforma)\b/], ['jogo']), ['criacao']],
-      ['explicar_codigo', this.scoreIntent(n, [/\b(explique|explica|como funciona)\b/], ['explicar']), ['explicacao']],
-      ['calcular', this.scoreIntent(n, [/\b(calcule|quanto e|quanto é)\b.*[0-9]/], ['calcule', 'quanto']), ['matematica']],
-      ['calendario', this.scoreIntent(n, [/\b(hoje|amanha|amanhã|data|hora|dia da semana)\b/], ['hoje', 'data', 'hora']), ['tempo']],
-      ['comando', this.scoreIntent(n, [/^\/(memoria|contexto|limpar|ajuda|conhecimento)/], ['comando']), ['comando']],
-      ['pergunta_geral', /[?？]\s*$/.test(text) || /^(como|por que|porque|quando|onde|qual|quais|quem|o que|me explique)\b/.test(n) ? 0.52 : 0, ['pergunta']],
-      ['conversa', 0.16, ['conversa']]
+    const candidates: Array<{ intent: IntentName; confidence: number; features: string[] }> = [
+      { intent: 'consultar_memoria', confidence: this.scoreIntent(n, [/\b(qual|quem|onde|como se chama) (e|é) meu\b/, /mostre (a )?memoria/, /o que voce sabe/], ['memoria', 'nome', 'sabe']), features: ['consulta'] },
+      { intent: 'aprender_fato', confidence: this.scoreIntent(n, [/\b(meu nome|se chama|e meu|é meu)\b/, /\b(aprenda|ensine|guarde)\b/], ['aprender', 'ensine', 'memorize']), features: ['aprendizado'] },
+      { intent: 'corrigir_conhecimento', confidence: this.scoreIntent(n, [/\b(corrija|na verdade|esta errado|está errado)\b/], ['corrigir']), features: ['correcao'] },
+      { intent: 'esquecer_conhecimento', confidence: this.scoreIntent(n, [/\b(esqueca|apague|remova|delete)\b/], ['esquecer']), features: ['esquecimento'] },
+      { intent: 'consultar_conhecimento', confidence: this.scoreIntent(n, [/\b(o que e|o que é|quem e|quem é|usa|tem|possui)\b/], ['o que é', 'usa']), features: ['consulta_grafo'] },
+      { intent: 'diagnostico', confidence: this.scoreIntent(n, [/\b(caiu|nao responde|não responde|erro|falha|bug|problema|diagnostique)\b/], ['diagnostico', 'problema', 'falha', 'caiu']), features: ['diagnostico'] },
+      { intent: 'assunto_programacao', confidence: this.scoreIntent(n, [/\b(python|javascript|typescript|programacao|programação|codigo|código)\b/], ['programacao', 'codigo']), features: ['programacao'] },
+      { intent: 'alterar_projeto', confidence: this.scoreIntent(n, [/\b(adicione|adicionar|remova|remover|mude|troque|altere|corrija)\b/], ['projeto', 'codigo', 'jogo']), features: ['edicao'] },
+      { intent: 'criar_jogo', confidence: this.scoreIntent(n, [/\b(crie|criar|faça|faca|desenvolva)\b.*\b(jogo|pong|shooter|plataforma)\b/], ['jogo']), features: ['criacao'] },
+      { intent: 'explicar_codigo', confidence: this.scoreIntent(n, [/\b(explique|explica|como funciona)\b/], ['explicar']), features: ['explicacao'] },
+      { intent: 'calcular', confidence: this.scoreIntent(n, [/\b(calcule|quanto e|quanto é)\b.*[0-9]/], ['calcule', 'quanto']), features: ['matematica'] },
+      { intent: 'calendario', confidence: this.scoreIntent(n, [/\b(hoje|amanha|amanhã|data|hora|dia da semana)\b/], ['hoje', 'data', 'hora']), features: ['tempo'] },
+      { intent: 'comando', confidence: this.scoreIntent(n, [/^\/(memoria|contexto|limpar|ajuda|conhecimento)/], ['comando']), features: ['comando'] },
+      { intent: 'pergunta_geral', confidence: /[?？]\s*$/.test(text) || /^(como|por que|porque|quando|onde|qual|quais|quem|o que|me explique)\b/.test(n) ? 0.52 : 0, features: ['pergunta'] },
+      { intent: 'conversa', confidence: 0.16, features: ['conversa'] }
     ];
-
-    candidates.sort((a, b) => b[1] - a[1]);
-    const [intent, confidence, intentFeatures] = candidates[0];
+    candidates.sort((a, b) => b.confidence - a.confidence);
+    const { intent, confidence, features: intentFeatures } = candidates[0];
     if (confidence > 0.45) features.push(...intentFeatures);
     if (/\b(servidor|server|backend|host)\b/i.test(n)) entities.push('servidor');
     if (/\b(guinho|bot|chatbot)\b/i.test(n)) entities.push('Guinho');
