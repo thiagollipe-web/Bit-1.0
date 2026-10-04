@@ -24,7 +24,7 @@ const contextStage = document.querySelector<HTMLElement>('#context-stage')!;
 const contextPending = document.querySelector<HTMLElement>('#context-pending')!;
 const knowledgeFile = document.querySelector<HTMLInputElement>('#knowledge-file')!;
 async function askBackend(prompt: string) {
-  const response = await fetch('/api/ai/chat', {
+  const response = await fetch('https://bit-1-0-git-main-dev-ai3.vercel.app/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ prompt, currentCode: codeEditor.value })
@@ -176,12 +176,19 @@ function handleChat() {
   const isProject = result.intent.intent === 'criar_jogo' || result.intent.intent === 'alterar_projeto';
   if (isProject) executePlan(text);
 
-  if (result.intent.intent === 'pergunta_geral' || result.intent.intent === 'conversa') {
-    chat('system', 'Consultando a IA no backend...');
-    askBackend(text)
-      .then(reply => { chat('bot', reply); log('Resposta generativa recebida.'); })
-      .catch(error => { chat('system', 'Backend de IA: ' + (error instanceof Error ? error.message : String(error))); log('Falha na IA generativa.'); });
-  }
+  // O chat é generativo por padrão. O motor simbólico continua fornecendo
+  // memória/contexto, mas não bloqueia perguntas que ele não reconheça.
+  chat('system', 'Consultando a IA...');
+  askBackend(text)
+    .then(reply => {
+      chat('bot', reply);
+      log('Resposta da IA recebida.');
+    })
+    .catch(error => {
+      const message = error instanceof Error ? error.message : String(error);
+      chat('system', 'Não foi possível obter resposta da IA: ' + message);
+      log('Falha na IA generativa: ' + message);
+    });
 }
 
 document.querySelector('#chat-send')?.addEventListener('click', handleChat);
