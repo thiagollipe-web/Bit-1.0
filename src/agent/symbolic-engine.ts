@@ -314,6 +314,7 @@ export class SymbolicEngine {
   }
 
   private persist() {
+    if (typeof localStorage === 'undefined') return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       memory: this.memory.serialize(),
       graph: this.graph.edges,
@@ -322,6 +323,7 @@ export class SymbolicEngine {
   }
 
   restore() {
+    if (typeof localStorage === 'undefined') return;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
@@ -461,8 +463,6 @@ export class SymbolicEngine {
   }
 
   private learnFromSentence(text: string, trace: string[]): boolean {
-    const n = normalize(text);
-
     const alias = text.match(/(?:quando eu disser|quando eu falar)\s+[“"]?([^”"]+)[”"]?,?\s*(?:estou falando de|significa|quer dizer)\s+(.+)/i);
     if (alias) {
       this.memory.learnAlias(alias[1].trim(), alias[2].trim().replace(/[.!?]$/, ''));
@@ -501,7 +501,6 @@ export class SymbolicEngine {
         this.graph.fromFacts(this.memory.facts);
         trace.push(`fato aprendido: ${subject} → ${relation} → ${object}`);
         return true;
-      }
     }
 
     const naturalTriple = text.match(/^\s*([A-Za-zÀ-ÿ0-9_-]+)\s+(é|e|usa|tem|possui)\s+(.+)\s*\.?$/i);
