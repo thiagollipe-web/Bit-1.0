@@ -13,6 +13,19 @@ describe('Motor simbólico do Bit Agent', () => {
     expect(engine.handle('Como se chama meu cachorro?').reply).toContain('Thor');
   });
 
+  it('aprende alias e permite corrigir ou esquecer relações', () => {
+    const engine = new SymbolicEngine();
+    engine.clearMemory();
+
+    engine.handle('Quando eu disser "Guinho", estou falando do meu chatbot.');
+    engine.handle('Guinho é um chatbot');
+    engine.handle('Corrija: Guinho é um assistente');
+    expect(engine.handle('O que é Guinho?').reply).toContain('assistente');
+
+    engine.handle('Esqueça que Guinho é um assistente');
+    expect(engine.handle('O que é Guinho?').reply).toContain('não encontrei');
+  });
+
   it('cria relações no grafo de conhecimento', () => {
     const engine = new SymbolicEngine();
     engine.clearMemory();
