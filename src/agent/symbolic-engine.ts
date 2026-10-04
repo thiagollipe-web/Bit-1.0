@@ -262,6 +262,11 @@ export class KnowledgeGraph {
     return edge;
   }
 
+  rebuild(facts: Fact[]) {
+    this.edges = [];
+    this.fromFacts(facts);
+  }
+
   fromFacts(facts: Fact[]) {
     for (const fact of facts) {
       this.upsert({
@@ -330,7 +335,7 @@ export class SymbolicEngine {
       const data = JSON.parse(raw);
       this.memory.hydrate(data.memory);
       if (Array.isArray(data.graph)) this.graph.edges = data.graph;
-      else this.graph.fromFacts(this.memory.facts);
+      else this.graph.rebuild(this.memory.facts);
       Object.assign(this.context, data.context ?? {});
     } catch {
       // Memória corrompida não impede o bot de funcionar.
