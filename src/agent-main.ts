@@ -23,16 +23,11 @@ const contextTopic = document.querySelector<HTMLElement>('#context-topic')!;
 const contextStage = document.querySelector<HTMLElement>('#context-stage')!;
 const contextPending = document.querySelector<HTMLElement>('#context-pending')!;
 const knowledgeFile = document.querySelector<HTMLInputElement>('#knowledge-file')!;
-const aiProvider = document.querySelector<HTMLSelectElement>('#ai-provider');
-const aiModel = document.querySelector<HTMLInputElement>('#ai-model');
-
 async function askBackend(prompt: string) {
-  const provider = aiProvider?.value === 'ollama' ? 'ollama' : 'maritaca';
-  const model = aiModel?.value.trim() || undefined;
-  const response = await fetch('https://bit-1-0-git-main-dev-ai3.vercel.app/api/ai/chat', {
+  const response = await fetch('/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ provider, model, prompt, currentCode: codeEditor.value })
+    body: JSON.stringify({ prompt, currentCode: codeEditor.value })
   });
   const data = await response.json();
   if (!response.ok || !data.success) throw new Error(data.error || 'Falha no backend de IA.');
