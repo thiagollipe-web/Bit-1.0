@@ -402,7 +402,9 @@ export class SymbolicEngine {
         when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.respondendo'] === false,
         then: e => {
           e.context.etapa = 'verificar_processo';
-          return 'Então o problema provavelmente está antes da aplicação. Vamos verificar se o processo do servidor está rodando.';
+          e.context.ultimaPergunta = 'O processo do servidor está rodando?';
+          e.context.pendencia = 'servidor.processo';
+          return 'Então o problema provavelmente está antes da aplicação. O processo do servidor está rodando?';
         }
       },
       {
@@ -411,7 +413,9 @@ export class SymbolicEngine {
         when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.processo'] === false,
         then: e => {
           e.context.etapa = 'iniciar_processo';
-          return 'O processo não está rodando. O próximo passo é tentar iniciar o processo e observar o resultado.';
+          e.context.ultimaPergunta = 'Deseja tentar iniciar o processo?';
+          e.context.pendencia = 'servidor.inicio';
+          return 'O processo não está rodando. Deseja tentar iniciar o processo?';
         }
       },
       {
