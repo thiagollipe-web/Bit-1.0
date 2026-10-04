@@ -694,11 +694,21 @@ export class SymbolicEngine {
       else reply = 'Entendi a intenção de aprendizado, mas preciso de uma relação explícita. Exemplo: “Meu cachorro se chama Thor”.';
     }
     if (!reply && intent.intent === 'corrigir_conhecimento') {
-      const corrected = raw.match(/(?:corrija|na verdade).+?\b(?:é|e|usa|tem)\s+(.+)/i);
-      if (corrected) {
-        const learned = this.learnFromSentence(raw.replace(/^(?:corrija|na verdade)\s+/i, ''), trace);
-        changed = learned;
-        reply = learned ? 'Conhecimento corrigido.' : 'Preciso da forma corrigida, por exemplo: “Guinho é um chatbot”.';
+      const statement = raw.replace(/^(?:corrija|na verdade)[:\s]+/i, '').trim();
+      const triple = statement.match(/^([A-Za-zÀ-ÿ0-9_-]+)\s+(é|e|usa|tem|possui)\s+(.+?)\s*\.?$/i);
+      if (triple) {
+        const subject = triple[1].trim();
+        const relation = /^(e|é)$/i.test(triple[2]) ? 'é' : normalize(triple[2]);
+        const object = triple[3].trim().replace(/[.!?]$/, '');
+        const removed = this.memory.removeFacts(subject, relation);
+        this.memory.addFact(subject, relation, object);
+        this.graph.rebuild(this.memory.facts);
+        trace.push(`correção: removidos ${removed} fato(s) de ${subject} → ${relation}`);
+        trace.push(`novo fato: ${subject} → ${relation} → ${object}`);
+        changed = true;
+        reply = 'Conhecimento corrigido. Mantive apenas a relação mais recente.';
+      } else {
+        reply = 'Preciso da forma corrigida, por exemplo: “Corrija: Guinho é um assistente”.';
       }
     }
     if (!reply && intent.intent === 'esquecer_conhecimento') {
