@@ -413,9 +413,9 @@ export class SymbolicEngine {
         when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.processo'] === false && e.context.estados['servidor.inicioFalhou'] === undefined,
         then: e => {
           e.context.etapa = 'iniciar_processo';
-          e.context.ultimaPergunta = 'Deseja tentar iniciar o processo?';
+          e.context.ultimaPergunta = 'O processo iniciou corretamente?';
           e.context.pendencia = 'servidor.inicio';
-          return 'O processo não está rodando. Deseja tentar iniciar o processo?';
+          return 'O processo não está rodando. Tente iniciá-lo e me diga: o processo iniciou corretamente?';
         }
       },
       {
