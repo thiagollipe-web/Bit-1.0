@@ -399,7 +399,7 @@ export class SymbolicEngine {
       {
         id: 'server-offline',
         description: 'Servidor não responde',
-        when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.respondendo'] === false,
+        when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.respondendo'] === false && e.context.estados['servidor.processo'] === undefined,
         then: e => {
           e.context.etapa = 'verificar_processo';
           e.context.ultimaPergunta = 'O processo do servidor está rodando?';
@@ -410,7 +410,7 @@ export class SymbolicEngine {
       {
         id: 'process-offline',
         description: 'Processo do servidor não está rodando',
-        when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.processo'] === false,
+        when: e => e.context.assunto === 'servidor' && e.context.estados['servidor.processo'] === false && e.context.estados['servidor.inicioFalhou'] === undefined,
         then: e => {
           e.context.etapa = 'iniciar_processo';
           e.context.ultimaPergunta = 'Deseja tentar iniciar o processo?';
