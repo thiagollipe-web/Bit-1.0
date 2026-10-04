@@ -1,8 +1,8 @@
 {
   "name": "bit-linguagem",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": false,
-  "description": "BIT — linguagem textual brasileira para criação de jogos 2D.",
+  "description": "BIT — linguagem textual brasileira para criação de jogos 2D com agente e motor simbólico.",
   "type": "module",
   "scripts": {
     "dev": "vite",
