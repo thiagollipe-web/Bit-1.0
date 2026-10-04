@@ -67,8 +67,20 @@ export default async function handler(req: any, res: any) {
 
   try {
     const body = (req.body || {}) as ChatRequest;
-    const provider = body.provider === 'ollama' ? 'ollama' : 'maritaca';
-    const model = body.model || (provider === 'ollama' ? (process.env.OLLAMA_MODEL || 'llama3.2') : (process.env.MARITACA_MODEL || 'sabia-4'));
+    // A interface não escolhe mais o provedor. O backend decide automaticamente.
+    const configured = (process.env.AI_PROVIDER || 'auto').toLowerCase();
+    const hasMaritaca = Boolean(process.env.MARITACA_API_KEY);
+    const hasOllama = Boolean(process.env.OLLAMA_API_KEY);
+    let provider: 'ollama' | 'maritaca';
+    if (configured === 'ollama' && hasOllama) provider = 'ollama';
+    else if (configured === 'maritaca' && hasMaritaca) provider = 'maritaca';
+    else if (hasMaritaca) provider = 'maritaca';
+    else if (hasOllama) provider = 'ollama';
+    else throw new Error('Nenhum provedor de IA configurado. Configure MARITACA_API_KEY ou OLLAMA_API_KEY na Vercel.');
+    const requestedModel = typeof body.model === 'string' ? body.model.trim() : '';
+    const model = requestedModel || (provider === 'ollama'
+      ? (process.env.OLLAMA_MODEL || 'llama3.2')
+      : (process.env.MARITACA_MODEL || 'sabia-4'));
     const messages = messagesFor(body);
     if (messages.length < 2) return json(res, 400, { success: false, error: 'Envie uma pergunta.' }, origin);
 
