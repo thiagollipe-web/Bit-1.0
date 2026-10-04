@@ -475,7 +475,7 @@ export class SymbolicEngine {
     const alias = text.match(/(?:quando eu disser|quando eu falar)\s+[“"]?([^”"]+)[”"]?,?\s*(?:estou falando de|significa|quer dizer)\s+(.+)/i);
     if (alias) {
       this.memory.learnAlias(alias[1].trim(), alias[2].trim().replace(/[.!?]$/, ''));
-      this.graph.fromFacts(this.memory.facts);
+      this.graph.rebuild(this.memory.facts);
       trace.push(`alias aprendido: ${alias[1].trim()} → ${alias[2].trim()}`);
       return true;
     }
@@ -484,7 +484,7 @@ export class SymbolicEngine {
     if (ownName) {
       const value = ownName[1].trim().replace(/[.!?]$/, '');
       this.memory.addFact('usuário', 'nome', value);
-      this.graph.fromFacts(this.memory.facts);
+      this.graph.rebuild(this.memory.facts);
       trace.push(`fato aprendido: usuário → nome → ${value}`);
       return true;
     }
@@ -494,22 +494,20 @@ export class SymbolicEngine {
       const subject = subjectName[1].trim().replace(/^meu\s+/i, 'meu ');
       const object = subjectName[2].trim().replace(/[.!?]$/, '');
       this.memory.addFact(subject, 'nome', object);
-      this.graph.fromFacts(this.memory.facts);
+      this.graph.rebuild(this.memory.facts);
       trace.push(`fato aprendido: ${subject} → nome → ${object}`);
       return true;
     }
 
-    const triple = text.match(/^\s*(?:aprenda que|ensine que|guarde que)\s+(.+?)\s+(?:e|é|usa|tem|possui|tem como|significa)\s+(.+)\s*\.?$/i);
+    const triple = text.match(/^\s*(?:aprenda que|ensine que|guarde que)\s+(.+?)\s+(é|e|usa|tem|possui|tem como|significa)\s+(.+)\s*\.?$/i);
     if (triple) {
-      const relationMatch = triple[1].match(/^(.+?)\s+(e|é|usa|tem|possui)$/i);
-      if (relationMatch) {
-        const subject = relationMatch[1].trim();
-        const relation = normalize(relationMatch[2]) === 'e' || normalize(relationMatch[2]) === 'é' ? 'é' : normalize(relationMatch[2]);
-        const object = triple[2].trim();
-        this.memory.addFact(subject, relation, object);
-        this.graph.fromFacts(this.memory.facts);
-        trace.push(`fato aprendido: ${subject} → ${relation} → ${object}`);
-        return true;
+      const subject = triple[1].trim();
+      const relation = /^(e|é)$/i.test(triple[2]) ? 'é' : normalize(triple[2]);
+      const object = triple[3].trim();
+      this.memory.addFact(subject, relation, object);
+      this.graph.rebuild(this.memory.facts);
+      trace.push(`fato aprendido: ${subject} → ${relation} → ${object}`);
+      return true;
     }
 
     const naturalTriple = text.match(/^\s*([A-Za-zÀ-ÿ0-9_-]+)\s+(é|e|usa|tem|possui)\s+(.+)\s*\.?$/i);
@@ -517,7 +515,7 @@ export class SymbolicEngine {
       const relation = /^(e|é)$/i.test(naturalTriple[2]) ? 'é' : normalize(naturalTriple[2]);
       const object = naturalTriple[3].trim().replace(/[.!?]$/, '');
       this.memory.addFact(naturalTriple[1], relation, object);
-      this.graph.fromFacts(this.memory.facts);
+      this.graph.rebuild(this.memory.facts);
       trace.push(`fato aprendido: ${naturalTriple[1]} → ${relation} → ${object}`);
       return true;
     }
