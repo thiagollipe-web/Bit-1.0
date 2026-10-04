@@ -23,6 +23,21 @@ const contextTopic = document.querySelector<HTMLElement>('#context-topic')!;
 const contextStage = document.querySelector<HTMLElement>('#context-stage')!;
 const contextPending = document.querySelector<HTMLElement>('#context-pending')!;
 const knowledgeFile = document.querySelector<HTMLInputElement>('#knowledge-file')!;
+const aiProvider = document.querySelector<HTMLSelectElement>('#ai-provider');
+const aiModel = document.querySelector<HTMLInputElement>('#ai-model');
+
+async function askBackend(prompt: string) {
+  const provider = aiProvider?.value === 'ollama' ? 'ollama' : 'maritaca';
+  const model = aiModel?.value.trim() || undefined;
+  const response = await fetch('https://bit-agent-backend.vercel.app/api/ai/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ provider, model, prompt, currentCode: codeEditor.value })
+  });
+  const data = await response.json();
+  if (!response.ok || !data.success) throw new Error(data.error || 'Falha no backend de IA.');
+  return data.reply as string;
+}
 
 let currentGame: ReturnType<typeof criarJogoBit>['game'] | null = null;
 let tasks: AgentTask[] = [];
@@ -165,6 +180,13 @@ function handleChat() {
 
   const isProject = result.intent.intent === 'criar_jogo' || result.intent.intent === 'alterar_projeto';
   if (isProject) executePlan(text);
+
+  if (result.intent.intent === 'pergunta_geral' || result.intent.intent === 'conversa') {
+    chat('system', 'Consultando a IA no backend...');
+    askBackend(text)
+      .then(reply => { chat('bot', reply); log('Resposta generativa recebida.'); })
+      .catch(error => { chat('system', 'Backend de IA: ' + (error instanceof Error ? error.message : String(error))); log('Falha na IA generativa.'); });
+  }
 }
 
 document.querySelector('#chat-send')?.addEventListener('click', handleChat);
