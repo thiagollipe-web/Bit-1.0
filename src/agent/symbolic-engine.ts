@@ -12,6 +12,7 @@ export type IntentName =
   | 'calcular'
   | 'calendario'
   | 'comando'
+  | 'pergunta_geral'
   | 'conversa';
 
 export interface Fact {
@@ -459,6 +460,7 @@ export class SymbolicEngine {
       ['calcular', this.scoreIntent(n, [/\b(calcule|quanto e|quanto é)\b.*[0-9]/], ['calcule', 'quanto']), ['matematica']],
       ['calendario', this.scoreIntent(n, [/\b(hoje|amanha|amanhã|data|hora|dia da semana)\b/], ['hoje', 'data', 'hora']), ['tempo']],
       ['comando', this.scoreIntent(n, [/^\/(memoria|contexto|limpar|ajuda|conhecimento)/], ['comando']), ['comando']],
+      ['pergunta_geral', /[?？]\s*$/.test(text) || /^(como|por que|porque|quando|onde|qual|quais|quem|o que|me explique)\b/.test(n) ? 0.52 : 0, ['pergunta']],
       ['conversa', 0.16, [], ['conversa']]
     ];
 
@@ -722,11 +724,15 @@ export class SymbolicEngine {
       reply = removed ? 'Esqueci o conhecimento solicitado.' : 'Não encontrei esse conhecimento na memória.';
     }
     if (!reply && intent.intent === 'diagnostico') reply = this.answerDiagnostics(raw, trace);
-    if (!reply && (intent.intent === 'consultar_memoria' || intent.intent === 'consultar_conhecimento')) reply = this.answerMemory(raw, trace) ?? this.answerGraph(raw, trace);
+    if (!reply && (intent.intent === 'consultar_memoria' || intent.intent === 'consultar_conhecimento' || intent.intent === 'pergunta_geral')) reply = this.answerMemory(raw, trace) ?? this.answerGraph(raw, trace);
     if (!reply) reply = this.runRules(trace);
     if (!reply && intent.intent === 'alterar_projeto') {
       reply = 'Entendi uma solicitação de alteração do projeto. O agente pode transformar essa intenção em tarefas e código Bit.';
       trace.push('ação pendente: alteração de projeto');
+    }
+    if (!reply && intent.intent === 'pergunta_geral') {
+      trace.push('pergunta reconhecida sem resposta na base simbólica');
+      reply = 'Aceitei a pergunta. Ainda não encontrei uma resposta na minha memória ou no grafo de conhecimento. Posso aprender essa informação se você me ensinar, ou a camada de IA generativa pode responder quando estiver conectada.';
     }
     if (!reply && intent.intent === 'criar_jogo') {
       reply = 'Entendi uma solicitação de criação de jogo. Vou transformar a intenção em um plano Bit.';
