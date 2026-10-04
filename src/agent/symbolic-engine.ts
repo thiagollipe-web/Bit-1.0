@@ -599,7 +599,10 @@ export class SymbolicEngine {
       return edges.length ? 'Sim.' : 'Não encontrei esse relacionamento na memória.';
     }
 
-    if (isWhat) trace.push('consulta de grafo sem correspondência direta');
+    if (isWhat) {
+      trace.push('consulta de grafo sem correspondência direta');
+      return 'Não encontrei esse conhecimento na memória.';
+    }
     return null;
   }
 
