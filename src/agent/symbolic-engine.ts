@@ -461,7 +461,7 @@ export class SymbolicEngine {
       ['calendario', this.scoreIntent(n, [/\b(hoje|amanha|amanhã|data|hora|dia da semana)\b/], ['hoje', 'data', 'hora']), ['tempo']],
       ['comando', this.scoreIntent(n, [/^\/(memoria|contexto|limpar|ajuda|conhecimento)/], ['comando']), ['comando']],
       ['pergunta_geral', /[?？]\s*$/.test(text) || /^(como|por que|porque|quando|onde|qual|quais|quem|o que|me explique)\b/.test(n) ? 0.52 : 0, ['pergunta']],
-      ['conversa', 0.16, [], ['conversa']]
+      ['conversa', 0.16, ['conversa']]
     ];
 
     candidates.sort((a, b) => b[1] - a[1]);
