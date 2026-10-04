@@ -29,7 +29,7 @@ const aiModel = document.querySelector<HTMLInputElement>('#ai-model');
 async function askBackend(prompt: string) {
   const provider = aiProvider?.value === 'ollama' ? 'ollama' : 'maritaca';
   const model = aiModel?.value.trim() || undefined;
-  const response = await fetch('https://bit-agent-backend.vercel.app/api/ai/chat', {
+  const response = await fetch('https://bit-1-0-git-main-dev-ai3.vercel.app/api/ai/chat', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ provider, model, prompt, currentCode: codeEditor.value })
