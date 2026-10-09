@@ -1,4 +1,0 @@
-tela 40x25
-fundo azul
-nome recebe "BIT"
-diga "Olá, " + nome

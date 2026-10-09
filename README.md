@@ -1,141 +1,20 @@
-# Bit Agent
+# NOMAD PWA
 
-O Bit Agent é uma camada de agente sobre a linguagem Bit para criar, modificar, validar e executar jogos 2D diretamente no navegador.
+Chat educacional com IA local no navegador, biblioteca de guias, caderno e exportação. Substitui o conteúdo anterior do Bit-1.0; versões anteriores continuam no histórico Git.
 
-## Motor simbólico
+## Usar
+Abra https://thiagollipe-web.github.io/Bit-1.0/ e instale pelo menu do Chrome. Em Modelo, selecione Qwen2.5 0.5B ou SmolLM2 360M e toque em Baixar / carregar IA. Requer WebGPU. O primeiro download precisa de internet e pode ocupar centenas de MB. Depois do download completo, recarregue o modelo em modo avião para confirmar o cache no aparelho. O navegador pode remover dados quando falta espaço. Exporte notas e conversas regularmente.
 
-A versão 1.3 adiciona um pequeno motor simbólico que funciona sem modelo generativo.
+A biblioteca e o caderno funcionam sem IA ou WebGPU após a instalação do cache. Respostas da IA aparecem progressivamente. Nenhuma pergunta é enviada a uma API de IA; downloads dos modelos usam servidores externos. O GGUF Android não é usado aqui; modelos MLC são baixados pelo WebLLM.
 
-```text
-Entrada
-  ↓
-normalização + aproximação
-  ↓
-intenção + entidades
-  ↓
-memória + contexto
-  ↓
-grafo de conhecimento
-  ↓
-regras de inferência
-  ↓
-resposta / tarefa / alteração
-```
-
-O núcleo inclui:
-
-- memória permanente no navegador usando localStorage;
-- memória de curto prazo com histórico das últimas interações;
-- intenções conversacionais;
-- entidades e aliases;
-- sinônimos com busca aproximada por distância de edição;
-- grafo de conhecimento em relações sujeito → relação → objeto;
-- regras de dedução para diagnóstico;
-- comandos de memória e conhecimento;
-- aprendizado explícito durante a conversa;
-- correção e esquecimento de conhecimento;
-- calculadora aritmética segura;
-- respostas de data e hora;
-- importação e exportação de conhecimento em JSON;
-- rastreamento simbólico explicável na interface.
-
-## Exemplos
-
-Ensinar fatos:
-
-```text
-Meu nome é Thiago
-Meu cachorro se chama Thor
-Guinho é meu chatbot
-Guinho usa servidor
-```
-
-Consultar:
-
-```text
-Qual é meu nome?
-Como se chama meu cachorro?
-O que é Guinho?
-O Guinho usa servidor?
-```
-
-Ensinar um alias:
-
-```text
-Quando eu disser "Guinho", estou falando do meu chatbot.
-```
-
-Diagnóstico contextual:
-
-```text
-Você: Meu servidor caiu.
-Bot: Ele ainda está respondendo na porta?
-Você: Não.
-Bot: Então o problema provavelmente está antes da aplicação. Vamos verificar se o processo do servidor está rodando.
-```
-
-O significado de uma resposta curta como "não" vem da pergunta armazenada no contexto.
-
-## Agente de programação
-
-O agente mantém o fluxo:
-
-```text
-Solicitação
-  ↓
-Interpretar intenção
-  ↓
-Consultar conhecimento
-  ↓
-Planejar alteração
-  ↓
-Gerar/modificar código Bit
-  ↓
-Validar lexer + parser
-  ↓
-Executar no Canvas
-```
-
-A interface permite conversar com o agente e também enviar uma tarefa diretamente para o planejador.
-
-Algumas alterações simbólicas já suportadas incluem adicionar moeda, adicionar inimigo, adicionar pontuação e trocar a cor do fundo. A arquitetura permite ampliar esse conjunto sem transformar o projeto em uma sequência de respostas fixas.
-
-## Interface
-
-O Agent Studio reúne:
-
-- chat simbólico;
-- plano de tarefas;
-- editor Bit;
-- validação;
-- Canvas;
-- estado da memória;
-- estado do contexto;
-- grafo de conhecimento;
-- traço do processamento simbólico;
-- importação/exportação JSON;
-- salvamento local do projeto;
-- exportação do arquivo `.bit`.
-
-## IA generativa opcional
-
-O servidor de desenvolvimento mantém `/api/ai/assistant` para integração com Google Gemini. Essa camada é opcional.
-
-Sem chave ou modelo generativo, o motor simbólico continua capaz de interpretar intenções, memorizar fatos, consultar relações, aplicar regras e executar o agente Bit localmente.
+## Wikipédia
+O botão abre https://pwa.kiwix.org/ em outra aba. O leitor e o ZIM precisam ser preparados separadamente. Alternativa Android: aplicativo Kiwix. Este projeto não inclui Wikipédia, leitor ZIM integrado ou RAG. Copie um trecho de um artigo para o chat para estudá-lo.
 
 ## Desenvolvimento
+Node 22 ou superior: `npm ci`, `npm test`, `npm run build`. Sirva a pasta dist por HTTP local ou HTTPS. O workflow publica no GitHub Pages. Dependências fixadas no package-lock.json. O aplicativo e worker são empacotados localmente; não dependem de CDN de JavaScript na execução.
 
-```bash
-npm install
-npm run dev
-```
+## Limites de validação
+Sintaxe e build verificados. Teste funcional em Chromium não concluído: o download do navegador de teste falhou. Geração WebGPU no Poco e reabertura do modelo sem rede precisam de teste no dispositivo. Modelos pequenos podem errar e têm contexto limitado.
 
-## Build e testes
-
-```bash
-npm run build
-npm test
-npm run verify
-```
-
-A linguagem Bit continua sendo a camada de programação de jogos. O motor simbólico fica acima dela: entende a solicitação e entrega decisões ao agente, sem substituir o lexer, o parser ou o runtime.
+## Referências e licenças
+WebLLM: https://github.com/mlc-ai/web-llm (Apache-2.0). As licenças de modelos e dependências permanecem aplicáveis. Kiwix é um projeto externo independente. Este NOMAD é um projeto educacional independente.
